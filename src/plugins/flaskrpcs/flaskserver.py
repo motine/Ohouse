@@ -21,7 +21,7 @@ class FlaskServer():
 
         # Setup debugging for app
         config = pm.getService("config")
-        cDebug = config.Config.getConfigItem("flask.debug").getValue()
+        cDebug = config.get("flask.debug")
         if cDebug: # log all actions on the XML-RPC interface
             def log_request(sender, **extra):
                 logger.info(">>> REQUEST %s:\n%s" % (request.path, request.data))
@@ -39,7 +39,7 @@ class FlaskServer():
     def runServer(self):
         """Starts up the server. It (will) support different config options via the config plugin."""
         config = pm.getService("config")
-        cWSGI = config.Config.getConfigItem("flask.wsgi").getValue()
+        cWSGI = config.get("flask.wsgi")
         if cWSGI:
             from flup.server.fcgi import WSGIServer
             WSGIServer(self._app, bindAddress=(self._host, self._port)).run()

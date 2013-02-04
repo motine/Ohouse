@@ -11,13 +11,13 @@ from flaskserver import FlaskServer
 def setup():
     config = pm.getService("config")
     # create default configurations (if they are not already in the database)
-    config.Config.installConfigItem(config.ConfigItem().setKey("flask.bind").setValue("0.0.0.0").setDesc("IP to bind the Flask RPC to."))
-    config.Config.installConfigItem(config.ConfigItem().setKey("flask.port").setValue(9001).setDesc("Port to bind the Flask RPC to."))
-    config.Config.installConfigItem(config.ConfigItem().setKey("flask.debug").setValue(True).setDesc("Write logging messages for the Flask RPC server."))
-    config.Config.installConfigItem(config.ConfigItem().setKey("flask.wsgi").setValue(True).setDesc("Use WSGI server instead of the development server."))
+    config.install("flask.bind", "0.0.0.0", "IP to bind the Flask RPC to.")
+    config.install("flask.port", 9001, "Port to bind the Flask RPC to.")
+    config.install("flask.debug", True, "Write logging messages for the Flask RPC server.")
+    config.install("flask.wsgi", False, "Use WSGI server instead of the development server.")
     # acquire configuration keys
-    cBind = config.Config.getConfigItem("flask.bind").getValue()
-    cPort = config.Config.getConfigItem("flask.port").getValue()
+    cBind = config.get("flask.bind")
+    cPort = config.get("flask.port")
 
     # create and register the RPC server
     flaskserver = FlaskServer(cBind, cPort)

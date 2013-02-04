@@ -1,6 +1,6 @@
 """
 Represents a storage for a _request_.
-The RPC plugin should create a context/initialize a new context when a new requets comes in.
+The RPC plugin creates a context/initialize a new context when a new requets comes in.
 The context module enforces the presence of a user_id, rpc_type and rpc_version like so:
     import amsoil.core.pluginmanager as pm
     contextKlass = pm.getService('context')

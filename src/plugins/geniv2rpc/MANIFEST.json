@@ -5,5 +5,5 @@
   "version" : 1,
   "implements" : ["geniv2rpc", "geni2adapterbase"],
   "loads-after" : ["xmlrpc", "config"],
-  "requires" : ["adapterregistry", "adapterbase", "context"]
+  "requires" : ["context"]
 }

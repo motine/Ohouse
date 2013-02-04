@@ -5,6 +5,8 @@ logger=amsoil.core.log.getLogger('configrpc')
 xmlrpc = pm.getService('xmlrpc')
 config = pm.getService("config")
 
+# TODO IMPORTANT: add authentication / authorization here
+
 class ConfigRPC(xmlrpc.Dispatcher):
     """
     """
@@ -18,11 +20,10 @@ class ConfigRPC(xmlrpc.Dispatcher):
         [ ..., [key, value, desc], ...]
         """
         result = []
-        items = config.Config.loadAllConfigItems()
+        items = config.getAll()
         for item in items:
-            result.append([item.key, item.getValue(), item.desc])
+            result.append([item['key'], item['value'], item['description']])
         return result
 
     def ChangeConfig(self, key, value):
-        item = config.Config.getConfigItem(key)
-        item.write(value)
+        item = config.set(key, value)

@@ -27,7 +27,7 @@ def printConfigs(keys):
 
 if __name__ == '__main__':
     transport = SafeTransportWithCert()
-    server = xmlrpclib.ServerProxy('https://127.0.0.1:8001/amconfig', transport=transport)
+    server = xmlrpclib.ServerProxy('https://127.0.0.1:9001/amconfig', transport=transport)
     
     while True:
         keys = server.ListConfigKeys() # reload the keys every time

@@ -21,17 +21,9 @@ CONFIGDB_PATH = "%s/deploy/config.db" % (ROOT_PATH,)
 CONFIGDB_ENGINE = "sqlite:///%s" % (CONFIGDB_PATH,)
 IS_MULTIPROCESS = True
 
-USE_DEVELOPMENT_SERVER = True
-
-try:
-    from extconfig import *
-except ImportError: 
-    pass
-
 ##IPC related parameters
 #IPC_RABBITMQ_SERVER="localhost"
-IPC_RABBITMQ_SERVER="192.168.0.218"
-
+# IPC_RABBITMQ_SERVER="192.168.0.218"
 ##IPC: uncomment to use user/password
 #IPC_RABBITMQ_USERNAME="user"
 #IPC_RABBITMQ_PASSWORD="pass"
