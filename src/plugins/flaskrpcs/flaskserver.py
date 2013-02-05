@@ -6,18 +6,21 @@ logger=amsoil.core.log.getLogger('flaskrpcs')
 
 from amsoil.core import serviceinterface
 
-class FlaskServer():
+class FlaskServer(object):
     """
     Encapsules a flask server instance.
     It also exports/defines the rpcservice interface.
+    
+    When a request comes in the following chain is walked through:
+        --http--> nginx webserver --fcgi--> WSGIServer --WSGI--> FlaskApp
+    When using the development server:
+        werkzeug server --WSGI--> FlaskApp
     """
     
     @serviceinterface
-    def __init__(self, host, port):
+    def __init__(self):
         """Constructur for the server wrapper."""
         self._app = Flask(__name__) # imports the named package, in this case this file
-        self._host = host
-        self._port = port
 
         # Setup debugging for app
         config = pm.getService("config")
@@ -39,9 +42,16 @@ class FlaskServer():
     def runServer(self):
         """Starts up the server. It (will) support different config options via the config plugin."""
         config = pm.getService("config")
+        debug = config.get("flask.debug")
         cWSGI = config.get("flask.wsgi")
+        host = config.get("flask.bind")
+        app_port = config.get("flask.app_port")
+        fcgi_port = config.get("flask.fcgi_port")
+
         if cWSGI:
+            logger.info("registering wsgi server at %s:%i", host, fcgi_port)
             from flup.server.fcgi import WSGIServer
-            WSGIServer(self._app, bindAddress=(self._host, self._port)).run()
+            WSGIServer(self._app, bindAddress=(host, fcgi_port)).run()
         else:
-            self._app.run(host=self._host, port=self._port, ssl_context='adhoc')        
+            logger.info("registering app server at %s:%i", host, app_port)
+            self._app.run(host=host, port=app_port, ssl_context='adhoc', debug=debug)

@@ -1,6 +1,8 @@
+import os.path
 from flask import request
 
 from amsoil.core import serviceinterface
+import amsoil.core.pluginmanager as pm
 
 import exceptions
 
@@ -12,8 +14,18 @@ class XMLRPCDispatcher(object):
 
     @serviceinterface
     def requestCertificate(self):
+        # get it from the request's environment
         if request.environ.has_key('CLIENT_RAW_CERT'):
             return request.environ['CLIENT_RAW_CERT']
+        
+        # unfortunately, werkzeug (the server behind flask) can not handle client certificates
+        # hence we fake it by using a file configured by the user
+        config = pm.getService("config")
+        if config.get("flask.debug") and not config.get("flask.wsgi"):
+            try:
+                return open(os.path.normpath(config.get("flask.debug.client_cert_file")), 'r').read()
+            except:
+                raise exceptions.DebugClientCertNotFound()
         return None
         
 

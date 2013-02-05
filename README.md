@@ -58,9 +58,12 @@ _Note: On Mac installed via `homebrew` find the nginx logs in `tail -f /usr/loca
 ### Omni setup
 
 * Setup omni (including all the certificate stuff):
-  * Install more dependencies `sudo apt-get install python-dateutil libxmlsec1 xmlsec1 libxmlsec1-openssl libxmlsec1-dev`
-  * Copy the current `{gcf,omni}_config.sample` files to `{gcf,omni}_config` files in the root folder
-  * Run `python src/gen-certs.py` to generate the experimenter, AM and CH certificates at `~/.gcf/`. The paths to these certificates are set at `~/.gcf/omni_config`. Copy the trusted certificate issued by CH to the AMsoil trusted folder `cp ~./gcf/trusted_roots/ch-cert.pem deploy/trusted/ch-cert.pem`
+  * Install more dependencies `sudo apt-get install python-dateutil libxmlsec1 xmlsec1 libxmlsec1-openssl libxmlsec1-dev` (alternativly see the INSTALL.txt)
+  * Copy the current `{gcf,omni}_config.sample` files to `{gcf,omni}_config` files (found in the root folder) and adjust
+    * In `gcf_config` adjust the authority and the paths to the certificates if desired.
+    * In `omni_config` adjust the authority and the `[my_gcf]`, `[Alice]` and `[Bob]` sections.
+  * Run `python src/gen-certs.py` to generate the experimenter, AM and CH certificates at `~/.gcf/`. The paths to these certificates are set in `omni_config`.
+  * Copy the trusted certificate issued by CH to the AMsoil trusted folder `cp ~./gcf/trusted_roots/ch-cert.pem deploy/trusted/ch-cert.pem`
 
 Tip: `omni` provides the whole method for creating a clearinghouse and user certificates (see http://trac.gpolab.bbn.com/gcf/wiki/Omni).
 

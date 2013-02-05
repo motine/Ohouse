@@ -12,17 +12,15 @@ def setup():
     config = pm.getService("config")
     # create default configurations (if they are not already in the database)
     config.install("flask.bind", "0.0.0.0", "IP to bind the Flask RPC to.")
-    config.install("flask.port", 9001, "Port to bind the Flask RPC to.")
+    config.install("flask.fcgi_port", 9001, "Port to bind the Flask RPC to (FCGI server).")
+    config.install("flask.app_port", 8001, "Port to bind the Flask RPC to (standalone server).")
     config.install("flask.debug", True, "Write logging messages for the Flask RPC server.")
     config.install("flask.wsgi", False, "Use WSGI server instead of the development server.")
-    # acquire configuration keys
-    cBind = config.get("flask.bind")
-    cPort = config.get("flask.port")
+    config.install("flask.debug.client_cert_file", '~/.gcf/alice-cert.pem', "Only if FCGI off and debug on: The debug-server can not receive client certificates, this file is then taken for each incoming request.")
 
     # create and register the RPC server
-    flaskserver = FlaskServer(cBind, cPort)
+    flaskserver = FlaskServer()
     pm.registerService('rpcserver', flaskserver)
-    logger.info("registering rpc server at %s:%i", cBind, cPort)
 
     # create and register the XML-RPC server
     xmlrpc = FlaskXMLRPC(flaskserver)

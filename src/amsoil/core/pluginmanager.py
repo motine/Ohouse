@@ -53,9 +53,9 @@ class PluginException(CoreException):
         self._name = name
     
     def __str__(self):
-        return self._name
+        return self._name + " (try looking at the log)"
 
-class PluginBootstrapModuleNotFoundError(PluginException):
+class PluginBootstrapModuleNotLoaded(PluginException):
     pass
 class PluginBootstrapSetupMethodNotFoundError(PluginException):
     pass
@@ -136,7 +136,7 @@ class PluginInfo(object):
             self._pluginModule = imp.load_module(self.pluginName, bFile, bFilename, bDesc)
         except ImportError, e:
             logger.exception(traceback.format_exc())
-            raise PluginBootstrapModuleNotFoundError(self.pluginName)
+            raise PluginBootstrapModuleNotLoaded(self.pluginName)
         global _currentSetupPluginInfo # see documentation above
         if not hasattr(self._pluginModule, 'setup'):
             self._pluginModule = None
