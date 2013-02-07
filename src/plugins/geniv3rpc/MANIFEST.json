@@ -3,7 +3,7 @@
   "author" : "Tom Rothe",
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
-  "implements" : ["geniv2rpc", "geni2adapterbase"],
+  "implements" : ["geniv3handler", "geniv3delegatebase"],
   "loads-after" : ["xmlrpc", "config"],
   "requires" : ["context"]
 }

@@ -87,12 +87,20 @@ Tip: `omni` provides setup methods for creating a clearinghouse and user certifi
 
 Examples for other calls (from a shell):
 
-    python src/omni.py -o -a https://localhost:8001 -t geni 2 -V 2 --debug getversion
-    python src/omni.py -o -a https://localhost:8001 -V 2 --debug --no-compress listresources
-    python src/omni.py -o -a https://localhost:8001 -V 2 --debug createsliver slicename rspec-req.xml
-    python src/omni.py -o -a https://localhost:8001 -V 2 --debug deletesliver slicename
-    python src/omni.py -o -a https://localhost:8001 -V 2 --debug sliverstatus slicename
-    
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug getversion
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug --no-compress listresources
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug describe slicename
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug allocate slicename rspec-req.xml 
+    # OR python src/omni.py -o -a https://localhost:8001 -V 3 --debug --end-time=2014-04-12T23:20:50.52Z allocate slicename rspec-req.xml
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug renew slicename 2013-02-07T15:00:50.52Z
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug provision slicename
+    # OR python src/omni.py -o -a https://localhost:8001 -V 3 --debug --end-time=2014-04-12T23:20:50.52Z provision slicename
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug --end-time=2014-04-12T23:20:50.52Z status slicename
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug performoperationalaction slicename geni_start
+    # OR python src/omni.py -o -a https://localhost:8001 -V 3 --debug performoperationalaction slicename geni_stop
+    # OR python src/omni.py -o -a https://localhost:8001 -V 3 --debug performoperationalaction slicename geni_restart
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug delete slicename
+    python src/omni.py -o -a https://localhost:8001 -V 3 --debug shutdown slicename
 
 Example RSpec for rspec-req.xml:
 
