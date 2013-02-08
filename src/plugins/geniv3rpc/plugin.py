@@ -5,7 +5,7 @@ from g3rpc import exceptions as geni_exceptions
 def setup():
     # setup config keys
     config = pm.getService("config")
-    # config.Config.install("geniv2rpc.cert_root", "~/.gcf/trusted_roots", "Folder which includes trusted clearinghouse certificates for GENI API v2 (in .pem format)")
+    config.install("geniv3rpc.cert_root", "deploy/trusted", "Folder which includes trusted clearinghouse certificates for GENI API v3 (in .pem format). If relative path, the root is assumed to be git repo root.")
     
     # register xmlrpc endpoint
     xmlrpc = pm.getService('xmlrpc')

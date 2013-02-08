@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------
-# Copyright (c) 2010 Raytheon BBN Technologies
+# Copyright (c) 2011 Raytheon BBN Technologies
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and/or hardware specification (the "Work") to
@@ -21,33 +21,14 @@
 # IN THE WORK.
 #----------------------------------------------------------------------
 
-import ConfigParser
-import os
+import uuid
+from resource import Resource
 
-def read_config(path=None):
-    """Read the config file into a dictionary where each section
-    of the config is its own sub-dictionary
-    """
-    confparser = ConfigParser.RawConfigParser()
-    paths = ['gcf_config', os.path.expanduser('~/.gcf/gcf_config')]
-    if path:
-        paths.insert(0, path)
+class FakeVM(Resource):
+    def __init__(self, agg):
+        super(FakeVM, self).__init__(str(uuid.uuid4()), "fakevm")
+        self._agg = agg
 
-    foundFile = None
-    for file in paths:
-        foundFile = confparser.read(file)
-        if foundFile:
-            break
-
-    if not foundFile:
-        import sys
-        sys.exit("Config file could not be found or was not properly formatted (I searched in paths: %s)" % paths)
-
-    config = {}
-
-    for section in confparser.sections():
-        config[section] = {}
-        for (key,val) in confparser.items(section):
-            config[section][key] = val
-
-    return config
+    def deprovision(self):
+        """Deprovision this resource at the resource provider."""
+        self._agg.deallocate(container=None, resources=[self])

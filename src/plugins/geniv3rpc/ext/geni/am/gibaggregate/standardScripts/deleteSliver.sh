@@ -1,5 +1,7 @@
+#!/bin/bash
+
 #----------------------------------------------------------------------
-# Copyright (c) 2010 Raytheon BBN Technologies
+# Copyright (c) 2012 Raytheon BBN Technologies
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and/or hardware specification (the "Work") to
@@ -21,33 +23,47 @@
 # IN THE WORK.
 #----------------------------------------------------------------------
 
-import ConfigParser
-import os
 
-def read_config(path=None):
-    """Read the config file into a dictionary where each section
-    of the config is its own sub-dictionary
-    """
-    confparser = ConfigParser.RawConfigParser()
-    paths = ['gcf_config', os.path.expanduser('~/.gcf/gcf_config')]
-    if path:
-        paths.insert(0, path)
+if [ $# != 2 ] 
+then
+    echo "Usage: deletesliver pathToHomeDir pathToSliceSpecificScriptsDir"
+    exit 1
+fi
 
-    foundFile = None
-    for file in paths:
-        foundFile = confparser.read(file)
-        if foundFile:
-            break
+# Stop the PCs
+echo "Stopping running containers..."
+vzctl stop 101
+vzctl stop 102
+vzctl stop 103
+vzctl stop 104
+vzctl stop 105
+vzctl stop 106
 
-    if not foundFile:
-        import sys
-        sys.exit("Config file could not be found or was not properly formatted (I searched in paths: %s)" % paths)
+# Destroy containers
+echo "Destroying containers..."
+vzctl destroy 101
+vzctl destroy 102
+vzctl destroy 103
+vzctl destroy 104
+vzctl destroy 105
+vzctl destroy 106
 
-    config = {}
+# Disable and delete bridges 
+echo "Disabling and deleting bridges..."
+for i in $(brctl show | awk '{print $1}')
+    do
+    if  [ $i != "bridge" ]
+    then
+        echo "Disabling and deleting bridge $i..."
+        /sbin/ifconfig $i down
+        /usr/sbin/brctl delbr $i
+    fi
+done
 
-    for section in confparser.sections():
-        config[section] = {}
-        for (key,val) in confparser.items(section):
-            config[section][key] = val
+echo "Cleaning up files created for sliver"
+rm -f $1/.ssh/known_hosts
 
-    return config
+# Delete the files that hold the sliver status
+rm -f $2/*.status
+
+exit 0

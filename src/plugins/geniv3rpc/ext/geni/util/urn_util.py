@@ -124,6 +124,17 @@ publicid_xforms = [('%',  '%25'),
 # FIXME: See sfa/util/xrn/Xrn.URN_PREFIX which is ...:IDN
 publicid_urn_prefix = 'urn:publicid:'    
     
+def nameFromURN(instr):
+    '''Get the name from the given URN, or empty if not a valid URN'''
+    if not instr:
+        return ""
+    try:
+        urn = URN(urn=instr)
+        return urn.getName()
+    except Exception, e:
+#        print 'exception parsing urn: %s' % e
+        return ""
+
 # validate urn
 # Note that this is not sufficient but it is necessary
 def is_valid_urn_string(instr):
@@ -139,7 +150,50 @@ def is_valid_urn_string(instr):
 # Note that this is not sufficient but it is necessary
 def is_valid_urn(inurn):
     ''' Check that this string is a valid URN'''
+    # FIXME: This should pull out the type and do the type specific
+    # checks that are currently below
     return is_valid_urn_string(inurn) and inurn.startswith(publicid_urn_prefix)
+
+def is_valid_urn_bytype(inurn, urntype, logger=None):
+    if not is_valid_urn(inurn):
+        return False
+    urnObj = URN(urn=inurn)
+    if not urntype:
+        urntype = ""
+    urntype = urntype.lower()
+    if not urnObj.getType().lower() == urntype:
+        if logger:
+            logger.warn("URN %s not of right type: %s, not %s", inurn, urnObj.getType().lower(), urntype)
+        return False
+    name = urnObj.getName()
+    if urntype == 'slice':
+        # Slice names are <=19 characters, only alphanumeric plus hyphen (no hyphen in first character): '^[a-zA-Z0-9][-a-zA-Z0-9]{0,18}$'
+        if len(name) > 19:
+            if logger:
+                logger.warn("URN %s too long. Slice names are max 19 characters", inurn)
+            return False
+        if not re.match("^[a-zA-Z0-9][-a-zA-Z0-9]{0,18}$", name):
+            if logger:
+                logger.warn("Slice names may only be alphanumeric plus hyphen (no leading hyphen): %s", name)
+            return False
+    elif urntype == 'sliver':
+        # May use only alphanumeric characters plus hyphen
+        if not re.match("^[-a-zA-Z0-9]+$", name):
+            if logger:
+                logger.warn("Sliver names may only be alphanumeric plus hyphen: %s", name)
+            return False
+    elif urntype == 'user':
+        # Usernames should begin with a letter and be alphanumeric or underscores; no hyphen or '.': ('^[a-zA-Z][\w]{0,7}$').
+        # Usernames are limited to 8 characters.
+        if len(name) > 8:
+            if logger:
+                logger.warn("URN %s too long. User names are max 8 characters", inurn)
+            return False
+        if not re.match("^[a-zA-Z][\w]{0,7}$", name):
+            if logger:
+                logger.warn("User names may only be alphanumeric plus underscore, beginning with a letter: %s", name)
+            return False
+    return True
 
 def urn_to_publicid(urn):
     '''Convert a URN like urn:publicid:... to a publicid'''

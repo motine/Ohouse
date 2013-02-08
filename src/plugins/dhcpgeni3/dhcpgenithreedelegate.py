@@ -1,5 +1,5 @@
 # import os, os.path
-# from datetime import datetime
+from datetime import datetime
 # from dateutil import parser as dateparser
 # from lxml import etree
 
@@ -12,39 +12,88 @@ exceptions = pm.getService('geniv3exceptions')
 
 # from exceptions import *
 
+from amsoil.core.exception import CoreException
+
+class DHCPLeaseNotFound(CoreException):
+    def __init__(self, ip):
+        self._ip = ip
+
+    def __str__(self):
+        return "DHCP lease not found (%s)" % (self._ip,)
+
+
+class DHCPResourceManager(object):
+    def __init__(self):
+        super(DHCPResourceManager, self).__init__()
+        self._leases = []
+        for i in range(1,20):
+            self._leases.append({'ip' : ("192.168.88.%i" % (i,)), 'slice_name' : None, 'owner_uuid' : None, 'owner_email' : None, 'timeout' : None})
+    
+    def get_all_leases(self):
+        return self._leases[:]
+    
+    def reserve_lease(self, ip, slice_name, owner_uuid, owner_email=None, timeout=None):
+        lease = self._find_by_ip(ip)
+        # do checking if ip is already taken
+        lease['slice_name'] = slice_name
+        lease['owner_uuid'] = owner_uuid
+        lease['owner_email'] = owner_email
+        lease['timeout'] = timeout
+        return lease
+        
+    def _find_by_ip(self, ip):
+        for lease in self._leases:
+            if lease['ip'] == ip:
+                return lease
+        raise DHCPLeaseNotFound(ip)
+        
+        
 class DHCPGENI3Delegate(GENIv3DelegateBase):
     """
     """
     
     def __init__(self):
         super(DHCPGENI3Delegate, self).__init__()
-        pass
+        self._resource_manager = DHCPResourceManager() # TODO get from pm
     
-    # def get_request_extensions(self):
-    #     """Documentation see [geniv3rpc]g3rpc/genivtrheehandler.GENIv3DelegateBase."""
-    #     return ['http://example.com/dhcp/req.xsd'] # TODO remove and insert []
-    # 
-    # def get_ad_extensions(self):
-    #     """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
-    #     return ['http://example.com/dhcp/ad.xsd'] # TODO remove and insert []
-    # 
-    # def is_single_allocation(self):
-    #     """Shall return a True or False. When True (not default), and performing one of (Describe, Allocate, Renew, Provision, Delete), such an AM requires you to include either the slice urn or the urn of all the slivers in the same state.
-    #     see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
-    #     # raise GENIv3DatabaseError("Some explaination or hint.")
-    #     return False
-    # 
-    # def get_allocation_mode(self):
-    #     """Shall return a either 'geni_single', 'geni_disjoint', 'geni_many'.
-    #     It defines whether this AM allows adding slivers to slices at an AM (i.e. calling Allocate multiple times, without first deleting the allocated slivers).
-    #     For description of the options see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
-    #     return 'geni_single'
-    # 
+    def get_request_extensions_list(self):
+        """Documentation see GENIv3DelegateBase."""
+        return ['http://example.com/dhcp/req.xsd']
+    
+    def get_manifest_extensions_mapping(self):
+        """Documentation see GENIv3DelegateBase."""
+        return {'dhcp' : 'http://example.com/dhcp/req.xsd'}
+    
+    def get_ad_extensions_mapping(self):
+        """Documentation see GENIv3DelegateBase."""
+        return {'dhcp' : 'http://example.com/dhcp/ad.xsd'}
+    
+    def is_single_allocation(self):
+        """Documentation see GENIv3DelegateBase.
+        We allow to address single slivers (IPs) rather than the whole slice at once."""
+        return False
+    def get_allocation_mode(self):
+        """Documentation see GENIv3DelegateBase.
+        We allow to incrementally add new slivers (IPs)."""
+        return 'geni_many'
+
     def list_resources(self, client_cert, credentials, geni_available):
         """Documentation see [geniv3rpc]g3rpc/genivtrheehandler.GENIv3DelegateBase."""
-        # check for geni_available
-        return "<rspec>hallo</rspec>"
-    # 
+        self.auth(client_cert, credentials, None, ('listslices',))
+        
+        root_node = self.lxml_ad_root()
+        E = self.lxml_ad_element_maker('dhcp')
+        
+        # TODO check for geni_available (reduce result with list comprehension)
+        for lease in self._resource_manager.get_all_leases():
+            r = E.resource()
+            r.append(E.available("False" if lease['slice_name'] else "True"))
+            # TODO list other properties
+            r.append(E.ip(lease['ip']))
+            root_node.append(r)
+        
+        return self.lxml_to_string(root_node)
+    
     # def describe(self, urns, client_cert, credentials):
     #     """Shall return an RSpec version 3 (manifest) or raise an GENIv3...Error.
     #     {urns} contains a list of slice identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
@@ -53,25 +102,43 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
     # 
     #     For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Describe"""
     #     return "<rspec>hallo 2</rspec>" # TODO remove and throw an error
-    # 
-    # def allocate(self, slice_urn, client_cert, credentials, rspec, end_time=None):
-    #     """
-    #     Shall return the two following values or raise an GENIv3...Error.
-    #     - a RSpec version 3 (manifest) of newly allocated slivers 
-    #     - a list of slivers of the format:
-    #         [{'geni_sliver_urn' : String,
-    #           'geni_expires'    : Python-Date,
-    #           'geni_allocation_status' : one of the ALLOCATION_STATE_xxx}, 
-    #          ...]
-    #     Please return like so: "return respecs, slivers"
-    #     {slice_urn} contains a slice identifier (e.g. 'urn:publicid:IDN+ofelia:eict:gcf+slice+myslice').
-    #     {end_time} Optional. A python datetime object which determines the desired expiry date of this allocation (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#geni_end_time).
-    #     >>> This is the first part of what CreateSliver used to do in previous versions of the AM API. The second part is now done by Provision, and the final part is done by PerformOperationalAction.
-    #     
-    #     For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Allocate"""
-    #     return "<rspec>hallo 2</rspec>", [{'geni_sliver_urn' : "Sliver-URN", 'geni_expires'    : datetime(2013, 01, 24, 9, 30, 00),
-    #           'geni_allocation_status' : self.ALLOCATION_STATE_ALLOCATED}] # TODO remove and throw an error
-    # 
+
+    def allocate(self, slice_urn, client_cert, credentials, rspec, end_time=None):
+        """Documentation see [geniv3rpc]g3rpc/genivtrheehandler.GENIv3DelegateBase."""
+
+        client_urn, client_uuid, client_email = self.auth(client_cert, credentials, None, ('createsliver',))
+        
+        # TODO validate RSpec
+        # TODO parse RSpec -> requested_ips
+        requested_ips = ['192.168.88.2', '192.168.88.3']
+        
+        # TODO catch _ResourceManager_-sepecific errors and translate them to GENI errors.
+        try:
+            reserved_ips = []
+            for rip in requested_ips:
+                # TODO change the timeout to 10 min or the end_time
+                reserved_ips.append(self._resource_manager.reserve_lease(rip, slice_urn, client_uuid, client_email, end_time))
+        except DHCPLeaseNotFound as e: # translate the resource manager exceptions to GENI exceptions
+            raise exceptions.GENIv3SearchFailedError("The desired IP(s) could no be found")
+            
+        # assemble return values
+        E = self.lxml_manifest_element_maker('dhcp')
+        manifest = self.lxml_manifest_root()
+        sliver_list = []
+        for lease in reserved_ips:
+            # assemble manifest
+            r = E.resource()
+            r.append(E.ip(lease['ip']))
+            manifest.append(r)
+            
+            # assemble sliver list
+            sliver_status = {'geni_sliver_urn' : ("urn:this_am:%s" % (lease['ip'],)), # TODO do a reasonable mapping here (should be done in this class)
+                             'geni_expires'    : datetime(2013, 03, 24, 9, 30, 00),
+                             'geni_allocation_status' : self.ALLOCATION_STATE_ALLOCATED}
+            sliver_list.append(sliver_status)
+
+        return self.lxml_to_string(manifest), sliver_list
+
     # def renew(self, urns, client_cert, credentials, expiration_time, best_effort):
     #     """
     #     Shall return a list of slivers of the following format or raise an GENIv3...Error:

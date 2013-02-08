@@ -40,17 +40,18 @@ try:
 except:
     pass
 
-from ext.sfa.util.faults import *
+from xml.parsers.expat import ExpatError
+
+from ext.sfa.util.faults import CredentialNotVerifiable, ChildRightsNotSubsetOfParent
 from ext.sfa.util.sfalogging import logger
 from ext.sfa.util.sfatime import utcparse
-from ext.sfa.trust.certificate import Keypair
 from ext.sfa.trust.credential_legacy import CredentialLegacy
 from ext.sfa.trust.rights import Right, Rights, determine_rights
 from ext.sfa.trust.gid import GID
 from ext.sfa.util.xrn import urn_to_hrn, hrn_authfor_hrn
 
 # 2 weeks, in seconds 
-DEFAULT_CREDENTIAL_LIFETIME = 86400 * 14
+DEFAULT_CREDENTIAL_LIFETIME = 86400 * 31
 
 
 # TODO:
@@ -209,17 +210,19 @@ class Signature(object):
 # not be changed else the signature is no longer valid.  So, once
 # you have loaded an existing signed credential, do not call encode() or sign() on it.
 
-def filter_creds_by_caller(creds, caller_hrn):
+def filter_creds_by_caller(creds, caller_hrn_list):
         """
         Returns a list of creds who's gid caller matches the
         specified caller hrn
         """
         if not isinstance(creds, list): creds = [creds]
+        if not isinstance(caller_hrn_list, list): 
+            caller_hrn_list = [caller_hrn_list]
         caller_creds = []
         for cred in creds:
             try:
                 tmp_cred = Credential(string=cred)
-                if tmp_cred.get_gid_caller().get_hrn() == caller_hrn:
+                if tmp_cred.get_gid_caller().get_hrn() in caller_hrn_list:
                     caller_creds.append(cred)
             except: pass
         return caller_creds
@@ -269,12 +272,15 @@ class Credential(object):
             if os.path.isfile(path + '/' + 'xmlsec1'):
                 self.xmlsec_path = path + '/' + 'xmlsec1'
                 break
+        if not self.xmlsec_path:
+            logger.warn("Could not locate binary for xmlsec1 - SFA will be unable to sign stuff !!")
 
     def get_subject(self):
         if not self.gidObject:
             self.decode()
-        return self.gidObject.get_printable_subject()
+        return self.gidObject.get_subject()
 
+    # sounds like this should be __repr__ instead ??
     def get_summary_tostring(self):
         if not self.gidObject:
             self.decode()
@@ -360,8 +366,6 @@ class Credential(object):
         if not self.gidObject:
             self.decode()
         return self.gidObject
-
-
             
     ##
     # Expiration: an absolute UTC time of expiration (as either an int or string or datetime)
@@ -400,8 +404,7 @@ class Credential(object):
         if isinstance(privs, str):
             self.privileges = Rights(string = privs)
         else:
-            self.privileges = privs
-        
+            self.privileges = privs        
 
     ##
     # return the privileges as a Rights object
@@ -524,7 +527,7 @@ class Credential(object):
                     # Below throws InUse exception if we forgot to clone the attribute first
                     oldAttr = signed_cred.setAttributeNode(attr.cloneNode(True))
                     if oldAttr and oldAttr.value != attr.value:
-                        msg = "Delegating cred from owner %s to %s over %s replaced attribute %s value '%s' with '%s'" % (self.parent.gidCaller.get_urn(), self.gidCaller.get_urn(), self.gidObject.get_urn(), oldAttr.name, oldAttr.value, attr.value)
+                        msg = "Delegating cred from owner %s to %s over %s:\n - Replaced attribute %s value '%s' with '%s'" % (self.parent.gidCaller.get_urn(), self.gidCaller.get_urn(), self.gidObject.get_urn(), oldAttr.name, oldAttr.value, attr.value)
                         logger.warn(msg)
                         #raise CredentialNotVerifiable("Can't encode new valid delegated credential: %s" % msg)
 
@@ -625,7 +628,11 @@ class Credential(object):
     # you have loaded an existing signed credential, do not call encode() or sign() on it.
 
     def sign(self):
-        if not self.issuer_privkey or not self.issuer_gid:
+        if not self.issuer_privkey:
+            logger.warn("Cannot sign credential (no private key)")
+            return
+        if not self.issuer_gid:
+            logger.warn("Cannot sign credential (no issuer gid)")
             return
         doc = parseString(self.get_xml())
         sigs = doc.getElementsByTagName("signatures")[0]
@@ -803,7 +810,7 @@ class Credential(object):
                     trusted_cert_objects.append(GID(filename=f))
                     ok_trusted_certs.append(f)
                 except Exception, exc:
-                    logger.error("Failed to load trusted cert from %s: %r", f, exc)
+                    logger.error("Failed to load trusted cert from %s: %r" % (f, exc))
             trusted_certs = ok_trusted_certs
 
         # Use legacy verification if this is a legacy credential
@@ -928,7 +935,13 @@ class Credential(object):
         # But we haven't verified that it is _signed by_ an authority
         # We also don't know if xmlsec1 requires that cert signers
         # are marked as CAs.
-        root_cred_signer.verify_chain(trusted_gids)
+
+        # Note that if verify() gave us no trusted_gids then this
+        # call will fail. So skip it if we have no trusted_gids
+        if trusted_gids and len(trusted_gids) > 0:
+            root_cred_signer.verify_chain(trusted_gids)
+        else:
+            logger.debug("No trusted gids. Cannot verify that cred signer is signed by a trusted authority. Skipping that check.")
 
         # See if the signer is an authority over the domain of the target.
         # There are multiple types of authority - accept them all here
@@ -1028,7 +1041,7 @@ class Credential(object):
         print self.dump_string(*args, **kwargs)
 
 
-    def dump_string(self, dump_parents=False):
+    def dump_string(self, dump_parents=False, show_xml=False):
         result=""
         result += "CREDENTIAL %s\n" % self.get_subject()
         filename=self.get_filename()
@@ -1043,6 +1056,9 @@ class Credential(object):
             print "  gidIssuer:"
             self.get_signature().get_issuer_gid().dump(8, dump_parents)
 
+        if self.expiration:
+            print "  expiration:", self.expiration.isoformat()
+
         gidObject = self.get_gid_object()
         if gidObject:
             result += "  gidObject:\n"
@@ -1051,5 +1067,17 @@ class Credential(object):
         if self.parent and dump_parents:
             result += "\nPARENT"
             result += self.parent.dump_string(True)
+
+        if show_xml:
+            try:
+                tree = etree.parse(StringIO(self.xml))
+                aside = etree.tostring(tree, pretty_print=True)
+                result += "\nXML\n"
+                result += aside
+                result += "\nEnd XML\n"
+            except:
+                import traceback
+                print "exc. Credential.dump_string / XML"
+                traceback.print_exc()
 
         return result

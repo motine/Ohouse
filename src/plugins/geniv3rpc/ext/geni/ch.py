@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------
-# Copyright (c) 2011-2012 Raytheon BBN Technologies
+# Copyright (c) 2011 Raytheon BBN Technologies
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and/or hardware specification (the "Work") to
@@ -35,9 +35,9 @@ import os
 
 import dateutil.parser
 from SecureXMLRPCServer import SecureXMLRPCServer
-import util.cred_util as cred_util
-import util.cert_util as cert_util
-import util.urn_util as urn_util
+import geni.util.cred_util as cred_util
+import geni.util.cert_util as cert_util
+import geni.util.urn_util as urn_util
 import sfa.trust.gid as gid
 
 
@@ -95,6 +95,11 @@ class SampleClearinghouseServer(object):
     def ListAggregates(self):
         return self._delegate.ListAggregates()
     
+    def ListMySlices(self, urn):
+        '''List slices owned by the user URN provided, returning a list of slice URNs.
+        Expired slices are deleted (and not returned).'''
+        return self._delegate.ListMySlices(urn)
+
     def CreateUserCredential(self, cert):
         return self._delegate.CreateUserCredential(cert)
 
@@ -136,10 +141,6 @@ class Clearinghouse(object):
             
             self.logger.info("Registering AM %s at %s", urn, url)
             self.aggs.append((urn, url))
-            
-        
-        
-        
         
     def runserver(self, addr, keyfile=None, certfile=None,
                   ca_certs=None, authority=None,
@@ -153,9 +154,9 @@ class Clearinghouse(object):
         self.config = config
         
         # Error check the keyfile, certfile all exist
-        if keyfile is None or not os.path.isfile(os.path.expanduser(keyfile)):
+        if keyfile is None or not os.path.isfile(os.path.expanduser(keyfile)) or os.path.getsize(os.path.expanduser(keyfile)) < 1:
             raise Exception("Missing CH key file %s" % keyfile)
-        if certfile is None or not os.path.isfile(os.path.expanduser(certfile)):
+        if certfile is None or not os.path.isfile(os.path.expanduser(certfile)) or os.path.getsize(os.path.expanduser(certfile)) < 1:
             raise Exception("Missing CH cert file %s" % certfile)
 
         if ca_certs is None:
@@ -175,7 +176,6 @@ class Clearinghouse(object):
         # Load up the aggregates
         self.load_aggregates()
         
-
         # This is the arg to _make_server
         ca_certs_onefname = cred_util.CredentialVerifier.getCAsFileFromDir(ca_certs)
 
@@ -197,7 +197,11 @@ class Clearinghouse(object):
                      ca_certs=None):
         """Creates the XML RPC server."""
         # ca_certs is a file of concatenated certs
-        return SecureXMLRPCServer(addr, keyfile=keyfile, certfile=certfile,
+        # make 2nd arg logRequests=True if --debug
+        debug = False
+        if self.config.has_key('debug'):
+            debug = self.config['debug']
+        return SecureXMLRPCServer(addr, logRequests=debug, keyfile=keyfile, certfile=certfile,
                                   ca_certs=ca_certs)
 
     def _naiveUTC(self, dt):
@@ -238,16 +242,23 @@ class Clearinghouse(object):
             else:
                 self.logger.debug("Slice cred is still valid at %r until %r - return it", datetime.datetime.utcnow(), slice_exp)
                 return slice_cred.save_to_string()
-        
+
+        # Create a random uuid for the slice
+        slice_uuid = uuid.uuid4()
+
         # First ensure we have a slice_urn
         if urn_req:
-            # FIXME: Validate urn_req has the right form
+            # Validate urn_req has the right form
             # to be issued by this CH
             if not urn_util.is_valid_urn(urn_req):
                 # FIXME: make sure it isnt empty, etc...
                 urn = urn_util.publicid_to_urn(urn_req)
             else:
                 urn = urn_req
+
+            # Validate the urn meets name restrictions
+            if not urn_util.is_valid_urn_bytype(urn, 'slice', self.logger):
+                raise Exception("Cannot create slice with urn %s: URN is invalid" % urn)
         else:
             # Generate a unique URN for the slice
             # based on this CH location and a UUID
@@ -256,7 +267,7 @@ class Clearinghouse(object):
             (ipaddr, port) = self._server.socket._sock.getsockname()
             # FIXME: Get public_id start from a properties file
             # Create a unique name for the slice based on uuid
-            slice_name = uuid.uuid4().__str__()[4:12]
+            slice_name = slice_uuid.__str__()[4:12]
             public_id = 'IDN %s slice %s//%s:%d' % (SLICE_AUTHORITY, slice_name,
                                                                    ipaddr,
                                                                    port)
@@ -266,8 +277,11 @@ class Clearinghouse(object):
 
         # Now create a GID for the slice (signed credential)
         if slice_gid is None:
+            # FIXME: For APIv3 compliance, we need
+            # - slice email address
+            # - unique cert serial number
             try:
-                slice_gid = cert_util.create_cert(urn, self.keyfile, self.certfile)[0]
+                slice_gid = cert_util.create_cert(urn, self.keyfile, self.certfile, uuidarg = slice_uuid)[0]
             except Exception, exc:
                 self.logger.error("Cant create slice gid for slice urn %s: %s", urn, traceback.format_exc())
                 raise Exception("Failed to create slice %s. Cant create slice gid" % urn, exc)
@@ -357,6 +371,35 @@ class Clearinghouse(object):
         self.logger.info("Called ListAggregates")
         # TODO: Allow dynamic registration of aggregates
         return self.aggs
+
+    def ListMySlices(self, urn):
+        '''List slices owned by the user URN provided, returning a list of slice URNs.
+        Expired slices are deleted (and not returned).'''
+
+        ret = list()
+        self.logger.debug("Looking for slices owned by %s", urn)
+
+        # We could take hrn or return hrn too. Or return hrn and uuid.
+        # Here we take a URN and return a URN
+        if not self.slices:
+#            self.logger.debug("Returning from lms early")
+            return ret
+
+        for slicecred in self.slices.values():
+            if slicecred.get_gid_caller().get_urn() == urn:
+                # Confirm it has not expired. If it has, remove it from the list of slices
+                slice_exp = self._naiveUTC(slicecred.expiration)
+                sliceurn = slicecred.get_gid_object().get_urn()
+#                self.logger.debug("Matching slice %s", sliceurn)
+                if slice_exp <= datetime.datetime.utcnow():
+                    self.logger.info("Removing expired slice %s", sliceurn)
+                    self.slices.pop(sliceurn)
+                    continue
+                ret.append(sliceurn)
+            else:
+                self.logger.debug("Found slice %s owned by different user %s", slicecred.get_gid_object().get_urn(), slicecred.get_gid_caller().get_urn())
+ 
+        return ret
     
     def CreateUserCredential(self, user_gid):
         '''Return string representation of a user credential

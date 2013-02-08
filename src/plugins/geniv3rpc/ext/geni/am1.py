@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------
-# Copyright (c) 2011-2012 Raytheon BBN Technologies
+# Copyright (c) 2011 Raytheon BBN Technologies
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and/or hardware specification (the "Work") to
@@ -68,24 +68,24 @@ class AggregateManager(object):
 
     def __init__(self, delegate):
         self._delegate = delegate
-        
+
     def GetVersion(self):
-        '''Specify version information about this AM. That could 
+        '''Specify version information about this AM. That could
         include API version information, RSpec format and version
         information, etc. Return a dict.'''
         return self._delegate.GetVersion()
 
     def ListResources(self, credentials, options):
-        '''Return an RSpec of resources managed at this AM. 
+        '''Return an RSpec of resources managed at this AM.
         If a geni_slice_urn
-        is given in the options, then only return resources assigned 
+        is given in the options, then only return resources assigned
         to that slice. If geni_available is specified in the options,
         then only report available resources. And if geni_compressed
         option is specified, then compress the result.'''
         return self._delegate.ListResources(credentials, options)
 
     def CreateSliver(self, slice_urn, credentials, rspec, users):
-        """Create a sliver with the given URN from the resources in 
+        """Create a sliver with the given URN from the resources in
         the given RSpec.
         Return an RSpec of the actually allocated resources.
         users argument provides extra information on configuring the resources
@@ -163,20 +163,16 @@ class AggregateManagerServer(object):
             raise Exception('Missing CA Certs')
         elif not os.path.isfile(os.path.expanduser(ca_certs)):
             raise Exception('CA Certs must be an existing file of accepted root certs: %s' % ca_certs)
-
-#        self._server = SecureXMLRPCServer(addr, keyfile=keyfile,
-#                                          certfile=certfile, ca_certs=ca_certs)
-        from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
-        self._server = SecureXMLRPCServer(addr, requestHandler=SimpleXMLRPCRequestHandler)
-        if not hasattr(self._server, 'pem_cert'):
-            self._server.pem_cert = None
+        # FIXME: set logRequests=true if --debug
+        self._server = SecureXMLRPCServer(addr, keyfile=keyfile,
+                                          certfile=certfile, ca_certs=ca_certs)
         if delegate is None:
             delegate = PrintingAggregateManager()
         self._server.register_instance(AggregateManager(delegate))
         # Set the server on the delegate so it can access the
         # client certificate.
         delegate._server = self._server
-        
+
         if not base_name is None:
             global RESOURCE_NAMESPACE
             RESOURCE_NAMESPACE = base_name
@@ -193,13 +189,16 @@ class AggregateManagerServer(object):
 
 class Resource(object):
     """A Resource has an id, a type, and a boolean indicating availability."""
-    
+
     STATUS_CONFIGURING = 'configuring'
     STATUS_READY = 'ready'
     STATUS_FAILED = 'failed'
     STATUS_UNKNOWN = 'unknown'
     STATUS_SHUTDOWN = 'shutdown'
 
+    def __str__(self):
+        return ("ID: %d, Type: %s, Available: %s, Status: %s" % 
+                (self._id, self._type, self.available, self.status))
     def __init__(self, id, type):
         self._id = id
         self._type = type
@@ -236,7 +235,7 @@ class Sliver(object):
         self.urn = urn.replace("+slice+", "+sliver+")
         self.resources = list()
         self.expiration = expiration
-        
+
     def status(self):
         """Determine the status of the sliver by examining the status
         of each resource in the sliver.
@@ -261,7 +260,7 @@ class Sliver(object):
 
 class ReferenceAggregateManager(object):
     '''A reference Aggregate Manager that manages fake resources.'''
-    
+
     # root_cert is a single cert or dir of multiple certs
     # that are trusted to sign credentials
     def __init__(self, root_cert):
@@ -272,7 +271,7 @@ class ReferenceAggregateManager(object):
         self.logger = logging.getLogger('gcf-am.reference')
 
     def GetVersion(self):
-        '''Specify version information about this AM. That could 
+        '''Specify version information about this AM. That could
         include API version information, RSpec format and version
         information, etc. Return a dict.'''
         self.logger.info("Called GetVersion")
@@ -282,21 +281,44 @@ class ReferenceAggregateManager(object):
         # hostname
         # code_tag
         # hrn
-        defad = dict(type="GCF", version="0.1")
+        default_ad = dict(type="GCF", version="0.1")
         # FIXME: Those schema/namespace values are bogus. But the spec also says they are optional.
-        reqver = [dict(type="GCF", version="0.1", schema="http://www.geni.net/resources/rspec/0.1/gcf-request.xsd", namespace="http://www.geni.net/resources/rspec/0.1", extensions=[])]
-        adver = [dict(type="GCF", version="0.1", schema="http://www.geni.net/resources/rspec/0.1/gcf-ad.xsd", namespace="http://www.geni.net/resources/rspec/0.1", extensions=[])]
-        versions = dict(default_ad_rspec=defad, geni_api=1, request_rspec_versions=reqver, ad_rspec_versions=adver, interface='aggregate', url='FIXME', urn='FIXME', hostname='FIXME', code_tag='FIXME', hrn='FIXME')
+        gcf_req = dict(type="GCF",
+                       version="0.1",
+                       schema="http://www.geni.net/resources/rspec/0.1/gcf-request.xsd",
+                       namespace="http://www.geni.net/resources/rspec/0.1",
+                       extensions=[])
+        gcf_ad = dict(type="GCF",
+                      version="0.1",
+                      schema="http://www.geni.net/resources/rspec/0.1/gcf-ad.xsd",
+                      namespace="http://www.geni.net/resources/rspec/0.1",
+                      extensions=[])
+        pgv2_req = dict(type="ProtoGENI",
+                       version="2",
+                       schema="http://www.protogeni.net/resources/rspec/2/request.xsd",
+                       namespace="http://www.protogeni.net/resources/rspec/2",
+                       extensions=[])
+        pgv2_ad = dict(type="ProtoGENI",
+                       version="2",
+                       schema="http://www.protogeni.net/resources/rspec/2/ad.xsd",
+                       namespace="http://www.protogeni.net/resources/rspec/2",
+                       extensions=[])
+        request_versions = [gcf_req, pgv2_req]
+        ad_versions = [gcf_ad, pgv2_ad]
+        versions = dict(default_ad_rspec=default_ad,
+                        geni_api=1,
+                        request_rspec_versions=request_versions,
+                        ad_rspec_versions=ad_versions)
         return versions
 
     # The list of credentials are options - some single cred
     # must give the caller required permissions.
-    # The semantics of the API are unclear on this point, so 
+    # The semantics of the API are unclear on this point, so
     # this is just the current implementation
     def ListResources(self, credentials, options):
-        '''Return an RSpec of resources managed at this AM. 
+        '''Return an RSpec of resources managed at this AM.
         If a geni_slice_urn
-        is given in the options, then only return resources assigned 
+        is given in the options, then only return resources assigned
         to that slice. If geni_available is specified in the options,
         then only report available resources. And if geni_compressed
         option is specified, then compress the result.'''
@@ -332,10 +354,12 @@ class ReferenceAggregateManager(object):
 
             # Can also error-check that the input value is supported.
             rspec_type = options['rspec_version']['type']
+            if isinstance(rspec_type, str):
+                rspec_type = rspec_type.lower().strip()
             rspec_version = options['rspec_version']['version']
-            if rspec_type is not 'GCF':
+            if rspec_type != 'GCF':
                 self.logger.warn("Returning GCF rspec even though request said %s", rspec_type)
-            self.logger.info("ListResources requested rspec %s (%d)", rspec_type, rspec_version)
+            self.logger.info("ListResources requested rspec %s (%s)", rspec_type, rspec_version)
 
         if 'geni_slice_urn' in options:
             slice_urn = options['geni_slice_urn']
@@ -348,6 +372,7 @@ class ReferenceAggregateManager(object):
                 # return an empty rspec
                 result = '<rspec type="GCF"/>'
         elif 'geni_available' in options and options['geni_available']:
+            # only include available items
             result = ('<rspec type="GCF">' + ''.join([x.toxml() for x in self._resources])
                       + '</rspec>')
             # To make this AM return a fixed RSpec do:
@@ -385,10 +410,10 @@ class ReferenceAggregateManager(object):
 
     # The list of credentials are options - some single cred
     # must give the caller required permissions.
-    # The semantics of the API are unclear on this point, so 
+    # The semantics of the API are unclear on this point, so
     # this is just the current implementation
     def CreateSliver(self, slice_urn, credentials, rspec, users):
-        """Create a sliver with the given URN from the resources in 
+        """Create a sliver with the given URN from the resources in
         the given RSpec.
         Return an RSpec of the actually allocated resources.
         users argument provides extra information on configuring the resources
@@ -470,7 +495,7 @@ class ReferenceAggregateManager(object):
 
     # The list of credentials are options - some single cred
     # must give the caller required permissions.
-    # The semantics of the API are unclear on this point, so 
+    # The semantics of the API are unclear on this point, so
     # this is just the current implementation
     def DeleteSliver(self, slice_urn, credentials):
         '''Stop and completely delete the named sliver, and return True.'''
@@ -507,7 +532,7 @@ class ReferenceAggregateManager(object):
             self.logger.info("Sliver %r deleted" % slice_urn)
             return True
         else:
-            self.no_such_slice(slice_urn)
+            self._no_such_slice(slice_urn)
 
     def SliverStatus(self, slice_urn, credentials):
         '''Report as much as is known about the status of the resources
@@ -544,7 +569,7 @@ class ReferenceAggregateManager(object):
                         geni_status=sliver.status(),
                         geni_resources=res_status)
         else:
-            self.no_such_slice(slice_urn)
+            self._no_such_slice(slice_urn)
 
     def RenewSliver(self, slice_urn, credentials, expiration_time):
         '''Renew the local sliver that is part of the named Slice
@@ -560,7 +585,7 @@ class ReferenceAggregateManager(object):
                                                         privileges)
         # All the credentials we just got are valid
         if slice_urn in self._slivers:
-            # If any credential will still be valid at the newly 
+            # If any credential will still be valid at the newly
             # requested time, then we can do this.
             sliver = self._slivers.get(slice_urn)
             if sliver.status() == Resource.STATUS_SHUTDOWN:
@@ -591,7 +616,7 @@ class ReferenceAggregateManager(object):
             return False
 
         else:
-            self.no_such_slice(slice_urn)
+            self._no_such_slice(slice_urn)
 
     def Shutdown(self, slice_urn, credentials):
         '''For Management Authority / operator use: shut down a badly
@@ -610,9 +635,9 @@ class ReferenceAggregateManager(object):
             return True
         else:
             self.logger.info("Shutdown: No such slice: %s.", slice_urn)
-            self.no_such_slice(slice_urn)
+            self._no_such_slice(slice_urn)
 
-    def no_such_slice(self, slice_urn):
+    def _no_such_slice(self, slice_urn):
         """Raise a no such slice exception."""
         fault_code = 'No such slice.'
         fault_string = 'The slice named by %s does not exist' % (slice_urn)
@@ -631,4 +656,3 @@ class ReferenceAggregateManager(object):
             dt = dt.astimezone(tz_utc)
             dt = dt.replace(tzinfo=None)
         return dt
-

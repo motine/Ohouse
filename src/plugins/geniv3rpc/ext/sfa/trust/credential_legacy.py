@@ -27,14 +27,11 @@
 # certificate that stores a tuple of parameters.
 ##
 
-### $Id: credential.py 17477 2010-03-25 16:49:34Z jkarlin $
-### $URL: svn+ssh://svn.planet-lab.org/svn/sfa/branches/geni-api/sfa/trust/credential.py $
 
 import xmlrpclib
 
-from ext.sfa.util.faults import *
+from ext.sfa.util.faults import MissingDelegateBit, ChildRightsNotSubsetOfParent
 from ext.sfa.trust.certificate import Certificate
-from ext.sfa.trust.rights import Right,Rights
 from ext.sfa.trust.gid import GID
 
 ##

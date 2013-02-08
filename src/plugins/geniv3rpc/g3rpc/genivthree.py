@@ -1,13 +1,16 @@
 import os, os.path
 from datetime import datetime
 from dateutil import parser as dateparser
-# from lxml import etree
+
+from lxml import etree
+from lxml.builder import ElementMaker
 
 import ext.geni
 import ext.sfa.trust.gid as gid
 
 import amsoil.core.pluginmanager as pm
 from amsoil.core import serviceinterface
+from amsoil.config import ROOT_PATH
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('geniv3handler')
 
@@ -29,7 +32,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     #     st['request_data'] = { post_data, certs, ... }
     # """
     
-    RFC3339_FORMAT_STRING = '%Y-%m-%d %H:%M:%S.%f%z'
+    RFC3339_FORMAT_STRING = '%Y-%m-%d %H:%M:%S.%fZ'
     
     def __init__(self):
         super(GENIv3Handler, self).__init__(logger)
@@ -53,8 +56,8 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         # no authentication necessary
         
         try:
-            request_extensions = self._delegate.get_request_extensions()
-            ad_extensions = self._delegate.get_ad_extensions()
+            request_extensions = self._delegate.get_request_extensions_list()
+            ad_extensions = self._delegate.get_ad_extensions_list()
             allocation_mode = self._delegate.get_allocation_mode()
             is_single_allocation = self._delegate.is_single_allocation()
         except Exception as e:
@@ -200,7 +203,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     def _errorReturn(self, e):
         """Assembles a GENI compliant return result for faulty methods."""
         if not isinstance(e, GENIv3BaseError): # convert common errors into GENIv3GeneralError
-            e = GENIv3GeneralError(str(e))
+            e = GENIv3ServerError(str(e))
         return { 'geni_api' : 3, 'code' : { 'geni_code' : e.code }, 'output' : str(e) }
         
     def _successReturn(self, result):
@@ -239,13 +242,24 @@ class GENIv3DelegateBase(object):
         super(GENIv3DelegateBase, self).__init__()
         pass
     
-    def get_request_extensions(self):
-        """Should retrun a list of request extensions (XSD schema URLs as string) to be sent back by GetVersion."""
+    def get_request_extensions_list(self):
+        """ Override to provide a list of your custom request extensions to be sent back by GetVersion (URLs to XSD schemas)."""
         return []
-    
-    def get_ad_extensions(self):
+
+    def get_manifest_extensions_mapping(self):
+        """Should retrun a dict of namespace names and manifest extensions (XSD schema's URLs as string).
+        Format: {xml_namespace_prefix : namespace_uri, ...}
+        """
+        return {}
+        
+    def get_ad_extensions_list(self):
         """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
-        return []
+        return [uri for prefix, uri in self.get_ad_extensions_mapping().items()]
+    def get_ad_extensions_mapping(self):
+        """Should retrun a dict of namespace names and advertisement extensions (XSD schema URLs as string) to be sent back by GetVersion.
+        Format: {xml_namespace_prefix : namespace_uri, ...}
+        """
+        return {}
     
     def is_single_allocation(self):
         """Shall return a True or False. When True (not default), and performing one of (Describe, Allocate, Renew, Provision, Delete), such an AM requires you to include either the slice urn or the urn of all the slivers in the same state.
@@ -397,3 +411,92 @@ class GENIv3DelegateBase(object):
 
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Shutdown"""
         raise GENIv3GeneralError("Method not implemented yet")
+    
+    @serviceinterface
+    def auth(self, client_cert, credentials, slice_urn=None, privileges=()):
+        """
+        This method authenticates and authorizes.
+        It returns the client's urn, uuid, email (extracted from the {client_cert}). Example call: "urn, uuid, email = self.auth(...)"
+        If the validation fails, an GENIv3ForbiddenError is thrown.
+        
+        The credentials are checked so the user has all the required privileges (success if any credential fits all privileges).
+        The client certificate is not checked: this is usually done via the webserver configuration.
+        This method only treats certificates of type 'geni_sfa'.
+        
+        Here a list of possible privileges (format: right_in_credential: [privilege1, privilege2, ...]):
+            "authority" : ["register", "remove", "update", "resolve", "list", "getcredential", "*"],
+            "refresh"   : ["remove", "update"],
+            "resolve"   : ["resolve", "list", "getcredential"],
+            "sa"        : ["getticket", "redeemslice", "redeemticket", "createslice", "createsliver", "deleteslice", "deletesliver", "updateslice",
+                           "getsliceresources", "getticket", "loanresources", "stopslice", "startslice", "renewsliver",
+                            "deleteslice", "deletesliver", "resetslice", "listslices", "listnodes", "getpolicy", "sliverstatus"],
+            "embed"     : ["getticket", "redeemslice", "redeemticket", "createslice", "createsliver", "renewsliver", "deleteslice", 
+                           "deletesliver", "updateslice", "sliverstatus", "getsliceresources", "shutdown"],
+            "bind"      : ["getticket", "loanresources", "redeemticket"],
+            "control"   : ["updateslice", "createslice", "createsliver", "renewsliver", "sliverstatus", "stopslice", "startslice", 
+                           "deleteslice", "deletesliver", "resetslice", "getsliceresources", "getgids"],
+            "info"      : ["listslices", "listnodes", "getpolicy"],
+            "ma"        : ["setbootstate", "getbootstate", "reboot", "getgids", "gettrustedcerts"],
+            "operator"  : ["gettrustedcerts", "getgids"],                   
+            "*"         : ["createsliver", "deletesliver", "sliverstatus", "renewsliver", "shutdown"]
+            
+        When using the gcf clearinghouse implementation the credentials will have the rights:
+        - user: "refresh", "resolve", "info" (which resolves to the privileges: "remove", "update", "resolve", "list", "getcredential", "listslices", "listnodes", "getpolicy").
+        - slice: "refresh", "embed", "bind", "control", "info" (well, do the resolving yourself...)        
+        """
+        # check variables
+        if not isinstance(privileges, tuple):
+            raise TypeError("Privileges need to be a tuple.")
+        # collect credentials (only GENI certs, version ignored)
+        geni_credentials = []
+        for c in credentials:
+             if c['geni_type'] == 'geni_sfa':
+                 geni_credentials.append(c['geni_value'])
+
+        # get the cert_root
+        config = pm.getService("config")
+        cert_root = os.path.expanduser(config.get("geniv3rpc.cert_root"))
+        cert_root = cert_root if os.path.isabs(cert_root) else os.path.normpath(os.path.join(ROOT_PATH, cert_root))
+        
+        # test the credential
+        try:
+            cred_verifier = ext.geni.CredentialVerifier(cert_root)
+            cred_verifier.verify_from_strings(client_cert, geni_credentials, slice_urn, privileges)
+        except Exception as e:
+            raise GENIv3ForbiddenError(str(e))
+
+        user_gid = gid.GID(string=client_cert)
+        user_urn = user_gid.get_urn()
+        user_uuid = user_gid.get_uuid()
+        user_email = user_gid.get_email()
+        return user_urn, user_uuid, user_email # TODO document return
+
+    @serviceinterface
+    def lxml_ad_root(self):
+        """Returns a xml root node with the namespace extensions specified by self.get_ad_extensions_mapping."""
+        return etree.Element('rspec', self.get_ad_extensions_mapping(), type='advertisement')
+
+    def lxml_manifest_root(self):
+        """Returns a xml root node with the namespace extensions specified by self.get_manifest_extensions_mapping."""
+        return etree.Element('rspec', self.get_manifest_extensions_mapping(), type='manifest')
+
+    @serviceinterface
+    def lxml_to_string(self, rspec):
+        """Converts a lxml root node to string (for returning to the client)."""
+        return etree.tostring(rspec, pretty_print=True)
+        
+    @serviceinterface
+    def lxml_ad_element_maker(self, prefix):
+        """Returns a lxml.builder.ElementMaker configured for avertisements and the namespace given by {prefix}."""
+        ext = self.get_ad_extensions_mapping()
+        return ElementMaker(namespace=ext[prefix], nsmap=ext)
+
+    @serviceinterface
+    def lxml_manifest_element_maker(self, prefix):
+        """Returns a lxml.builder.ElementMaker configured for manifests and the namespace given by {prefix}."""
+        ext = self.get_manifest_extensions_mapping()
+        return ElementMaker(namespace=ext[prefix], nsmap=ext)
+
+
+
+

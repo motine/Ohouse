@@ -33,6 +33,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 import ssl
 import base64
 import textwrap
+import os
 
 class SecureXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     """A request handler that grabs the socket peer's certificate and
@@ -52,6 +53,10 @@ class SecureXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
         self.server.der_cert = self.request.getpeercert(binary_form=True)
         # This last is what a GID is created from
         self.server.pem_cert = self.der_to_pem(self.server.der_cert)
+        self.requestline = "<requestline not set by XMLRPC server>"
+        self.log_request()
+        if self.server.logRequests:
+            self.log_message("Got call from client cert: %s", self.server.peercert)
 
     def finish(self):
         # XXX do we want to delete the peercert attribute?
@@ -78,14 +83,19 @@ class SecureXMLRPCServer(SimpleXMLRPCServer):
                  ca_certs=None):
         SimpleXMLRPCServer.__init__(self, addr, requestHandler, logRequests,
                                     allow_none, encoding, False)
-        if keyfile and certfile and ca_certs:
-          self.socket = ssl.wrap_socket(self.socket,
-                                        keyfile=keyfile,
-                                        certfile=certfile,
-                                        server_side=True,
-                                        cert_reqs=ssl.CERT_REQUIRED,
-                                        ssl_version=ssl.PROTOCOL_SSLv23,
-                                        ca_certs=ca_certs)
+        if certfile and ((not os.path.exists(certfile)) or os.path.getsize(certfile) < 1):
+            raise Exception("certfile %s doesn't exist or is empty" % certfile)
+
+        if keyfile and ((not os.path.exists(keyfile)) or
+                        os.path.getsize(keyfile) < 1):
+            raise Exception("keyfile %s doesn't exist or is empty" % keyfile)
+        self.socket = ssl.wrap_socket(self.socket,
+                                      keyfile=keyfile,
+                                      certfile=certfile,
+                                      server_side=True,
+                                      cert_reqs=ssl.CERT_REQUIRED,
+                                      ssl_version=ssl.PROTOCOL_SSLv23,
+                                      ca_certs=ca_certs)
         if bind_and_activate:
             # This next throws a socket.error on error, eg
             # Address already in use or Permission denied. 

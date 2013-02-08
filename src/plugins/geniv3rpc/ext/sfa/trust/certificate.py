@@ -39,22 +39,19 @@ import functools
 import os
 import tempfile
 import base64
-import traceback
 from tempfile import mkstemp
 
 from OpenSSL import crypto
 import M2Crypto
 from M2Crypto import X509
 
-from ext.sfa.util.sfalogging import logger
-from ext.sfa.util.xrn import urn_to_hrn
-from ext.sfa.util.faults import *
+from ext.sfa.util.faults import CertExpired, CertMissingParent, CertNotSignedByParent
 from ext.sfa.util.sfalogging import logger
 
 glo_passphrase_callback = None
 
 ##
-# A global callback msy be implemented for requesting passphrases from the
+# A global callback may be implemented for requesting passphrases from the
 # user. The function will be called with three arguments:
 #
 #    keypair_obj: the keypair object that is calling the passphrase
@@ -92,7 +89,7 @@ def convert_public_key(key):
 
     # we can only convert rsa keys
     if "ssh-dss" in key:
-        return None
+        raise Exception, "keyconvert: dss keys are not supported"
 
     (ssh_f, ssh_fn) = tempfile.mkstemp()
     ssl_fn = tempfile.mktemp()
@@ -106,20 +103,21 @@ def convert_public_key(key):
     # that it can be expected to see why it failed.
     # TODO: for production, cleanup the temporary files
     if not os.path.exists(ssl_fn):
-        return None
+        raise Exception, "keyconvert: generated certificate not found. keyconvert may have failed."
 
     k = Keypair()
     try:
         k.load_pubkey_from_file(ssl_fn)
+        return k
     except:
         logger.log_exc("convert_public_key caught exception")
-        k = None
-
-    # remove the temporary files
-    os.remove(ssh_fn)
-    os.remove(ssl_fn)
-
-    return k
+        raise
+    finally:
+        # remove the temporary files
+        if os.path.exists(ssh_fn):
+            os.remove(ssh_fn)
+        if os.path.exists(ssl_fn):
+            os.remove(ssl_fn)
 
 ##
 # Public-private key pairs are implemented by the Keypair class.
@@ -527,7 +525,7 @@ class Certificate:
 
         if self.isCA != None:
             # Can't double set properties
-            raise "Cannot set basicConstraints CA:?? more than once. Was %s, trying to set as %s" % (self.isCA, val)
+            raise Exception, "Cannot set basicConstraints CA:?? more than once. Was %s, trying to set as %s" % (self.isCA, val)
 
         self.isCA = val
         if val:
@@ -697,7 +695,7 @@ class Certificate:
 
         # verify expiration time
         if self.cert.has_expired():
-            logger.debug("verify_chain: NO our certificate %s has expired" % self.get_printable_subject())
+            logger.debug("verify_chain: NO, Certificate %s has expired" % self.get_printable_subject())
             raise CertExpired(self.get_printable_subject(), "client cert")
 
         # if this cert is signed by a trusted_cert, then we are set
@@ -705,23 +703,29 @@ class Certificate:
             if self.is_signed_by_cert(trusted_cert):
                 # verify expiration of trusted_cert ?
                 if not trusted_cert.cert.has_expired():
-                    logger.debug("verify_chain: YES cert %s signed by trusted cert %s"%(
+                    logger.debug("verify_chain: YES. Cert %s signed by trusted cert %s"%(
                             self.get_printable_subject(), trusted_cert.get_printable_subject()))
                     return trusted_cert
                 else:
-                    logger.debug("verify_chain: NO cert %s is signed by trusted_cert %s, but this is expired..."%(
+                    logger.debug("verify_chain: NO. Cert %s is signed by trusted_cert %s, but that signer is expired..."%(
                             self.get_printable_subject(),trusted_cert.get_printable_subject()))
                     raise CertExpired(self.get_printable_subject()," signer trusted_cert %s"%trusted_cert.get_printable_subject())
 
         # if there is no parent, then no way to verify the chain
         if not self.parent:
-            logger.debug("verify_chain: NO %s has no parent and issuer %s is not in %d trusted roots"%(self.get_printable_subject(), self.get_issuer(), len(trusted_certs)))
-            raise CertMissingParent(self.get_printable_subject(), "Non trusted issuer: %s out of %d trusted roots" % (self.get_issuer(), len(trusted_certs)))
+            logger.debug("verify_chain: NO. %s has no parent and issuer %s is not in %d trusted roots"%(self.get_printable_subject(), self.get_issuer(), len(trusted_certs)))
+            raise CertMissingParent(self.get_printable_subject() + ": Issuer %s is not one of the %d trusted roots, and cert has no parent." % (self.get_issuer(), len(trusted_certs)))
 
         # if it wasn't signed by the parent...
         if not self.is_signed_by_cert(self.parent):
-            logger.debug("verify_chain: NO %s is not signed by parent %s, but by %s"%self.get_printable_subject(), self.parent.get_printable_subject(), self.get_issuer())
-            return CertNotSignedByParent(self.get_printable_subject(), "parent %s, issuer %s" % (selr.parent.get_printable_subject(), self.get_issuer()))
+            logger.debug("verify_chain: NO. %s is not signed by parent %s, but by %s"%\
+                             (self.get_printable_subject(), 
+                              self.parent.get_printable_subject(), 
+                              self.get_issuer()))
+            raise CertNotSignedByParent("%s: Parent %s, issuer %s"\
+                                            % (self.get_printable_subject(), 
+                                               self.parent.get_printable_subject(),
+                                               self.get_issuer()))
 
         # Confirm that the parent is a CA. Only CAs can be trusted as
         # signers.
@@ -730,11 +734,14 @@ class Certificate:
         # Ugly - cert objects aren't parsed so we need to read the
         # extension and hope there are no other basicConstraints
         if not self.parent.isCA and not (self.parent.get_extension('basicConstraints') == 'CA:TRUE'):
-            logger.warn("verify_chain: cert %s's parent %s is not a CA" % (self.get_printable_subject(), self.parent.get_printable_subject()))
-            return CertNotSignedByParent(self.get_printable_subject(), "Parent %s not a CA" % self.parent.get_printable_subject())
+            logger.warn("verify_chain: cert %s's parent %s is not a CA" % \
+                            (self.get_printable_subject(), self.parent.get_printable_subject()))
+            raise CertNotSignedByParent("%s: Parent %s not a CA" % (self.get_printable_subject(),
+                                                                    self.parent.get_printable_subject()))
 
         # if the parent isn't verified...
-        logger.debug("verify_chain: .. %s, -> verifying parent %s"%(self.get_printable_subject(),self.parent.get_printable_subject()))
+        logger.debug("verify_chain: .. %s, -> verifying parent %s"%\
+                         (self.get_printable_subject(),self.parent.get_printable_subject()))
         self.parent.verify_chain(trusted_certs)
 
         return

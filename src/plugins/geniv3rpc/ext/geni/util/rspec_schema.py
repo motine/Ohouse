@@ -1,5 +1,7 @@
+#!/usr/bin/python
+
 #----------------------------------------------------------------------
-# Copyright (c) 2010 Raytheon BBN Technologies
+# Copyright (c) 2011 Raytheon BBN Technologies
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and/or hardware specification (the "Work") to
@@ -20,34 +22,25 @@
 # OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS
 # IN THE WORK.
 #----------------------------------------------------------------------
+"""
+RSpec namespaces and schemas.
+"""
 
-import ConfigParser
-import os
+PG_2_NAMESPACE = "http://www.protogeni.net/resources/rspec/2"
+PG_2_AD_SCHEMA = "http://www.protogeni.net/resources/rspec/2/ad.xsd"
+PG_2_REQ_SCHEMA = "http://www.protogeni.net/resources/rspec/2/request.xsd"
+PG_2_MAN_SCHEMA = "http://www.protogeni.net/resources/rspec/2/manifest.xsd"
 
-def read_config(path=None):
-    """Read the config file into a dictionary where each section
-    of the config is its own sub-dictionary
-    """
-    confparser = ConfigParser.RawConfigParser()
-    paths = ['gcf_config', os.path.expanduser('~/.gcf/gcf_config')]
-    if path:
-        paths.insert(0, path)
+GENI_3_NAMESPACE = "http://www.geni.net/resources/rspec/3"
+GENI_3_AD_SCHEMA = "http://www.geni.net/resources/rspec/3/ad.xsd"
+GENI_3_REQ_SCHEMA = "http://www.geni.net/resources/rspec/3/request.xsd"
+GENI_3_MAN_SCHEMA = "http://www.geni.net/resources/rspec/3/manifest.xsd"
 
-    foundFile = None
-    for file in paths:
-        foundFile = confparser.read(file)
-        if foundFile:
-            break
+REQUEST = 'request'
+MANIFEST = 'manifest'
+ADVERTISEMENT = 'advertisement'
 
-    if not foundFile:
-        import sys
-        sys.exit("Config file could not be found or was not properly formatted (I searched in paths: %s)" % paths)
+XSI="http://www.w3.org/2001/XMLSchema-instance"
 
-    config = {}
-
-    for section in confparser.sections():
-        config[section] = {}
-        for (key,val) in confparser.items(section):
-            config[section][key] = val
-
-    return config
+PG_CRED_NAMESPACE = "http://www.protogeni.net/resources/credential/ext/policy/1"
+PG_CRED_SCHEMA = "http://www.protogeni.net/resources/credential/ext/policy/1/policy.xsd"

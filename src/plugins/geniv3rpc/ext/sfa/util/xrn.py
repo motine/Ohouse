@@ -23,7 +23,7 @@
 
 import re
 
-from ext.sfa.util.faults import *
+from ext.sfa.util.faults import SfaAPIError
 
 # for convenience and smoother translation - we should get rid of these functions eventually 
 def get_leaf(hrn): return Xrn(hrn).get_leaf()
@@ -79,7 +79,7 @@ class Xrn:
     # A better alternative than childHRN.startswith(parentHRN)
     # e.g. hrn_is_auth_for_hrn('a\.b', 'a\.b.c.d') -> True,
     # but hrn_is_auth_for_hrn('a', 'a\.b.c.d') -> False
-    # Also hrn_is_uauth_for_hrn('a\.b.c.d', 'a\.b.c.d') -> True
+    # Also hrn_is_auth_for_hrn('a\.b.c.d', 'a\.b.c.d') -> True
     @staticmethod
     def hrn_is_auth_for_hrn(parenthrn, hrn):
         if parenthrn == hrn:
@@ -89,16 +89,21 @@ class Xrn:
                 return True
         return False
 
-    URN_PREFIX = "urn:publicid:IDN"
-
     ########## basic tools on URNs
+    URN_PREFIX = "urn:publicid:IDN"
+    URN_PREFIX_lower = "urn:publicid:idn"
+
+    @staticmethod
+    def is_urn (text):
+        return text.lower().startswith(Xrn.URN_PREFIX_lower)
+
     @staticmethod
     def urn_full (urn):
-        if urn.startswith(Xrn.URN_PREFIX): return urn
-        else: return Xrn.URN_PREFIX+URN
+        if Xrn.is_urn(urn): return urn
+        else: return Xrn.URN_PREFIX+urn
     @staticmethod
     def urn_meaningful (urn):
-        if urn.startswith(Xrn.URN_PREFIX): return urn[len(Xrn.URN_PREFIX):]
+        if Xrn.is_urn(urn): return urn[len(Xrn.URN_PREFIX):]
         else: return urn
     @staticmethod
     def urn_split (urn):
@@ -111,21 +116,35 @@ class Xrn:
     # self.type
     # self.path
     # provide either urn, or (hrn + type)
-    def __init__ (self, xrn, type=None):
+    def __init__ (self, xrn, type=None, id=None):
         if not xrn: xrn = ""
         # user has specified xrn : guess if urn or hrn
-        if xrn.startswith(Xrn.URN_PREFIX):
+        self.id = id
+        self.type = type
+
+        if Xrn.is_urn(xrn):
             self.hrn=None
             self.urn=xrn
             self.urn_to_hrn()
+            if id:
+                self.hrn_to_urn()
         else:
             self.urn=None
             self.hrn=xrn
             self.type=type
             self.hrn_to_urn()
+
+        self._normalize()
 # happens all the time ..
 #        if not type:
 #            debug_logger.debug("type-less Xrn's are not safe")
+
+    def __repr__ (self):
+        result="<XRN u=%s h=%s"%(self.urn,self.hrn)
+        if hasattr(self,'leaf'): result += " leaf=%s"%self.leaf
+        if hasattr(self,'authority'): result += " auth=%s"%self.authority
+        result += ">"
+        return result
 
     def get_urn(self): return self.urn
     def get_hrn(self): return self.hrn
@@ -144,21 +163,31 @@ class Xrn:
         self._normalize()
         return self.leaf
 
-    def get_authority_hrn(self): 
+    def get_authority_hrn(self):
         self._normalize()
         return '.'.join( self.authority )
     
     def get_authority_urn(self): 
         self._normalize()
         return ':'.join( [Xrn.unescape(x) for x in self.authority] )
-    
+
+    def set_authority(self, authority):
+        """
+        update the authority section of an existing urn
+        """
+        authority_hrn = self.get_authority_hrn()
+        if not authority_hrn.startswith(authority+"."):
+            self.hrn = authority + "." + self.hrn
+            self.hrn_to_urn()
+        self._normalize()
+
     def urn_to_hrn(self):
         """
         compute tuple (hrn, type) from urn
         """
         
 #        if not self.urn or not self.urn.startswith(Xrn.URN_PREFIX):
-        if not self.urn.startswith(Xrn.URN_PREFIX):
+        if not Xrn.is_urn(self.urn):
             raise SfaAPIError, "Xrn.urn_to_hrn"
 
         parts = Xrn.urn_split(self.urn)
@@ -170,13 +199,22 @@ class Xrn:
             # or completely change how record types are generated/stored   
             if name != 'sa':
                 type = type + "+" + name
-
+            name =""
+        else:
+            name = parts.pop(len(parts)-1)
         # convert parts (list) into hrn (str) by doing the following
         # 1. remove blank parts
         # 2. escape dots inside parts
         # 3. replace ':' with '.' inside parts
-        # 3. join parts using '.' 
-        hrn = '.'.join([Xrn.escape(part).replace(':','.') for part in parts if part]) 
+        # 3. join parts using '.'
+        hrn = '.'.join([Xrn.escape(part).replace(':','.') for part in parts if part])
+        # dont replace ':' in the name section
+        if name:
+            parts = name.split(':')
+            if len(parts) > 1:
+                self.id = ":".join(parts[1:])
+                name = parts[0]
+            hrn += '.%s' % Xrn.escape(name) 
 
         self.hrn=str(hrn)
         self.type=str(type)
@@ -187,27 +225,35 @@ class Xrn:
         """
 
 #        if not self.hrn or self.hrn.startswith(Xrn.URN_PREFIX):
-        if self.hrn.startswith(Xrn.URN_PREFIX):
+        if Xrn.is_urn(self.hrn):
             raise SfaAPIError, "Xrn.hrn_to_urn, hrn=%s"%self.hrn
 
         if self.type and self.type.startswith('authority'):
-            self.authority = Xrn.hrn_split(self.hrn)
+            self.authority = Xrn.hrn_auth_list(self.hrn)
+            leaf = self.get_leaf()
+            #if not self.authority:
+            #    self.authority = [self.hrn]
             type_parts = self.type.split("+")
             self.type = type_parts[0]
             name = 'sa'
             if len(type_parts) > 1:
                 name = type_parts[1]
+            auth_parts = [part for part in [self.get_authority_urn(), leaf] if part]
+            authority_string = ":".join(auth_parts)
         else:
             self.authority = Xrn.hrn_auth_list(self.hrn)
             name = Xrn.hrn_leaf(self.hrn)
-
-        authority_string = self.get_authority_urn()
+            # separate name from id
+            authority_string = self.get_authority_urn()
 
         if self.type == None:
             urn = "+".join(['',authority_string,Xrn.unescape(name)])
         else:
             urn = "+".join(['',authority_string,self.type,Xrn.unescape(name)])
-        
+
+        if hasattr(self, 'id') and self.id:
+            urn = "%s-%s" % (urn, self.id)
+
         self.urn = Xrn.URN_PREFIX + urn
 
     def dump_string(self):
