@@ -55,7 +55,8 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         try:
             request_extensions = self._delegate.get_request_extensions()
             ad_extensions = self._delegate.get_ad_extensions()
-            single_allocation = 1 if self._delegate.get_sliver_allocation_mode() else 0
+            allocation_mode = self._delegate.get_allocation_mode()
+            is_single_allocation = self._delegate.is_single_allocation()
         except Exception as e:
             return self._errorReturn(e)
                 
@@ -67,12 +68,12 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     
         return self._successReturn({ 
                 'geni_api'                    : '3',
-                'geni_api_versions'           : { '3' : '/RPC2' }, # FIXME this should be an absolute URL
+                'geni_api_versions'           : { '3' : '/RPC2' }, # this should be an absolute URL
                 'geni_request_rspec_versions' : request_rspec_versions,
                 'geni_ad_rspec_versions'      : ad_rspec_versions,
                 'geni_credential_types'       : credential_types,
-                'geni_single_allocation'      : single_allocation,
-                'geni_allocate'               : 'geni_many'
+                'geni_single_allocation'      : is_single_allocation,
+                'geni_allocate'               : allocation_mode
                 })
 
     def ListResources(self, credentials, options):
@@ -84,7 +85,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         # check version and delegate
         try:
             self._checkRSpecVersion(options['geni_rspec_version'])
-            result = self._delegate.list_resources(credentials, geni_available)
+            result = self._delegate.list_resources(self.requestCertificate(), credentials, geni_available)
         except Exception as e:
             return self._errorReturn(e)
         # compress and return
@@ -99,7 +100,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
         try:
             self._checkRSpecVersion(options['geni_rspec_version'])
-            result = self._delegate.describe(urns, credentials)
+            result = self._delegate.describe(urns, self.requestCertificate(), credentials)
         except Exception as e:
             return self._errorReturn(e)
 
@@ -110,10 +111,10 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     def Allocate(self, slice_urn, credentials, rspec, options):
         """Delegates the call and unwraps the needed parameter. Also converts the incoming timestamp to python and the outgoing to geni compliant date format."""
         geni_end_time = self._str2datetime(options['geni_end_time']) if ('geni_end_time' in options) else None
-        
+        # TODO check the end_time against the duration of the credential
         try:
             # delegate
-            result_rspec, result_sliver_list = self._delegate.allocate(slice_urn, credentials, rspec, geni_end_time)
+            result_rspec, result_sliver_list = self._delegate.allocate(slice_urn, self.requestCertificate(), credentials, rspec, geni_end_time)
             # change datetime's to strings
             result = { 'geni_rspec' : result_rspec, 'geni_slivers' : self._convertExpiresDate(result_sliver_list) }
         except Exception as e:
@@ -125,7 +126,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         expiration_time = self._str2datetime(expiration_time_str)
         try:
             # delegate
-            result = self._delegate.renew(urns, credentials, expiration_time, geni_best_effort)
+            result = self._delegate.renew(urns, self.requestCertificate(), credentials, expiration_time, geni_best_effort)
             # change datetime's to strings
             result = self._convertExpiresDate(result)
         except Exception as e:
@@ -136,10 +137,10 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         geni_best_effort = bool(options['geni_best_effort']) if ('geni_best_effort' in options) else True
         geni_end_time = self._str2datetime(options['geni_end_time']) if ('geni_end_time' in options) else None
         geni_users = options['geni_users'] if ('geni_users' in options) else []
-        
+        # TODO check the end_time against the duration of the credential
         try:
             self._checkRSpecVersion(options['geni_rspec_version'])
-            result_rspec, result_sliver_list = self._delegate.provision(urns, credentials, geni_best_effort, geni_end_time, geni_users)
+            result_rspec, result_sliver_list = self._delegate.provision(urns, self.requestCertificate(), credentials, geni_best_effort, geni_end_time, geni_users)
             result = { 'geni_rspec' : result_rspec, 'geni_slivers' : self._convertExpiresDate(result_sliver_list) }
         except Exception as e:
             return self._errorReturn(e)
@@ -147,7 +148,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     
     def Status(self, urns, credentials, options):
         try:
-            result_sliceurn, result_sliver_list = self._delegate.status(urns, credentials)
+            result_sliceurn, result_sliver_list = self._delegate.status(urns, self.requestCertificate(), credentials)
             result = { 'geni_urn' : result_sliceurn, 'geni_slivers' : self._convertExpiresDate(result_sliver_list) }
         except Exception as e:
             return self._errorReturn(e)
@@ -156,7 +157,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     def PerformOperationalAction(self, urns, credentials, action, options):
         geni_best_effort = bool(options['geni_best_effort']) if ('geni_best_effort' in options) else False
         try:
-            result = self._delegate.perform_operational_action(urns, credentials, action, geni_best_effort)
+            result = self._delegate.perform_operational_action(urns, self.requestCertificate(), credentials, action, geni_best_effort)
             result = self._convertExpiresDate(result)
         except Exception as e:
             return self._errorReturn(e)
@@ -165,7 +166,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     def Delete(self, urns, credentials, options):
         geni_best_effort = bool(options['geni_best_effort']) if ('geni_best_effort' in options) else False
         try:
-            result = self._delegate.delete(urns, credentials, geni_best_effort)
+            result = self._delegate.delete(urns, self.requestCertificate(), credentials, geni_best_effort)
             result = self._convertExpiresDate(result)
         except Exception as e:
             return self._errorReturn(e)
@@ -173,7 +174,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
     def Shutdown(self, slice_urn, credentials, options):
         try:
-            result = bool(self._delegate.shutdown(slice_urn, credentials))
+            result = bool(self._delegate.shutdown(slice_urn, self.requestCertificate(), credentials))
         except Exception as e:
             return self._errorReturn(e)
         return self._successReturn(result)
@@ -209,19 +210,30 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
 
 class GENIv3DelegateBase(object):
-    """The GENIv3 handler assumes that this class uses RSpec version 3 when interacting with the client."""
+    """
+    TODO document
+    The GENIv3 handler assumes that this class uses RSpec version 3 when interacting with the client.
     
-    ALLOCATION_STATE_UNALLOCATED = 'geni_unallocated'
-    ALLOCATION_STATE_ALLOCATED = 'geni_allocated'
-    ALLOCATION_STATE_PROVISIONED = 'geni_provisioned'
+    General parameters:
+    {client_cert} The client's certificate. See [flaskrpcs]XMLRPCDispatcher.requestCertificate(). Also see http://groups.geni.net/geni/wiki/GeniApiCertificates
+    {credentials} The a list of credentials in the format specified at http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#credentials
+    """
+    
+    ALLOCATION_STATE_UNALLOCATED = 'geni_unallocated'  """The sliver does not exist. (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverAllocationStates)"""
+    ALLOCATION_STATE_ALLOCATED = 'geni_allocated'      """The sliver is offered/promissed, but it does not consume actual resources. This state shall time out at some point in time."""
+    ALLOCATION_STATE_PROVISIONED = 'geni_provisioned'  """The sliver is/has been instanciated. Operational states apply here."""
 
-    OPERATIONAL_STATE_PENDING_ALLOCATION = 'geni_pending_allocation'
-    OPERATIONAL_STATE_NOTREADY           = 'geni_notready'
-    OPERATIONAL_STATE_CONFIGURING        = 'geni_configuring'
-    OPERATIONAL_STATE_STOPPING           = 'geni_stopping'
-    OPERATIONAL_STATE_READY              = 'geni_ready'
-    OPERATIONAL_STATE_READY_BUSY         = 'geni_ready_busy'
-    OPERATIONAL_STATE_FAILED             = 'geni_failed'
+    OPERATIONAL_STATE_PENDING_ALLOCATION = 'geni_pending_allocation'    """Required for aggregates to support. A transient state."""
+    OPERATIONAL_STATE_NOTREADY           = 'geni_notready'              """Optional. A stable state."""
+    OPERATIONAL_STATE_CONFIGURING        = 'geni_configuring'           """Optional. A transient state."""
+    OPERATIONAL_STATE_STOPPING           = 'geni_stopping'              """Optional. A transient state."""
+    OPERATIONAL_STATE_READY              = 'geni_ready'                 """Optional. A stable state."""
+    OPERATIONAL_STATE_READY_BUSY         = 'geni_ready_busy'            """Optional. A transient state."""
+    OPERATIONAL_STATE_FAILED             = 'geni_failed'                """Optional. A stable state."""
+
+    OPERATIONAL_ACTION_START   = 'geni_start'   """Sliver shall become geni_ready. The AM developer may define more states (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverOperationalActions)"""
+    OPERATIONAL_ACTION_RESTART = 'geni_restart' """Sliver shall become geni_ready again."""
+    OPERATIONAL_ACTION_STOP    = 'geni_stop'    """Sliver shall become geni_notready."""
 
     def __init__(self):
         super(GENIv3DelegateBase, self).__init__()
@@ -229,29 +241,39 @@ class GENIv3DelegateBase(object):
     
     def get_request_extensions(self):
         """Should retrun a list of request extensions (XSD schema URLs as string) to be sent back by GetVersion."""
-        return ['http://example.com/dhcp/req.xsd'] # TODO remove and insert []
+        return []
     
     def get_ad_extensions(self):
         """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
-        return ['http://example.com/dhcp/ad.xsd'] # TODO remove and insert []
+        return []
     
-    def get_sliver_allocation_mode(self):
-        # raise GENIv3DatabaseError("Some explaination or hint.")
-        return True
+    def is_single_allocation(self):
+        """Shall return a True or False. When True (not default), and performing one of (Describe, Allocate, Renew, Provision, Delete), such an AM requires you to include either the slice urn or the urn of all the slivers in the same state.
+        see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
+        return False
 
-    def list_resources(self, credentials, geni_available):
+    def get_allocation_mode(self):
+        """Shall return a either 'geni_single', 'geni_disjoint', 'geni_many'.
+        It defines whether this AM allows adding slivers to slices at an AM (i.e. calling Allocate multiple times, without first deleting the allocated slivers).
+        For description of the options see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
+        return 'geni_single'
+
+    def list_resources(self, client_cert, credentials, geni_available):
         """Shall return an RSpec version 3 (advertisement) or raise an GENIv3...Error.
         If {geni_available} is set, only return availabe resources.
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#ListResources"""
-        return "<rspec>hallo</rspec>" # TODO remove and throw an error
+        raise GENIv3GeneralError("Method not implemented yet")
 
-    def describe(self, urns, credentials):
+    def describe(self, urns, client_cert, credentials):
         """Shall return an RSpec version 3 (manifest) or raise an GENIv3...Error.
         {urns} contains a list of slice identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
-        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Describe"""
-        return "<rspec>hallo 2</rspec>" # TODO remove and throw an error
 
-    def allocate(self, slice_urn, credentials, rspec, geni_end_time=None):
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
+
+        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Describe"""
+        raise GENIv3GeneralError("Method not implemented yet")
+
+    def allocate(self, slice_urn, client_cert, credentials, rspec, end_time=None):
         """
         Shall return the two following values or raise an GENIv3...Error.
         - a RSpec version 3 (manifest) of newly allocated slivers 
@@ -262,12 +284,13 @@ class GENIv3DelegateBase(object):
              ...]
         Please return like so: "return respecs, slivers"
         {slice_urn} contains a slice identifier (e.g. 'urn:publicid:IDN+ofelia:eict:gcf+slice+myslice').
+        {end_time} Optional. A python datetime object which determines the desired expiry date of this allocation (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#geni_end_time).
         >>> This is the first part of what CreateSliver used to do in previous versions of the AM API. The second part is now done by Provision, and the final part is done by PerformOperationalAction.
+        
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Allocate"""
-        return "<rspec>hallo 2</rspec>", [{'geni_sliver_urn' : "Sliver-URN", 'geni_expires'    : datetime(2013, 01, 24, 9, 30, 00),
-              'geni_allocation_status' : self.ALLOCATION_STATE_ALLOCATED}] # TODO remove and throw an error
+        raise GENIv3GeneralError("Method not implemented yet")
 
-    def renew(self, urns, credentials, expiration_time, best_effort):
+    def renew(self, urns, client_cert, credentials, expiration_time, best_effort):
         """
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
@@ -279,16 +302,15 @@ class GENIv3DelegateBase(object):
         
         {urns} contains a list of slice identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
         {expiration_time} is a python datetime object
-        {best_effort} determines if the method shall fail in case that not all of the urns can be renewed (best_effort=False)
-        
-        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Renew"""
-        return [{'geni_sliver_urn'         : "URNIIIIII",
-              'geni_allocation_status'  : self.ALLOCATION_STATE_ALLOCATED,
-              'geni_operational_status' : self.OPERATIONAL_STATE_PENDING_ALLOCATION,
-              'geni_expires'            : datetime(2013, 01, 24, 9, 30, 00),
-              'geni_error'              : ""}] # TODO remove and throw an error
+        {best_effort} determines if the method shall fail in case that not all of the urns can be renewed (best_effort=False).
 
-    def provision(self, urns, credentials, best_effort, end_time, geni_users):
+        If the transactional behaviour of {best_effort}=False can not be provided, throw a GENIv3OperationUnsupportedError.
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
+
+        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Renew"""
+        raise GENIv3GeneralError("Method not implemented yet")
+
+    def provision(self, urns, client_cert, credentials, best_effort, end_time, geni_users):
         """
         Shall return the two following values or raise an GENIv3...Error.
         - a RSpec version 3 (manifest) of slivers 
@@ -303,18 +325,16 @@ class GENIv3DelegateBase(object):
 
         {urns} contains a list of slice/resource identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
         {best_effort} determines if the method shall fail in case that not all of the urns can be provisioned (best_effort=False)
-        {end_time} is a python datetime object
+        {end_time} Optional. A python datetime object which determines the desired expiry date of this provision (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#geni_end_time).
         {geni_users} is a list of the format: [ { 'urn' : ..., 'keys' : [sshkey, ...]}, ...]
         
-        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Provision"""
-        return "<rspec>hallo 3</rspec>", [{
-                    'geni_sliver_urn'         : "Sliver-URN",
-                    'geni_allocation_status'  : self.ALLOCATION_STATE_ALLOCATED,
-                    'geni_operational_status' : self.OPERATIONAL_STATE_PENDING_ALLOCATION,
-                    'geni_expires'            : datetime(2013, 01, 24, 9, 30, 00),
-                    'geni_error'              : ""}] # TODO remove and throw an error
+        If the transactional behaviour of {best_effort}=False can not be provided, throw a GENIv3OperationUnsupportedError.
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
 
-    def status(self, urns, credentials):
+        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Provision"""
+        raise GENIv3GeneralError("Method not implemented yet")
+
+    def status(self, urns, client_cert, credentials):
         """
         Shall return the two following values or raise an GENIv3...Error.
         - a slice urn
@@ -328,16 +348,12 @@ class GENIv3DelegateBase(object):
         Please return like so: "return slice_urn, slivers"
 
         {urns} contains a list of slice/resource identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
         
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Status"""
-        return "Slice-URN", [{
-                    'geni_sliver_urn'         : "asdas",
-                    'geni_allocation_status'  : self.ALLOCATION_STATE_ALLOCATED,
-                    'geni_operational_status' : self.OPERATIONAL_STATE_PENDING_ALLOCATION,
-                    'geni_expires'            : datetime(2013, 01, 24, 9, 30, 00),
-                    'geni_error'              : ""}] # TODO remove and throw an error
+        raise GENIv3GeneralError("Method not implemented yet")
 
-    def perform_operational_action(self, urns, credentials, action, best_effort):
+    def perform_operational_action(self, urns, client_cert, credentials, action, best_effort):
         """
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
@@ -347,18 +363,17 @@ class GENIv3DelegateBase(object):
               'geni_error'              : optional String}, 
              ...]
 
-        {urns} contains a list of slice/resource identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
+        {urns} contains a list of slice or sliver identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
         {action} an arbitraty string, but the following should be possible: "geni_start", "geni_stop", "geni_restart"
         {best_effort} determines if the method shall fail in case that not all of the urns can be changed (best_effort=False)
+
+        If the transactional behaviour of {best_effort}=False can not be provided, throw a GENIv3OperationUnsupportedError.
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
         
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#PerformOperationalAction"""
-        return [{   'geni_sliver_urn'         : "asdas",
-                    'geni_allocation_status'  : self.ALLOCATION_STATE_ALLOCATED,
-                    'geni_operational_status' : self.OPERATIONAL_STATE_PENDING_ALLOCATION,
-                    'geni_expires'            : datetime(2013, 01, 24, 9, 30, 00),
-                    'geni_error'              : ""}] # TODO remove and throw an error (unsupported)
+        raise GENIv3GeneralError("Method not implemented yet")
 
-    def delete(self, urns, credentials, best_effort):
+    def delete(self, urns, client_cert, credentials, best_effort):
         """
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
@@ -370,16 +385,15 @@ class GENIv3DelegateBase(object):
         {urns} contains a list of slice/resource identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
         {best_effort} determines if the method shall fail in case that not all of the urns can be deleted (best_effort=False)
         
-        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Delete"""
-        return [{   'geni_sliver_urn'         : "asdas",
-                    'geni_allocation_status'  : self.ALLOCATION_STATE_UNALLOCATED,
-                    'geni_expires'            : datetime(2013, 01, 24, 9, 30, 00),
-                    'geni_error'              : ""}] # TODO remove and throw an error (unsupported)
+        If the transactional behaviour of {best_effort}=False can not be provided, throw a GENIv3OperationUnsupportedError.
+        For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
 
-    def shutdown(self, slice_urn, credentials):
+        For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Delete"""
+        raise GENIv3GeneralError("Method not implemented yet")
+
+    def shutdown(self, slice_urn, client_cert, credentials):
         """
         Shall return True or False or raise an GENIv3...Error.
 
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Shutdown"""
-        return True # TODO remove and throw an error
-
+        raise GENIv3GeneralError("Method not implemented yet")

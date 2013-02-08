@@ -8,7 +8,7 @@ class GENIv3BaseError(CoreException):
         self.comment = comment
 
     def __str__(self):
-        return "%s: %s (%s)" % (self.name, self.description, self.comment)
+        return "[%s] %s (%s)" % (self.name, self.description, self.comment)
 
 
 class GENIv3BadArgsError(GENIv3BaseError):
@@ -16,7 +16,7 @@ class GENIv3BadArgsError(GENIv3BaseError):
         super(self.__class__, self).__init__( 1, 'BADARGS', "Bad Arguments: malformed arguments", comment)
 class GENIv3GeneralError(GENIv3BaseError):
     def __init__(self, comment):
-        super(self.__class__, self).__init__( 2, 'ERROR', "Error (other)", comment)
+        super(self.__class__, self).__init__( 2, 'ERROR', "General Error", comment)
 class GENIv3ForbiddenError(GENIv3BaseError):
     def __init__(self, comment):
         super(self.__class__, self).__init__( 3, 'FORBIDDEN', "Operation Forbidden: eg supplied credentials do not provide sufficient privileges (on given slice)", comment)
