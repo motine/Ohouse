@@ -1,4 +1,5 @@
 import os, os.path
+import urllib2
 from datetime import datetime
 from dateutil import parser as dateparser
 
@@ -12,7 +13,7 @@ import amsoil.core.pluginmanager as pm
 from amsoil.core import serviceinterface
 from amsoil.config import ROOT_PATH
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('geniv3handler')
+logger=amsoil.core.log.getLogger('geniv3rpc')
 
 from exceptions import *
 
@@ -222,32 +223,50 @@ class GENIv3DelegateBase(object):
     {credentials} The a list of credentials in the format specified at http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#credentials
     """
     
-    ALLOCATION_STATE_UNALLOCATED = 'geni_unallocated'  """The sliver does not exist. (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverAllocationStates)"""
-    ALLOCATION_STATE_ALLOCATED = 'geni_allocated'      """The sliver is offered/promissed, but it does not consume actual resources. This state shall time out at some point in time."""
-    ALLOCATION_STATE_PROVISIONED = 'geni_provisioned'  """The sliver is/has been instanciated. Operational states apply here."""
+    ALLOCATION_STATE_UNALLOCATED = 'geni_unallocated'
+    """The sliver does not exist. (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverAllocationStates)"""
+    ALLOCATION_STATE_ALLOCATED = 'geni_allocated'
+    """The sliver is offered/promissed, but it does not consume actual resources. This state shall time out at some point in time."""
+    ALLOCATION_STATE_PROVISIONED = 'geni_provisioned'
+    """The sliver is/has been instanciated. Operational states apply here."""
 
-    OPERATIONAL_STATE_PENDING_ALLOCATION = 'geni_pending_allocation'    """Required for aggregates to support. A transient state."""
-    OPERATIONAL_STATE_NOTREADY           = 'geni_notready'              """Optional. A stable state."""
-    OPERATIONAL_STATE_CONFIGURING        = 'geni_configuring'           """Optional. A transient state."""
-    OPERATIONAL_STATE_STOPPING           = 'geni_stopping'              """Optional. A transient state."""
-    OPERATIONAL_STATE_READY              = 'geni_ready'                 """Optional. A stable state."""
-    OPERATIONAL_STATE_READY_BUSY         = 'geni_ready_busy'            """Optional. A transient state."""
-    OPERATIONAL_STATE_FAILED             = 'geni_failed'                """Optional. A stable state."""
+    OPERATIONAL_STATE_PENDING_ALLOCATION = 'geni_pending_allocation'
+    """Required for aggregates to support. A transient state."""
+    OPERATIONAL_STATE_NOTREADY           = 'geni_notready'
+    """Optional. A stable state."""
+    OPERATIONAL_STATE_CONFIGURING        = 'geni_configuring'
+    """Optional. A transient state."""
+    OPERATIONAL_STATE_STOPPING           = 'geni_stopping'
+    """Optional. A transient state."""
+    OPERATIONAL_STATE_READY              = 'geni_ready'
+    """Optional. A stable state."""
+    OPERATIONAL_STATE_READY_BUSY         = 'geni_ready_busy'
+    """Optional. A transient state."""
+    OPERATIONAL_STATE_FAILED             = 'geni_failed'
+    """Optional. A stable state."""
 
-    OPERATIONAL_ACTION_START   = 'geni_start'   """Sliver shall become geni_ready. The AM developer may define more states (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverOperationalActions)"""
-    OPERATIONAL_ACTION_RESTART = 'geni_restart' """Sliver shall become geni_ready again."""
-    OPERATIONAL_ACTION_STOP    = 'geni_stop'    """Sliver shall become geni_notready."""
+    OPERATIONAL_ACTION_START   = 'geni_start'
+    """Sliver shall become geni_ready. The AM developer may define more states (see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#SliverOperationalActions)"""
+    OPERATIONAL_ACTION_RESTART = 'geni_restart'
+    """Sliver shall become geni_ready again."""
+    OPERATIONAL_ACTION_STOP    = 'geni_stop'
+    """Sliver shall become geni_notready."""
 
     def __init__(self):
         super(GENIv3DelegateBase, self).__init__()
         pass
     
     def get_request_extensions_list(self):
-        """ Override to provide a list of your custom request extensions to be sent back by GetVersion (URLs to XSD schemas)."""
-        return []
+        """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
+        return [uri for prefix, uri in self.get_request_extensions_mapping().items()]
+    def get_request_extensions_mapping(self):
+        """Should return a dict of namespace names and request extensions (XSD schema's URLs as string).
+        Format: {xml_namespace_prefix : namespace_uri, ...}
+        """
+        return {}
 
     def get_manifest_extensions_mapping(self):
-        """Should retrun a dict of namespace names and manifest extensions (XSD schema's URLs as string).
+        """Should return a dict of namespace names and manifest extensions (XSD schema's URLs as string).
         Format: {xml_namespace_prefix : namespace_uri, ...}
         """
         return {}
@@ -256,7 +275,7 @@ class GENIv3DelegateBase(object):
         """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
         return [uri for prefix, uri in self.get_ad_extensions_mapping().items()]
     def get_ad_extensions_mapping(self):
-        """Should retrun a dict of namespace names and advertisement extensions (XSD schema URLs as string) to be sent back by GetVersion.
+        """Should return a dict of namespace names and advertisement extensions (XSD schema URLs as string) to be sent back by GetVersion.
         Format: {xml_namespace_prefix : namespace_uri, ...}
         """
         return {}
@@ -497,6 +516,50 @@ class GENIv3DelegateBase(object):
         ext = self.get_manifest_extensions_mapping()
         return ElementMaker(namespace=ext[prefix], nsmap=ext)
 
+    @serviceinterface
+    def lxml_parse_rspec(self, rspec_string):
+        """Returns a the root element of the given {rspec_string} as lxml.Element.
+        If the config key is set, the rspec is validated with the schemas found at the URLs specified in schemaLocation of the the given RSpec."""
+        # parse
+        rspec_root = etree.fromstring(rspec_string)
+        # validate RSpec against specified schemaLocations
+        config = pm.getService("config")
+        should_validate = config.get("geniv3rpc.rspec_validation")
 
+        if should_validate:
+            schema_locations = rspec_root.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+            if schema_locations:
+                schema_location_list = schema_locations.split(" ")
+                schema_location_list = map(lambda x: x.strip(), schema_location_list) # strip whitespaces
+                for sl in schema_location_list:
+                    try:
+                        xmlschema_contents = urllib2.urlopen(sl) # try to download the schema
+                        xmlschema_doc = etree.parse(xmlschema_contents)
+                        xmlschema = etree.XMLSchema(xmlschema_doc)
+                        xmlschema.validate(rspec_root)
+                    except Exception as e:
+                        logger.warning("RSpec validation failed failed (%s: %s)" % (sl, str(e),))
+            else:
+                logger.warning("RSpec does not specify any schema locations")
+        return rspec_root
 
-
+    @serviceinterface
+    def lxml_elm_has_request_prefix(self, lxml_elm, ns_name):
+        return str(lxml_elm.tag).startswith("{%s}" % (self.get_request_extensions_mapping()[ns_name],))
+    # def lxml_request_prefix(self, ns_name):
+    #     """Returns the full lxml-prefix: Wraps the namespace looked up in the get_request_extensions_mapping (see above) wrapped in curly brackets (useful for lxml)."""
+    #     return "{%s}" % (self.get_request_extensions_mapping()[ns_name],)
+    # @serviceinterface
+    # def lxml_mainifest_prefix(self, ns_name):
+    #     """See: lxml_request_prefix() (here for manifest)"""
+    #     return "{%s}" % (self.get_manifest_extensions_mapping()[ns_name],)
+    # @serviceinterface
+    # def lxml_ad_prefix(self, ns_name):
+    #     """See: lxml_request_prefix() (here for advertisement)"""
+    #     return "{%s}" % (self.get_ad_extensions_mapping()[ns_name],)
+        
+    @serviceinterface
+    def lxml_elm_equals_request_tag(self, lxml_elm, ns_name, tagname):
+        """Determines if the given tag by {ns_name} and {tagname} equals lxml_tag. The namespace URI is looked up via get_request_extensions_mapping()['ns_name']"""
+        return ("{%s}%s" % (self.get_request_extensions_mapping()[ns_name], tagname)) == str(lxml_elm.tag)
+        

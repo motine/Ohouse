@@ -108,14 +108,14 @@ Example RSpec for rspec-req.xml:
     <rspec type="request"
            xmlns="http://www.geni.net/resources/rspec/3"
            xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:simple="http://example.com/simple/req.xsd"
-           xs:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://example.com/simple/ad.xsd">
-    <simple:ip>192.168.1.1</simple:ip>
-    <simple:ip>192.168.1.2</simple:ip>
-    <simple:iprange>
-        <from>192.168.1.3</from>
-        <to>192.168.1.6</to>
-    </simple:iprange>
+           xmlns:dhcp="http://example.com/dhcp"
+           xs:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://example.com/dhcp/req.xsd">
+        <dhcp:ip>192.168.1.1</dhcp:ip>
+        <dhcp:ip>192.168.1.2</dhcp:ip>
+        <dhcp:iprange>
+            <from>192.168.1.3</from>
+            <to>192.168.1.6</to>
+        </dhcp:iprange>
     </rspec>
 
 If everything is working properly you should see something like this:
