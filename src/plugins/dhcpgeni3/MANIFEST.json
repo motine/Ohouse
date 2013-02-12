@@ -4,6 +4,6 @@
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
   "implements" : [],
-  "loads-after" : ["geniv3handler", "geniv3delegatebase", "geniv3exceptions", "config"],
+  "loads-after" : ["geniv3handler", "geniv3delegatebase", "geniv3exceptions", "dhcpresourcemanager", "dhcpexceptions", "config"],
   "requires" : []
 }

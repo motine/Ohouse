@@ -197,6 +197,8 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
     def _convertExpiresDate(self, sliver_list):
         for slhash in sliver_list:
+            if slhash['geni_expires'] == None:
+                continue
             if not isinstance(slhash['geni_expires'], datetime):
                 raise ValueError("Given geni_expires in sliver_list hash retrieved from delegate's method is not a python datetime object.")
             slhash['geni_expires'] = self._datetime2str(slhash['geni_expires'])
