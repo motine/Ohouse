@@ -188,7 +188,12 @@ class GENIv3Handler(xmlrpc.Dispatcher):
     def _datetime2str(self, dt):
         return dt.strftime(self.RFC3339_FORMAT_STRING)
     def _str2datetime(self, strval):
-        return dateparser.parse(strval)
+        """Parses the given date string and converts the timestamp to utc and the date unaware of timezones."""
+        result = dateparser.parse(strval)
+        if result:
+            result = result - result.utcoffset()
+            result = result.replace(tzinfo=None)
+        return result
 
     def _convertExpiresDate(self, sliver_list):
         for slhash in sliver_list:
@@ -221,6 +226,8 @@ class GENIv3DelegateBase(object):
     General parameters:
     {client_cert} The client's certificate. See [flaskrpcs]XMLRPCDispatcher.requestCertificate(). Also see http://groups.geni.net/geni/wiki/GeniApiCertificates
     {credentials} The a list of credentials in the format specified at http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#credentials
+
+    Dates are converted to UTC and then made timezone-unaware (see http://docs.python.org/2/library/datetime.html#datetime.datetime.astimezone).
     """
     
     ALLOCATION_STATE_UNALLOCATED = 'geni_unallocated'
@@ -489,6 +496,12 @@ class GENIv3DelegateBase(object):
         user_uuid = user_gid.get_uuid()
         user_email = user_gid.get_email()
         return user_urn, user_uuid, user_email # TODO document return
+
+    @serviceinterface
+    def urn_type(self, urn):
+        """Returns the type of the urn (e.g. slice, sliver).
+        For the possible types see: http://groups.geni.net/geni/wiki/GeniApiIdentifiers#ExamplesandUsage"""
+        return urn.split('+')[2].strip()
 
     @serviceinterface
     def lxml_ad_root(self):
