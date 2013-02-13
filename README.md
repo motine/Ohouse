@@ -6,4 +6,4 @@ Also it provides helpers for common tasks in AM development.
 
 # Documentation
 
-Please see the [Wiki](wiki/Home) for more information.
+Please see the Wiki for more information.
