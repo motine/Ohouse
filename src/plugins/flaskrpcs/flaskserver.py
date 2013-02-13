@@ -43,13 +43,13 @@ class FlaskServer(object):
         """Starts up the server. It (will) support different config options via the config plugin."""
         config = pm.getService("config")
         debug = config.get("flask.debug")
-        cWSGI = config.get("flask.wsgi")
+        cFCGI = config.get("flask.fcgi")
         host = config.get("flask.bind")
         app_port = config.get("flask.app_port")
         fcgi_port = config.get("flask.fcgi_port")
 
-        if cWSGI:
-            logger.info("registering wsgi server at %s:%i", host, fcgi_port)
+        if cFCGI:
+            logger.info("registering fcgi server at %s:%i", host, fcgi_port)
             from flup.server.fcgi import WSGIServer
             WSGIServer(self._app, bindAddress=(host, fcgi_port)).run()
         else:

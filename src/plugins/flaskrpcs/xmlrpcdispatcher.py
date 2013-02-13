@@ -21,7 +21,7 @@ class XMLRPCDispatcher(object):
         # unfortunately, werkzeug (the server behind flask) can not handle client certificates
         # hence we fake it by using a file configured by the user
         config = pm.getService("config")
-        if config.get("flask.debug") and not config.get("flask.wsgi"):
+        if config.get("flask.debug") and not config.get("flask.fcgi"):
             try:
                 return open(os.path.normpath(config.get("flask.debug.client_cert_file")), 'r').read()
             except:
