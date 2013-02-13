@@ -1,4 +1,0 @@
-This IPC plugin shall provide an interface to rabbit mq.
-It shall enable dispatching long tasks to a queue and let another process work on it (e.g. sending mass emails without to have to wait for completion).
-
-The code was taken from amsoil.core and has not yet been converted to a plugin.

@@ -1,3 +1,0 @@
-This mutex plugin shall provide a mutex for multi-process or single-process applications.
-
-The code was taken from amsoil.core and has not yet been converted to a plugin.
