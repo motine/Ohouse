@@ -66,7 +66,7 @@ DEFAULT_HOST_AND_PORT='127.0.0.1:8001'
 
 if __name__ == '__main__':
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'lis:', ['list', 'interactive', 'set='])
+        opts, args = getopt.getopt(sys.argv[1:], 'hlis:', ['help', 'list', 'interactive', 'set='])
         if opts == [] and args == []:
             raise ValueError("Please specify an option.")
 
@@ -82,9 +82,13 @@ if __name__ == '__main__':
         server = xmlrpclib.ServerProxy("https://%s/amconfig" % (host_name,), transport=transport)
         
         for option, opt_arg in opts:
+            if option in ['-h', '--help']:
+                print_usage()
+                sys.exit(0)
             if option in ['-l', '--list']:
                 keys = server.ListConfigKeys() # reload the keys every time
                 print_configs(keys, False)
+                sys.exit(0)
             if option in ['-i', '--interactive']:
                 while True:
                     keys = server.ListConfigKeys() # reload the keys every time
@@ -110,6 +114,7 @@ if __name__ == '__main__':
                         set_key(server, key, current_value, new_value)
                     except Exception as e:
                         print str(e)
+                sys.exit(0)
                     
             if option in ['-s', '--set']:
                 if not opt_arg:
@@ -124,6 +129,7 @@ if __name__ == '__main__':
                 if len(keys) != 1:
                     raise ValueError("Could not find the specified key.")
                 set_key(server, selected_key, keys[0][1], new_value)
+                sys.exit(0)
     except Exception as err: # getopt.GetoptError
         print "ERROR: %s" % (err,)
         print_usage()
