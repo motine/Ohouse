@@ -14,6 +14,7 @@ class XMLRPCDispatcher(object):
 
     @serviceinterface
     def requestCertificate(self):
+        """Retrieve the certificate which the client has sent. If using the development server, the certificate is read from a static file (see config keys)."""
         # get it from the request's environment
         if request.environ.has_key('CLIENT_RAW_CERT'):
             return request.environ['CLIENT_RAW_CERT']
