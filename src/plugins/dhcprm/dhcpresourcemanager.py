@@ -71,3 +71,7 @@ class DHCPResourceManager(object):
         if (end_time > max_end_time):
             raise DHCPMaxLeaseDurationExceeded(lease['ip'])
         lease['end_time'] = end_time
+
+
+    def test_remove_me(self, params):
+        logger.info("I was called with %s" % (params, ))
