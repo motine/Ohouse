@@ -15,8 +15,6 @@ class WorkerServer(object):
     @serviceinterface
     def runServer(self):
         while True:
-            print "checking for new jobs"
-            
             # testing
             jobs = [{
                 "service_name" : "dhcpresourcemanager",

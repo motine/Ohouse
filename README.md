@@ -6,4 +6,4 @@ Also it provides helpers for common tasks in AM development.
 
 # Documentation
 
-Please see the Wiki for more information.
+Please see the [Wiki](https://github.com/fp7-ofelia/AMsoil/wiki) for more information.
