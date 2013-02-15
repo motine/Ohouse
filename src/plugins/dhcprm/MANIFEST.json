@@ -4,6 +4,6 @@
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
   "implements" : ["dhcpresourcemanager", "dhcpexceptions"],
-  "loads-after" : ["config"],
+  "loads-after" : ["config", "worker"],
   "requires" : []
 }

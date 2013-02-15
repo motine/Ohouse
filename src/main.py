@@ -22,8 +22,8 @@ def main():
             print_usage()
             sys.exit(0)
         if option in ['-w', '--worker']:
-            worker = pm.getService('workerserver')
-            worker.runServer()
+            worker = pm.getService('worker')
+            worker.WorkerServer().runServer()
             sys.exit(0)
     
     rpcserver = pm.getService('rpcserver')

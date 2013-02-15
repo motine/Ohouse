@@ -6,20 +6,24 @@ logger=amsoil.core.log.getLogger('dhcpresourcemanager')
 
 from dhcpexceptions import *
 
+worker = pm.getService('worker')
+
 class DHCPResourceManager(object):
     config = pm.getService("config")
     
     RESERVATION_TIMEOUT = config.get("dhcprm.max_reservation_duration") # sec
     MAX_LEASE_DURATION = config.get("dhcprm.max_lease_duration") # sec
 
-    
-    # TODO implement cron job to expire leases
+    EXPIRY_CHECK_INTERVAL = 10 # sec
     
     def __init__(self):
         super(DHCPResourceManager, self).__init__()
         self._leases = []
         for i in range(1,20):
             self._leases.append({'ip' : ("192.168.1.%i" % (i,)), 'slice_name' : None, 'owner_uuid' : None, 'owner_email' : None, 'end_time' : None})
+        
+        # register callback for regular updates
+        worker.addAsReccurring("dhcpresourcemanager", "expire_leases", None, self.EXPIRY_CHECK_INTERVAL)
     
     def get_all_leases(self):
         return self._leases[:]
@@ -72,6 +76,15 @@ class DHCPResourceManager(object):
             raise DHCPMaxLeaseDurationExceeded(lease['ip'])
         lease['end_time'] = end_time
 
+    @worker.outsideprocess
+    def expire_leases(self, params):
+        # TODO when leases are in database check the database for expired leases.
+        # The following code will not work, because the leases are saved in memory.
+        # Hence the worker process has no access to the leases of the RPC server.
 
-    def test_remove_me(self, params):
-        logger.info("I was called with %s" % (params, ))
+        # for lease in self._leases:
+        #     if lease['end_time'] and datetime.now() > lease['end_time']:
+        #         self.free_lease(lease)
+        #         logger.info("Lease expired %s in slice %s" % (lease["ip"], lease["slice_name"]))
+        pass
+    
