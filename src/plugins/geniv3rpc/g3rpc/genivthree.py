@@ -266,48 +266,48 @@ class GENIv3DelegateBase(object):
         pass
     
     def get_request_extensions_list(self):
-        """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
+        """Not to overwrite by AM developer. Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
         return [uri for prefix, uri in self.get_request_extensions_mapping().items()]
     def get_request_extensions_mapping(self):
-        """Should return a dict of namespace names and request extensions (XSD schema's URLs as string).
+        """Overwrite by AM developer. Should return a dict of namespace names and request extensions (XSD schema's URLs as string).
         Format: {xml_namespace_prefix : namespace_uri, ...}
         """
         return {}
 
     def get_manifest_extensions_mapping(self):
-        """Should return a dict of namespace names and manifest extensions (XSD schema's URLs as string).
+        """Overwrite by AM developer. Should return a dict of namespace names and manifest extensions (XSD schema's URLs as string).
         Format: {xml_namespace_prefix : namespace_uri, ...}
         """
         return {}
         
     def get_ad_extensions_list(self):
-        """Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
+        """Not to overwrite by AM developer. Should retrun a list of request extensions (XSD schemas) to be sent back by GetVersion."""
         return [uri for prefix, uri in self.get_ad_extensions_mapping().items()]
     def get_ad_extensions_mapping(self):
-        """Should return a dict of namespace names and advertisement extensions (XSD schema URLs as string) to be sent back by GetVersion.
+        """Overwrite by AM developer. Should return a dict of namespace names and advertisement extensions (XSD schema URLs as string) to be sent back by GetVersion.
         Format: {xml_namespace_prefix : namespace_uri, ...}
         """
         return {}
     
     def is_single_allocation(self):
-        """Shall return a True or False. When True (not default), and performing one of (Describe, Allocate, Renew, Provision, Delete), such an AM requires you to include either the slice urn or the urn of all the slivers in the same state.
+        """Overwrite by AM developer. Shall return a True or False. When True (not default), and performing one of (Describe, Allocate, Renew, Provision, Delete), such an AM requires you to include either the slice urn or the urn of all the slivers in the same state.
         see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
         return False
 
     def get_allocation_mode(self):
-        """Shall return a either 'geni_single', 'geni_disjoint', 'geni_many'.
+        """Overwrite by AM developer. Shall return a either 'geni_single', 'geni_disjoint', 'geni_many'.
         It defines whether this AM allows adding slivers to slices at an AM (i.e. calling Allocate multiple times, without first deleting the allocated slivers).
         For description of the options see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#OperationsonIndividualSlivers"""
         return 'geni_single'
 
     def list_resources(self, client_cert, credentials, geni_available):
-        """Shall return an RSpec version 3 (advertisement) or raise an GENIv3...Error.
+        """Overwrite by AM developer. Shall return an RSpec version 3 (advertisement) or raise an GENIv3...Error.
         If {geni_available} is set, only return availabe resources.
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#ListResources"""
         raise GENIv3GeneralError("Method not implemented yet")
 
     def describe(self, urns, client_cert, credentials):
-        """Shall return an RSpec version 3 (manifest) or raise an GENIv3...Error.
+        """Overwrite by AM developer. Shall return an RSpec version 3 (manifest) or raise an GENIv3...Error.
         {urns} contains a list of slice identifiers (e.g. ['urn:publicid:IDN+ofelia:eict:gcf+slice+myslice']).
 
         For more information on possible {urns} see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#urns
@@ -316,7 +316,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def allocate(self, slice_urn, client_cert, credentials, rspec, end_time=None):
-        """
+        """Overwrite by AM developer. 
         Shall return the two following values or raise an GENIv3...Error.
         - a RSpec version 3 (manifest) of newly allocated slivers 
         - a list of slivers of the format:
@@ -333,7 +333,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def renew(self, urns, client_cert, credentials, expiration_time, best_effort):
-        """
+        """Overwrite by AM developer. 
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
               'geni_allocation_status'  : one of the ALLOCATION_STATE_xxx,
@@ -353,7 +353,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def provision(self, urns, client_cert, credentials, best_effort, end_time, geni_users):
-        """
+        """Overwrite by AM developer. 
         Shall return the two following values or raise an GENIv3...Error.
         - a RSpec version 3 (manifest) of slivers 
         - a list of slivers of the format:
@@ -377,7 +377,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def status(self, urns, client_cert, credentials):
-        """
+        """Overwrite by AM developer. 
         Shall return the two following values or raise an GENIv3...Error.
         - a slice urn
         - a list of slivers of the format:
@@ -396,7 +396,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def perform_operational_action(self, urns, client_cert, credentials, action, best_effort):
-        """
+        """Overwrite by AM developer. 
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
               'geni_allocation_status'  : one of the ALLOCATION_STATE_xxx,
@@ -416,7 +416,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def delete(self, urns, client_cert, credentials, best_effort):
-        """
+        """Overwrite by AM developer. 
         Shall return a list of slivers of the following format or raise an GENIv3...Error:
             [{'geni_sliver_urn'         : String,
               'geni_allocation_status'  : one of the ALLOCATION_STATE_xxx,
@@ -434,7 +434,7 @@ class GENIv3DelegateBase(object):
         raise GENIv3GeneralError("Method not implemented yet")
 
     def shutdown(self, slice_urn, client_cert, credentials):
-        """
+        """Overwrite by AM developer. 
         Shall return True or False or raise an GENIv3...Error.
 
         For full description see http://groups.geni.net/geni/wiki/GAPI_AM_API_V3#Shutdown"""
@@ -445,6 +445,7 @@ class GENIv3DelegateBase(object):
         """
         This method authenticates and authorizes.
         It returns the client's urn, uuid, email (extracted from the {client_cert}). Example call: "urn, uuid, email = self.auth(...)"
+        Be aware, the email is not required in the certificate, hence it might be empty.
         If the validation fails, an GENIv3ForbiddenError is thrown.
         
         The credentials are checked so the user has all the required privileges (success if any credential fits all privileges).
