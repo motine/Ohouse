@@ -26,7 +26,7 @@ class WorkerServer(object):
                     self._execute_job(record)
                     if record.recurring_interval: # change the next_execution if recurring, otherwise remove the job
                         record.next_execution=datetime.now() + timedelta(0, record.recurring_interval)
-                        workerdb.updateJobs()
+                        workerdb.commit()
                     else:
                         workerdb.delJob(record)
                         

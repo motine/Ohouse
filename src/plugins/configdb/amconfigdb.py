@@ -16,27 +16,20 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('configdb')
 
 # initialize sqlalchemy
-db_engine = create_engine(CONFIGDB_ENGINE, pool_recycle=6000)
-db_Session = scoped_session(sessionmaker(autoflush=True, bind=db_engine, expire_on_commit=False))
-Base = declarative_base()    
+db_engine = create_engine(CONFIGDB_ENGINE, pool_recycle=6000) # please see the wiki for more info
+db_session_factory = sessionmaker(autoflush=True, bind=db_engine, expire_on_commit=False) # the class which can create sessions (factory pattern)
+db_session = scoped_session(db_session_factory) # still a session creator, but it will create _one_ session per thread and delegate all method calls to it
+Base = declarative_base() # get the base class for the ORM, which includes the metadata object (collection of table descriptions)
+
+
 class ConfigEntry(Base):
     __tablename__ = 'config'
     id = Column(Integer, primary_key=True)
     key = Column(String)
     value = Column(PickleType)
     desc = Column(Text)
-Base.metadata.create_all(db_engine)
 
-def dbsession():
-	"""This method returns a (new) sqlalchemy database session needed to perform actions on the database.
-	If you want to query the database, it is ok to create new sessions for each query. If you want to change database entries, you need to hold on to the session until you commited the queries."""
-    # db_metadata.create_all(db_engine) # always check if the database has been created. sqlalchemy does nothing if the schema has been created. This not so nicely implemented.
-	threadlocal = threading.local()
-	session = getattr(threadlocal, '_config_dbsession', None)
-	if session is None:
-		session = db_Session()
-		setattr(threadlocal, '_config_dbsession', session)
-	return session
+Base.metadata.create_all(db_engine) # create the tables if they are not there yet
 
 # exceptions
 class UnknownConfigKey(CoreException):
@@ -54,9 +47,9 @@ class DuplicateConfigKey(CoreException):
         return "Duplicate config key '%s'" % (self.key)
 
 class ConfigDB:
-    def _getRow(self, db, key):
+    def _getRow(self, key):
         try:
-            return db.query(ConfigEntry).filter_by(key=key).one()
+            return db_session.query(ConfigEntry).filter_by(key=key).one()
         except MultipleResultsFound:
             raise DuplicateConfigKey(key)
         except NoResultFound:
@@ -66,35 +59,31 @@ class ConfigDB:
     @serviceinterface
     def install(self, key, defaultValue, defaultDescription):
         """Creates a config item, if it does not exist. If it already exists this function does not change anything."""
-        db = dbsession()
         try:
-            self._getRow(db, key)
+            self._getRow(key)
         except UnknownConfigKey:
             record = ConfigEntry(key=key, value=defaultValue, desc=defaultDescription)
-            db.add(record)
-            db.commit()
+            db_session.add(record)
+            db_session.commit()
         return
     
     @serviceinterface
     def set(self, key, value):
-        db = dbsession()
-        res = self._getRow(db, key)
+        res = self._getRow(key)
         res.value = value
-        db.commit()
+        db_session.commit()
     
     @serviceinterface
     def get(self, key):
-        db = dbsession()
-        return self._getRow(db, key).value
+        return self._getRow(key).value
 
     @serviceinterface
     def getAll(self):
         """
         Lists all config items available in the database.
         Returns a list of hashes. Each hash has the following keys set: key, value, description."""
-        db = dbsession()
-        records = db.query(ConfigEntry).all()
+        records = db_session.query(ConfigEntry).all()
         return [{'key':r.key, 'value':r.value, 'description':r.desc} for r in records]
 
 
-# Nick's old code, see old import2012 branch
+# For Nick's old code, see old import2012 branch
