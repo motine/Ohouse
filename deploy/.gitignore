@@ -1,5 +1,4 @@
 *.crt
 *.key
 am.nginx.conf
-config.db
-worker.db
+*.db

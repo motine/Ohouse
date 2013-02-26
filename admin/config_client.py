@@ -108,7 +108,7 @@ if __name__ == '__main__':
                     if type(current_value) is bool:
                         new_value = raw_input("new value [0 for False, 1 for True]: ")
                     else:
-                        new_value = raw_input("new value [%s]: " % (str(currentValue),))
+                        new_value = raw_input("new value [%s]: " % (str(current_value),))
 
                     try:
                         set_key(server, key, current_value, new_value)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
                     raise ValueError("Could not find the specified key.")
                 set_key(server, selected_key, keys[0][1], new_value)
                 sys.exit(0)
-    except Exception as err: # getopt.GetoptError
+    except getopt.GetoptError as err: # getopt.GetoptError
         print "ERROR: %s" % (err,)
         print_usage()
         sys.exit(2)

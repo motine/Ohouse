@@ -1,5 +1,4 @@
 import os.path
-import threading
 from datetime import datetime
 
 from sqlalchemy import Table, Column, MetaData, ForeignKey, PickleType, DateTime, String, Integer, Text, create_engine, select, and_, or_, not_, event
@@ -11,17 +10,16 @@ import amsoil.core.pluginmanager as pm
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('worker')
 
+from amsoil.config import expand_amsoil_path
 
-WORKERDB_PATH = pm.getService('config').get('worker.dbpath')
-if not os.path.isabs(WORKERDB_PATH):
-    from amsoil.config import ROOT_PATH
-    WORKERDB_PATH = os.path.normpath(os.path.join(ROOT_PATH, WORKERDB_PATH))
+WORKERDB_PATH = expand_amsoil_path(pm.getService('config').get('worker.dbpath'))
 WORKERDB_ENGINE = "sqlite:///%s" % (WORKERDB_PATH,)
 
 # initialize sqlalchemy
 db_engine = create_engine(WORKERDB_ENGINE, pool_recycle=6000) # please see the wiki for more info
 db_session_factory = sessionmaker(autoflush=True, bind=db_engine, expire_on_commit=False) # the class which can create sessions (factory pattern)
 db_session = scoped_session(db_session_factory) # still a session creator, but it will create _one_ session per thread and delegate all method calls to it
+# we could limit the session's scope (lifetime) to one request, but for this plugin it is not necessary
 Base = declarative_base() # get the base class for the ORM, which includes the metadata object (collection of table descriptions)
 
 class JobDBEntry(Base):

@@ -1,5 +1,6 @@
 import os, os.path
 import urllib2
+import traceback
 from datetime import datetime
 from dateutil import parser as dateparser
 
@@ -14,6 +15,8 @@ from amsoil.core import serviceinterface
 from amsoil.config import ROOT_PATH
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('geniv3rpc')
+
+from amsoil.config import expand_amsoil_path
 
 from exceptions import *
 
@@ -212,6 +215,9 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         """Assembles a GENI compliant return result for faulty methods."""
         if not isinstance(e, GENIv3BaseError): # convert common errors into GENIv3GeneralError
             e = GENIv3ServerError(str(e))
+        # do some logging
+        logger.error(e)
+        logger.error(traceback.format_exc())
         return { 'geni_api' : 3, 'code' : { 'geni_code' : e.code }, 'output' : str(e) }
         
     def _successReturn(self, result):
@@ -484,8 +490,7 @@ class GENIv3DelegateBase(object):
 
         # get the cert_root
         config = pm.getService("config")
-        cert_root = os.path.expanduser(config.get("geniv3rpc.cert_root"))
-        cert_root = cert_root if os.path.isabs(cert_root) else os.path.normpath(os.path.join(ROOT_PATH, cert_root))
+        cert_root = expand_amsoil_path(config.get("geniv3rpc.cert_root"))
         
         # test the credential
         try:

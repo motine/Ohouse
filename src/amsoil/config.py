@@ -29,3 +29,10 @@ IS_MULTIPROCESS = True
 #IPC_RABBITMQ_PASSWORD="pass"
 
 
+def expand_amsoil_path(path):
+    """If the given path is relative, the path will be made absolute, starting from AMsoil's root."""
+    path = os.path.expanduser(path)
+    if os.path.isabs(path):
+        return path
+    else:
+        return os.path.normpath(os.path.join(ROOT_PATH, path))

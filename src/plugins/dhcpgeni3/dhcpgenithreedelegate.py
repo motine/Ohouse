@@ -44,14 +44,12 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
         
         root_node = self.lxml_ad_root()
         E = self.lxml_ad_element_maker('dhcp')
-        
         for lease in self._resource_manager.get_all_leases():
-            is_taken = self._resource_manager.is_occupied(lease)
-            if is_taken and geni_available: continue # take care of geni_available
+            if (not lease.available) and geni_available: continue # taking care of geni_available
             r = E.resource()
-            r.append(E.available("False" if is_taken else "True"))
+            r.append(E.available("True" if lease.available else "False"))
             # possible to list other properties
-            r.append(E.ip(lease['ip']))
+            r.append(E.ip(lease.ip_str))
             root_node.append(r)
         
         return self.lxml_to_string(root_node)
@@ -198,10 +196,10 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
 
 
     # Helper methods
-    def _ip_to_urn(self, ip):
+    def _ip_to_urn(self, ip_str):
         """Helper method to map IPs to URNs."""
-        return ("%s:%s" % (self.URN_PREFIX, ip.replace('.', '-')))
-    def _urn_to_ip(self, urn):
+        return ("%s:%s" % (self.URN_PREFIX, ip_str.replace('.', '-')))
+    def _urn_to_ip_str(self, urn):
         """Helper method to map URNs to IPs."""
         if (urn.startswith(self.URN_PREFIX)):
             return urn[len(self.URN_PREFIX)+1:].replace('-', '.')
@@ -210,10 +208,10 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
 
     def _get_sliver_status_hash(self, lease, include_allocation_status=False, include_operational_status=False, error_message=None):
         """Helper method to create the sliver_status return values of allocate and other calls."""
-        result = {'geni_sliver_urn' : self._ip_to_urn(lease['ip']),
-                  'geni_expires'    : lease['end_time'],
+        result = {'geni_sliver_urn' : self._ip_to_urn(lease.ip_str),
+                  'geni_expires'    : lease.end_time,
                   'geni_allocation_status' : self.ALLOCATION_STATE_ALLOCATED}
-        result['geni_allocation_status'] = self.ALLOCATION_STATE_PROVISIONED if self._resource_manager.is_occupied(lease) else self.ALLOCATION_STATE_UNALLOCATED
+        result['geni_allocation_status'] = self.ALLOCATION_STATE_UNALLOCATED if lease.available else self.ALLOCATION_STATE_PROVISIONED
         if (include_operational_status): # there is no state to an ip, so we always return ready
             result['geni_operational_status'] = self.OPERATIONAL_STATE_READY
         if (error_message):
@@ -227,7 +225,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
         for lease in leases:
             # assemble manifest
             r = E.resource()
-            r.append(E.ip(lease['ip']))
+            r.append(E.ip(lease.ip_str))
             # TODO add more info here
             manifest.append(r)
         return manifest

@@ -15,8 +15,13 @@ def print_usage():
 def main():
     # load plugins
     pm.init(config.PLUGINS_PATH)
-
-    opts, args = getopt.getopt(sys.argv[1:], 'hw', ['help', 'worker'])
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hw', ['help', 'worker'])
+    except getopt.GetoptError as e:
+        print "Wrong arguments: " + str(e)
+        print
+        print_usage()
+        return
     for option, opt_arg in opts:
         if option in ['-h', '--help']:
             print_usage()
