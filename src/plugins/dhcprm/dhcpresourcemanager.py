@@ -7,7 +7,7 @@ logger=amsoil.core.log.getLogger('dhcpresourcemanager')
 from ip import IP
 from dhcpexceptions import *
 
-worker = pm.getService('dhcprm')
+worker = pm.getService('worker')
 
 class DHCPResourceManager(object):
     """
