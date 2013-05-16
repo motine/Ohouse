@@ -3,7 +3,7 @@
   "author" : "Tom Rothe",
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
-  "implements" : ["config"],
+  "implements" : ["config", "configexceptions"],
   "loads-after" : [],
   "requires" : []
 }

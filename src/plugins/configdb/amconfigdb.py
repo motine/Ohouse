@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.declarative import declarative_base
 
 from amsoil.config import (CONFIGDB_PATH, CONFIGDB_ENGINE)
-from amsoil.core.exception import CoreException
+from amconfigdbexceptions import ConfigDuplicateConfigKey, ConfigUnknownConfigKey
 from amsoil.core import serviceinterface
 import amsoil.core.pluginmanager as pm
 
@@ -29,41 +29,36 @@ class ConfigEntry(Base):
 
 Base.metadata.create_all(db_engine) # create the tables if they are not there yet
 
-# exceptions
-class UnknownConfigKey(CoreException):
-    def __init__ (self, key):
-        super(UnknownConfigKey, self).__init__()
-        self.key = key
-    def __str__ (self):
-        return "Unknown config key '%s'" % (self.key)
-
-class DuplicateConfigKey(CoreException):
-    def __init__ (self, key):
-        super(DuplicateConfigKey, self).__init__()
-        self.key = key
-    def __str__ (self):
-        return "Duplicate config key '%s'" % (self.key)
-
 class ConfigDB:
     def _getRow(self, key):
         try:
             return db_session.query(ConfigEntry).filter_by(key=key).one()
         except MultipleResultsFound:
-            raise DuplicateConfigKey(key)
+            raise ConfigDuplicateConfigKey(key)
         except NoResultFound:
-            raise UnknownConfigKey(key)
+            raise ConfigUnknownConfigKey(key)
         
     
     @serviceinterface
-    def install(self, key, defaultValue, defaultDescription):
-        """Creates a config item, if it does not exist. If it already exists this function does not change anything."""
+    def install(self, key, defaultValue, defaultDescription, force=False):
+        """
+        Creates a config item, if it does not exist. If it already exists and
+        force is False this function does not change anything. If force is True,
+        the exist item will be change.
+        Return True if this function change the database, else False.
+        """
         try:
             self._getRow(key)
-        except UnknownConfigKey:
+        except ConfigUnknownConfigKey:
             record = ConfigEntry(key=key, value=defaultValue, desc=defaultDescription)
             db_session.add(record)
             db_session.commit()
-        return
+        else:
+            if(force):
+                self.set(key, defaultValue)
+            else:
+                return False
+        return True
     
     @serviceinterface
     def set(self, key, value):
@@ -82,6 +77,5 @@ class ConfigDB:
         Returns a list of hashes. Each hash has the following keys set: key, value, description."""
         records = db_session.query(ConfigEntry).all()
         return [{'key':r.key, 'value':r.value, 'description':r.desc} for r in records]
-
 
 # For Nick's old code, see old import2012 branch

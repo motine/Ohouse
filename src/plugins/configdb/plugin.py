@@ -27,5 +27,7 @@ Example code:
 """
 
 def setup():
-  import amconfigdb
-  pm.registerService("config", amconfigdb.ConfigDB())
+    import amconfigdb
+    import amconfigdbexceptions
+    pm.registerService("config", amconfigdb.ConfigDB())
+    pm.registerService("configexceptions", amconfigdbexceptions)
