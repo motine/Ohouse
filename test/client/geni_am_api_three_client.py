@@ -8,6 +8,7 @@ from dateutil import parser as dateparser
 
 
 
+# on purpose: duplicate code with geni_am_api_two_client.py
 class SafeTransportWithCert(xmlrpclib.SafeTransport): 
     """Helper class to foist the right certificate for the transport class."""
     def __init__(self, key_path, cert_path):
@@ -164,7 +165,7 @@ TEST_REQUEST_RSPEC = '<?xml version="1.0" encoding="UTF-8"?><rspec type="request
 if __name__ == '__main__':
     # get the right paths together
     local_path = os.path.normpath(os.path.dirname(__file__))
-    key_path = os.path.join(local_path, "test-key.pem")
+    key_path = os.path.join(local_path, "test-key.pem") # make sure the CA of the AM is the same which issued this certificate (e.g. copy certificates from omni)
     cert_path = os.path.join(local_path, "test-cert.pem")
     
     # instanciate the client
