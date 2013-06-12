@@ -54,6 +54,7 @@ class Mailer(object):
                 con.login(self.username, self.password)
             con.sendmail(sender, receiver, message.as_string())
             logger.info("Mail sent to [%s]" % (', '.join(receiver),))
+            con.quit()
             return True
         except Exception as e:
             logger.error("Sending mail to %s failed (%s).\n\n%s" % (receiver, str(e), str(message)))
