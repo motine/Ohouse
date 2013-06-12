@@ -40,6 +40,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
 
     def list_resources(self, client_cert, credentials, geni_available):
         """Documentation see [geniv3rpc] GENIv3DelegateBase."""
+        
         self.auth(client_cert, credentials, None, ('listslices',))
         
         root_node = self.lxml_ad_root()
