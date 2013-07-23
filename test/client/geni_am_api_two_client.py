@@ -99,7 +99,7 @@ class GENI2Client(object):
 
     def _default_options(self):
         """Private method for generating the default option hash, which is parsed on the server."""
-        return {"geni_rspec_version" : {"version" : "3", "type" : "geni"}}
+        return {"geni_rspec_version" : {"version" : "3", "type" : "GENI"}} # use uppercase here so it works with FOAM
 
     # helper methods
     def datetime2str(self, dt):

@@ -491,14 +491,17 @@ class GENIv3DelegateBase(object):
         # get the cert_root
         config = pm.getService("config")
         cert_root = expand_amsoil_path(config.get("geniv3rpc.cert_root"))
-        
+        # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
+        if client_cert == None and config.get("flask.debug"):
+            import ext.sfa.trust.credential as cred
+            client_cert = cred.Credential(string=geni_credentials[0]).gidCaller.save_to_string(save_parents=True)
         # test the credential
         try:
             cred_verifier = ext.geni.CredentialVerifier(cert_root)
             cred_verifier.verify_from_strings(client_cert, geni_credentials, slice_urn, privileges)
         except Exception as e:
             raise GENIv3ForbiddenError(str(e))
-
+        
         user_gid = gid.GID(string=client_cert)
         user_urn = user_gid.get_urn()
         user_uuid = user_gid.get_uuid()

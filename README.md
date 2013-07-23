@@ -1,8 +1,7 @@
 # Purpose
 
 AMsoil is a light-weight framework for creating Aggregate Managers (AM) for test beds.
-AMsoil is a pluggable system. It provides the necessary glue between RPC-Handlers and Resource Managers .
-Also it provides helpers for common tasks in AM development.
+AMsoil is a pluggable system. It gives structure to develop new AMs and provides helpers for common tasks in AM development.
 
 AMsoil is part of the [OFELIA](http://www.fp7-ofelia.eu/) [Control Framework (OCF)](https://github.com/fp7-ofelia).
 
