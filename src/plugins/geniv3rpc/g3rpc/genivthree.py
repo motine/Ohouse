@@ -23,19 +23,6 @@ from exceptions import *
 xmlrpc = pm.getService('xmlrpc')
 
 class GENIv3Handler(xmlrpc.Dispatcher):
-    # TODO
-    # """This class implements all GENI methods and delegates these to the adapters registered with the adapter registry, but only to the adapters which implement GENI2AdapterBase.
-    # 
-    # Please find the API documentation via the GENI wiki: http://groups.geni.net/geni/wiki/GAPI_AM_API_V2
-    # 
-    # Authentication pseudocode:
-    #     st = pm.getService('contextstorage')
-    #     user_id = getOrCreateUserIdFromThisPluginsDatabase(user_urn) # returns GUID which has been saved to this thread's database
-    #     st['user'] = getContextObjFromAuthorziation(user_id) # this will get persisted
-    #     st['user_info'] = { ... } # this not persisted
-    #     st['request_data'] = { post_data, certs, ... }
-    # """
-    
     RFC3339_FORMAT_STRING = '%Y-%m-%d %H:%M:%S.%fZ'
     
     def __init__(self):
