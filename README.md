@@ -9,6 +9,7 @@ If you don't know what an Aggregate Manager is please see [here](https://alpha.f
 
 # Documentation
 
+Before you do anything else, please checkout the [Quickstart](https://raw.github.com/fp7-ofelia/AMsoil/development/doc/AMsoil%20Quickstart.pdf)
 Please see the [Wiki](https://github.com/fp7-ofelia/AMsoil/wiki) for more information.
 
 # Logo
