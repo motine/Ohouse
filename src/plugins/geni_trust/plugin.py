@@ -25,6 +25,7 @@ def setup():
     # logger.info("public key DER: %s" % (kp.get_pubkey_string(),))
     
     # TEST: load key-pair
+<<<<<<< HEAD
     
     # --------------------------------------------------
     # create a self signed CA cert
