@@ -1,5 +1,6 @@
 from amsoil.core import pluginmanager as pm
 
+<<<<<<< HEAD
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('geni_trust')
 
@@ -8,11 +9,16 @@ from ext.geni.util import cert_util as gcf_cert_util
 
 
 
+=======
+
+import ext.geni
+>>>>>>> added geni_trust plugin
 
 def setup():
     # setup config items
     # config = pm.getService("config")
     # config.install("worker.dbpath", "deploy/worker.db", "Path to the worker's database (if relative, AMsoil's root will be assumed).")
+<<<<<<< HEAD
     
     TMP_PATH = '/Users/motine/Documents/Ofelia/devel/test/cert' # I dont want to use tempfile, so I can look at the files (need persistant files)
     import os.path
@@ -79,6 +85,17 @@ def setup():
     # see GID
     # TEST: verify cert against a trusted root
     # see GID verify chain
+=======
+    pass
+
+    # TEST: create cert
+    # please see ca.py
+    # TEST: extract info from cert
+    # TEST: verify cert against a trusted root
+    
+    
+    
+>>>>>>> added geni_trust plugin
 
     # # get the cert_root
     # config = pm.getService("config")
