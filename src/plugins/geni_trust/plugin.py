@@ -34,7 +34,6 @@ def setup():
     ca_keys.save_to_file(os.path.join(TMP_PATH, 'ca_key.pem'))
     ca_gid.save_to_file(os.path.join(TMP_PATH, 'ca_cert.crt')) # view with openssl "# openssl x509 -in ca_cert -text -noout"
     
-    
     # --------------------------------------------------
     # TEST: create user cert signed by a CA cert (incl. a new keypair)
     
@@ -117,6 +116,8 @@ def setup():
     # create two users from different CAs
     # then verify these (one should fail, one should succeed)
     
+    # --------------------------------------------------
+    # TEST: create user cert signed by a CA cert (incl. a new keypair)
     
     # TEST: get root certs
     #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
