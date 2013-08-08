@@ -1,6 +1,9 @@
 from amsoil.core import pluginmanager as pm
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> added testing use cases of existing libraries
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('geni_trust')
 
@@ -9,15 +12,19 @@ from ext.geni.util import cert_util as gcf_cert_util
 
 
 
+<<<<<<< HEAD
 =======
 
 import ext.geni
 >>>>>>> added geni_trust plugin
+=======
+>>>>>>> added testing use cases of existing libraries
 
 def setup():
     # setup config items
     # config = pm.getService("config")
     # config.install("worker.dbpath", "deploy/worker.db", "Path to the worker's database (if relative, AMsoil's root will be assumed).")
+<<<<<<< HEAD
 <<<<<<< HEAD
     
     TMP_PATH = '/Users/motine/Documents/Ofelia/devel/test/cert' # I dont want to use tempfile, so I can look at the files (need persistant files)
@@ -87,15 +94,78 @@ def setup():
     # see GID verify chain
 =======
     pass
+=======
+    
+    TMP_PATH = '/Users/motine/Documents/Ofelia/devel/test/cert' # I dont want to use tempfile, so I can look at the files (need persistant files)
+    import os.path
+>>>>>>> added testing use cases of existing libraries
 
-    # TEST: create cert
+    # TEST: create key-pair
+    # from ext.sfa.trust.certificate import Keypair
+    # kp = Keypair()
+    # kp.create()
+    # # kp.load_from_file() # from pem
+    # # kp.save_to_file() # as pem
+    # # kp.load_from_string() # from pem
+    # logger.info("private key PEM: %s" % (kp.as_pem(),))
+    # logger.info("public key DER: %s" % (kp.get_pubkey_string(),))
+    
+    # TEST: load key-pair
+    
+    # --------------------------------------------------
+    # create a self signed CA cert
+    ca_gid, ca_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+authority+sa", ca=True, email="auth@example.com");
+    logger.info("CA private key PEM: %s" % (ca_keys.as_pem(),))
+    logger.info("CA CRT: %s" % (ca_gid.save_to_string(),))
+    ca_keys.save_to_file(os.path.join(TMP_PATH, 'ca_key.pem'))
+    ca_gid.save_to_file(os.path.join(TMP_PATH, 'ca_cert.crt')) # view with openssl "# openssl x509 -in ca_cert -text -noout"
+    
+    
+    # --------------------------------------------------
+    # TEST: create user cert signed by a CA cert (incl. a new keypair)
+    
+    user_gid, user_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, email="user@example.com");
+    user_keys.save_to_file(os.path.join(TMP_PATH, 'user_key.pem'))
+    user_gid.save_to_file(os.path.join(TMP_PATH, 'user_cert.crt')) # this includes the parents
+
+    # write the public key out (needed for the next use case)
+    user_pub_key = user_keys.get_m2_pkey().get_rsa().as_pem() # or user_gid.get_pubkey()
+    with open(os.path.join(TMP_PATH, 'user_pub_key.pem'), 'w') as f:
+        f.write(user_pub_key)
+    
+    # TEST: create user cert signed by a CA cert (with existing keypair)
+    
+    user2_gid, user2_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, public_key=os.path.join(TMP_PATH, 'user_key.pub'), email="user@example.com");
+    user2_keys.save_to_file(os.path.join(TMP_PATH, 'user2_key.pem'))
+    user2_gid.save_to_file(os.path.join(TMP_PATH, 'user2_cert.crt')) # this includes the parents
+    # --------------------------------------------------
+    # Notes
+    # slice_gid = cert_util.create_cert(urn, self.keyfile, self.certfile, uuidarg = slice_uuid)[0]
+    # def create_cert(urn, issuer_key=None, issuer_cert=None, ca=False,
+    #             public_key=None, lifeDays=1825, email=None, uuidarg=None):
+    # issuer_key can either be a string (filename) or a Keypair
+    # issuer_certfile can either be a string (filename) or a GID
+    # public_key contains the entity to sign. If None a new key is created, otherwise it must be a string)
+    # --------------------------------------------------
+
+    
+    # TEST: get root certs
+    #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
+
+    # TEST: load cert from file
+    
+<<<<<<< HEAD
+>>>>>>> added geni_trust plugin
+=======
+    # TEST: create user cred (see ch.py)
+    # TEST: create slice cred (see ch.py)
+
     # please see ca.py
     # TEST: extract info from cert
+    # see GID
     # TEST: verify cert against a trusted root
-    
-    
-    
->>>>>>> added geni_trust plugin
+    # see GID verify chain
+>>>>>>> added testing use cases of existing libraries
 
     # # get the cert_root
     # config = pm.getService("config")
