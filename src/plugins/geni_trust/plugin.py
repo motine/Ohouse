@@ -6,9 +6,6 @@ logger=amsoil.core.log.getLogger('geni_trust')
 import ext.geni
 from ext.geni.util import cert_util as gcf_cert_util
 
-
-
-
 def setup():
     # setup config items
     # config = pm.getService("config")
