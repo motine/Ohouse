@@ -184,6 +184,9 @@ def setup():
     # public_key contains the entity to sign. If None a new key is created, otherwise it must be a string)
     # --------------------------------------------------
 
+    # create two users from different CAs
+    # then verify these (one should fail, one should succeed)
+    
     
     # TEST: get root certs
     #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
