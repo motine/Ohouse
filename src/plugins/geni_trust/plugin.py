@@ -68,7 +68,6 @@ def setup():
     # create two users from different CAs
     # then verify these (one should fail, one should succeed)
     
-    
     # TEST: get root certs
     #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
 
