@@ -3,7 +3,7 @@
   "author" : "Tom Rothe",
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
-  "implements" : ["gchv1handler", "gchv1delegatebase", "gmav1handler", "gmav1delegatebase", "gchv1exceptions"],
+  "implements" : ["gchv1handler", "gchv1delegatebase", "gchv1exceptions"],
   "loads-after" : ["xmlrpc", "config"],
   "requires" : []
 }
