@@ -5,12 +5,9 @@ from amsoil.core import pluginmanager as pm
 =======
 >>>>>>> added testing use cases of existing libraries
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('geni_trust')
+logger=amsoil.core.log.getLogger('genitrust')
 
-import ext.geni
-from ext.geni.util import cert_util as gcf_cert_util
-
-
+import geniutil
 
 <<<<<<< HEAD
 =======
@@ -21,6 +18,7 @@ import ext.geni
 >>>>>>> added testing use cases of existing libraries
 
 def setup():
+<<<<<<< HEAD
     # setup config items
     # config = pm.getService("config")
     # config.install("worker.dbpath", "deploy/worker.db", "Path to the worker's database (if relative, AMsoil's root will be assumed).")
@@ -53,21 +51,60 @@ def setup():
     
     # --------------------------------------------------
     # TEST: create user cert signed by a CA cert (incl. a new keypair)
+=======
+>>>>>>> config file and more ch api methods
     
-    user_gid, user_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, email="user@example.com");
-    user_keys.save_to_file(os.path.join(TMP_PATH, 'user_key.pem'))
-    user_gid.save_to_file(os.path.join(TMP_PATH, 'user_cert.crt')) # this includes the parents
+    pm.registerService("geniutil", geniutil)
 
-    # write the public key out (needed for the next use case)
-    user_pub_key = user_keys.get_m2_pkey().get_rsa().as_pem() # or user_gid.get_pubkey()
-    with open(os.path.join(TMP_PATH, 'user_pub_key.pem'), 'w') as f:
-        f.write(user_pub_key)
+    # import ext.geni
+    # from ext.geni.util import cert_util as gcf_cert_util
+    #
+    # # setup config items
+    # # config = pm.getService("config")
+    # # config.install("worker.dbpath", "deploy/worker.db", "Path to the worker's database (if relative, AMsoil's root will be assumed).")
+    # 
+    # TMP_PATH = '/Users/motine/Documents/Ofelia/devel/test/cert' # I dont want to use tempfile, so I can look at the files (need persistant files)
+    # import os.path
+    # 
+    # # TEST: create key-pair
+    # # from ext.sfa.trust.certificate import Keypair
+    # # kp = Keypair()
+    # # kp.create()
+    # # # kp.load_from_file() # from pem
+    # # # kp.save_to_file() # as pem
+    # # # kp.load_from_string() # from pem
+    # # logger.info("private key PEM: %s" % (kp.as_pem(),))
+    # # logger.info("public key DER: %s" % (kp.get_pubkey_string(),))
+    # 
+    # # TEST: load key-pair
+    # 
+    # # --------------------------------------------------
+    # # create a self signed CA cert
+    # ca_gid, ca_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+authority+sa", ca=True, email="auth@example.com");
+    # logger.info("CA private key PEM: %s" % (ca_keys.as_pem(),))
+    # logger.info("CA CRT: %s" % (ca_gid.save_to_string(),))
+    # ca_keys.save_to_file(os.path.join(TMP_PATH, 'ca_key.pem'))
+    # ca_gid.save_to_file(os.path.join(TMP_PATH, 'ca_cert.crt')) # view with openssl "# openssl x509 -in ca_cert -text -noout"
+    # 
+    # 
+    # # --------------------------------------------------
+    # # TEST: create user cert signed by a CA cert (incl. a new keypair)
+    # 
+    # user_gid, user_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, email="user@example.com");
+    # user_keys.save_to_file(os.path.join(TMP_PATH, 'user_key.pem'))
+    # user_gid.save_to_file(os.path.join(TMP_PATH, 'user_cert.crt')) # this includes the parents
+    # 
+    # # write the public key out (needed for the next use case)
+    # user_pub_key = user_keys.get_m2_pkey().get_rsa().as_pem() # or user_gid.get_pubkey()
+    # with open(os.path.join(TMP_PATH, 'user_pub_key.pem'), 'w') as f:
+    #     f.write(user_pub_key)
+    # 
+    # # TEST: create user cert signed by a CA cert (with existing keypair)
+    # 
+    # user2_gid, user2_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, public_key=os.path.join(TMP_PATH, 'user_key.pub'), email="user@example.com");
+    # user2_keys.save_to_file(os.path.join(TMP_PATH, 'user2_key.pem'))
+    # user2_gid.save_to_file(os.path.join(TMP_PATH, 'user2_cert.crt')) # this includes the parents
     
-    # TEST: create user cert signed by a CA cert (with existing keypair)
-    
-    user2_gid, user2_keys = gcf_cert_util.create_cert("urn:publicid:IDN+eict.de+user+motine", issuer_key=ca_keys, issuer_cert=ca_gid, public_key=os.path.join(TMP_PATH, 'user_key.pub'), email="user@example.com");
-    user2_keys.save_to_file(os.path.join(TMP_PATH, 'user2_key.pem'))
-    user2_gid.save_to_file(os.path.join(TMP_PATH, 'user2_cert.crt')) # this includes the parents
     # --------------------------------------------------
     # Notes
     # slice_gid = cert_util.create_cert(urn, self.keyfile, self.certfile, uuidarg = slice_uuid)[0]

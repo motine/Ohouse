@@ -19,7 +19,7 @@ class SafeTransportWithCert(xmlrpclib.SafeTransport):
 def ssl_call(method_name, params, endpoint, key_path='alice-key.pem', cert_path='alice-cert.pem', host='127.0.0.1', port=8001):
     key_path = os.path.abspath(os.path.expanduser(key_path))
     cert_path = os.path.abspath(os.path.expanduser(cert_path))
-    if not os.path.isfile(key_path) or not os.path.isfile(cert_path):
+    if not os.path.exists(key_path) or not os.path.exists(cert_path):
         raise RuntimeError("Key or cert file not found")
     transport = SafeTransportWithCert(key_path, cert_path)
     proxy = xmlrpclib.ServerProxy("https://%s:%s/%s" % (host, str(port), endpoint), transport=transport)
