@@ -2,3 +2,4 @@
 *.key
 am.nginx.conf
 *.db
+config.json

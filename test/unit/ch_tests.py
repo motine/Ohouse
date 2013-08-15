@@ -8,6 +8,7 @@ COLORS={"reset":"\x1b[00m",
     "blue":   "\x1b[01;34m",
     "cyan":   "\x1b[01;36m",
     "green":  "\x1b[01;32m",
+    "yellow": "\x1b[01;33m",
     "red":    "\x1b[01;05;37;41m"}
 
 def ch_call(method_name, params=[]):
@@ -20,6 +21,11 @@ def ch_call(method_name, params=[]):
     print COLORS["reset"]
     # ...
     return res.get('code', None), res.get('value', None), res.get('output', None)
+
+def warn(msg):
+    print COLORS["yellow"],
+    print msg
+    print COLORS["reset"]
 
 class TestGCHv1(unittest.TestCase):
 
@@ -42,9 +48,59 @@ class TestGCHv1(unittest.TestCase):
                 #     self.assertIn(fv["CREATE"], ["REQUIRED", "ALLOWED", "NOT ALLOWED"])
                 # if "UPDATE" in fv:
                 #     self.assertIn(fv["UPDATE"], [True, False])
-                
+        else:
+            warn("No supplementary fields to test with.")
+
+
+    def test_get_trust_roots(self):
+        code, value, output = ch_call('get_trust_roots', [])
+        self.assertEqual(code, 0) # no error
+        self.assertIsInstance(value, list)
+        if len(value) == 0:
+            warn("No trust roots returned.")
+        for tr in value:
+            self.assertIsInstance(tr, str)
+
+    def test_lookup_authorities_for_urns(self):
+        # slice, user, sliver, project
+        
+        # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
+        _, aggs, _ = ch_call('get_aggregates', [{}])
+        _, mas, _ = ch_call('get_member_authorities', [{}])
+        _, sas, _ = ch_call('get_slice_authorities', [{}])
+        
+        mappings = {} # contains {test_urn_to_send : service_url, ... }
+        if (len(aggs) == 0):
+            warn("No aggregates to test with.")
+        else:
+            mappings[aggs[0]['SERVICE_URN'].replace('authority+am', 'sliver+vm77')] = aggs[0]['SERVICE_URL']
+        if (len(mas) == 0):
+            warn("No MAs to test with.")
+        else:
+            mappings[mas[0]['SERVICE_URN'].replace('authority+ma', 'user+tomtom')] = mas[0]['SERVICE_URL']
+        if (len(sas) == 0):
+            warn("No SAs to test with.")
+        else:
+            mappings[sas[0]['SERVICE_URN'].replace('authority+sa', 'slice+pizzaslice')] = sas[0]['SERVICE_URL']
+        
+        code, value, output = ch_call('lookup_authorities_for_urns', [[urn for (urn, _) in mappings.iteritems()]])
+        self.assertEqual(code, 0) # no error
+        self.assertIsInstance(value, dict)
+        for (res_urn, res_url) in value.iteritems():
+            self.assertIn(res_urn, mappings)
+            self.assertEqual(mappings[res_urn], res_url)
+
     def test_get_aggregates(self):
-        code, value, output = ch_call('get_aggregates', [{}])
+        self._check_a_listing('get_aggregates', 'aggregate')
+
+    def test_get_member_authorities(self):
+        self._check_a_listing('get_member_authorities', 'member authority')
+
+    def test_get_slice_authorities(self):
+        self._check_a_listing('get_slice_authorities', 'slice authority')
+
+    def _check_a_listing(self, method_name, entity_name):
+        code, value, output = ch_call(method_name, [{}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -52,18 +108,20 @@ class TestGCHv1(unittest.TestCase):
                 self.assertIn(req_str_field, agg)
                 self.assertIsInstance(agg[req_str_field], str)
         # test match
+        if len(value) == 0:
+            warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = ch_call('get_aggregates', [{'match' : {'SERVICE_URN' : value[0]['SERVICE_URN']}}])
+            fcode, fvalue, foutput = ch_call(method_name, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = ch_call('get_aggregates', [{'filter' : ['SERVICE_URN']}])
+            fcode, fvalue, foutput = ch_call(method_name, [{'filter' : ['SERVICE_URL']}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)
-            self.assertEqual(fvalue[0].keys(), ['SERVICE_URN'])
+            self.assertEqual(fvalue[0].keys(), ['SERVICE_URL'])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
         
 if __name__ == '__main__':
