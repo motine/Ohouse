@@ -49,16 +49,39 @@ class GCHv1Handler(xmlrpc.Dispatcher):
 
     def get_member_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        try:
+            field_filter = options.pop('filter') if ('filter' in options) else None
+            field_match = options.pop('match') if ('match' in options) else None
+            result = self._delegate.get_member_authorities(field_filter, field_match, options)
+        except Exception as e:
+            return self._errorReturn(e)
+        return self._successReturn(result)
+
     def get_slice_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        try:
+            field_filter = options.pop('filter') if ('filter' in options) else None
+            field_match = options.pop('match') if ('match' in options) else None
+            result = self._delegate.get_slice_authorities(field_filter, field_match, options)
+        except Exception as e:
+            return self._errorReturn(e)
+        return self._successReturn(result)
+
     def lookup_authorities_for_urns(self, urns):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        try:
+            result = self._delegate.lookup_authorities_for_urns(urns)
+        except Exception as e:
+            return self._errorReturn(e)
+        return self._successReturn(result)
+        
     def get_trust_roots(self):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        try:
+            result = self._delegate.get_trust_roots()
+        except Exception as e:
+            return self._errorReturn(e)
+        return self._successReturn(result)
 
     # ---- helper methods
     def _errorReturn(self, e):
@@ -78,6 +101,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
 
 class GCHv1DelegateBase(object):
     """
+    The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse API (v1). 
     {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
     """
     
@@ -102,27 +126,32 @@ class GCHv1DelegateBase(object):
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def get_member_authorities(self, options):
+    def get_member_authorities(self, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all MA's associated with the Federation.
+        Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
-    def get_slice_authorities(self, options):
+    def get_slice_authorities(self, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all SA's associated with the Federation
+        Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
     def lookup_authorities_for_urns(self, urns):
         """Overwrite this method in the actual delegate implementation.
         Lookup the authorities for a given URNs. There should be at most one (potentially none) per URN.
+        Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
     def get_trust_roots(self):
         """Overwrite this method in the actual delegate implementation.
-        Return list of trust roots (certificates) associated with this CH. Often this is a concatenatation of the trust roots of the included authorities.
+        Return list of trust roots (certificates) associated with this CH.
+        Often this is a concatenatation of the trust roots of the included authorities.
+        Should return a list of strings.
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
 
