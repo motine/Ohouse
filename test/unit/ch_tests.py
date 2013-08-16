@@ -1,31 +1,12 @@
 #!/usr/bin/env python
 
 import unittest
-import pprint
 from testtools import *
-
-COLORS={"reset":"\x1b[00m",
-    "blue":   "\x1b[01;34m",
-    "cyan":   "\x1b[01;36m",
-    "green":  "\x1b[01;32m",
-    "yellow": "\x1b[01;33m",
-    "red":    "\x1b[01;05;37;41m"}
 
 def ch_call(method_name, params=[]):
     res = ssl_call(method_name, params, 'CH')
-    # output stuff
-    print COLORS["blue"],
-    print "--> %s(%s)" % (method_name, params)
-    print COLORS["cyan"],
-    pprint.pprint(res, indent=4, width=20)
-    print COLORS["reset"]
-    # ...
+    print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
-
-def warn(msg):
-    print COLORS["yellow"],
-    print msg
-    print COLORS["reset"]
 
 class TestGCHv1(unittest.TestCase):
 
