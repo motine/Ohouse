@@ -1,10 +1,10 @@
-import traceback
 import amsoil.core.pluginmanager as pm
 from amsoil.core import serviceinterface
 
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('gch1rpc')
 
+import gapitools
 # from amsoil.config import ROOT_PATH
 # from amsoil.config import expand_amsoil_path
 
@@ -18,8 +18,8 @@ class GCHv1Handler(xmlrpc.Dispatcher):
         self._delegate = None
     
     @serviceinterface
-    def setDelegate(self, geniv3delegate):
-        self._delegate = geniv3delegate
+    def setDelegate(self, adelegate):
+        self._delegate = adelegate
     
     @serviceinterface
     def getDelegate(self):
@@ -34,8 +34,8 @@ class GCHv1Handler(xmlrpc.Dispatcher):
             if fields:
                 result["FIELDS"] = fields
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
 
     def get_aggregates(self, options):
         """Delegates the call and unwraps the needed parameter."""
@@ -44,8 +44,8 @@ class GCHv1Handler(xmlrpc.Dispatcher):
             field_match = options.pop('match') if ('match' in options) else None
             result = self._delegate.get_aggregates(field_filter, field_match, options)
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
 
     def get_member_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
@@ -54,8 +54,8 @@ class GCHv1Handler(xmlrpc.Dispatcher):
             field_match = options.pop('match') if ('match' in options) else None
             result = self._delegate.get_member_authorities(field_filter, field_match, options)
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
 
     def get_slice_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
@@ -64,47 +64,49 @@ class GCHv1Handler(xmlrpc.Dispatcher):
             field_match = options.pop('match') if ('match' in options) else None
             result = self._delegate.get_slice_authorities(field_filter, field_match, options)
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
 
     def lookup_authorities_for_urns(self, urns):
         """Delegates the call and unwraps the needed parameter."""
         try:
             result = self._delegate.lookup_authorities_for_urns(urns)
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
         
     def get_trust_roots(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
             result = self._delegate.get_trust_roots()
         except Exception as e:
-            return self._errorReturn(e)
-        return self._successReturn(result)
-
-    # ---- helper methods
-    def _errorReturn(self, e):
-        """Assembles a GENI compliant return result for faulty methods."""
-        if not isinstance(e, GCHv1BaseError): # convert unknown errors into GCHv1ServerError
-            e = GCHv1ServerError(str(e))
-        # do some logging
-        logger.error(e)
-        logger.error(traceback.format_exc())
-        return { 'code' : e.code, 'output' : str(e) }
-        
-    def _successReturn(self, result):
-        """Assembles a GENI compliant return result for successful methods."""
-        return { 'code' : 0, 'value' : result, 'output' : None }
-
-
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
 
 class GCHv1DelegateBase(object):
     """
     The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse API (v1). 
     {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
     """
-    
+
+    DEFAULT_FIELDS = {
+        "SERVICE_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of given service"},
+        "SERVICE_URL" : {
+            "TYPE"    : "URL",
+            "DESC"    : "URL by which to contact the service"},
+        "SERVICE_CERT" : {
+            "TYPE"    : "CERTIFICATE",
+            "DESC"    : "Public certificate of service"},
+        "SERVICE_NAME" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Short name of service"},
+        "SERVICE_DESCRIPTION" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Descriptive name of service"}
+        }
+
     def __init__(self):
         super(GCHv1DelegateBase, self).__init__()
     
@@ -115,7 +117,7 @@ class GCHv1DelegateBase(object):
         
         This method shall return
         - a version string (e.g. 1.0.3)
-        - None or a dictionary of custom CH fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec)
+        - None or a dictionary of custom CH fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
         """
         raise GCHv1NotImplementedError("Method not implemented")
         
@@ -158,34 +160,9 @@ class GCHv1DelegateBase(object):
 
     # -- helper methods
     def _match_and_filter(self, list_of_dicts, field_filter, field_match):
-        """Takes a list of dicts and applies the given filter and matches the results."""
-        return [self._filter_fields(d, field_filter) for d in list_of_dicts if self._does_match_fields(d, field_match)]
+        """see documentation in gapitools"""
+        return gapitools.match_and_filter(list_of_dicts, field_filter, field_match)
     
     def _filter_fields(self, d, field_filter):
-        if not field_filter:
-            return d
-        result = {}
-        for f in field_filter:
-            result[f] = d[f]
-        return result
-    
-    def _does_match_fields(self, d, field_match):
-        """
-        field_match may look like: { 'must_be' : 'this', 'and_any_of_' : ['tho', 'se']}
-        """
-        if not field_match:
-            return True
-        for mk, mv in field_match.iteritems(): # each matches must be fulfilled
-            val = d[mk]
-            if isinstance(mv, list): # any of those values (OR)
-                found_any = False;
-                for mvv in mv:
-                    if val == mvv:
-                        found_any = True
-                if not found_any:
-                    return False
-            else: # or explicitly this one
-                if not val == mv:
-                    return False
-        return True
-        
+        """see documentation in gapitools"""
+        return gapitools.filter_fields(d, field_filter)
