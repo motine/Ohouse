@@ -42,7 +42,18 @@ def print_call(method_name, params, res):
     pprint.pprint(res, indent=4, width=20)
     print COLORS["reset"]
 
+WARNINGS = []
+
 def warn(msg):
-    print COLORS["yellow"],
-    print msg
-    print COLORS["reset"]
+    global WARNINGS
+    WARNINGS.append(msg)
+    
+def print_warnings():
+    global WARNINGS
+    if len(WARNINGS) > 0:
+        print COLORS["yellow"],
+        print
+        print "WARNINGS:"
+        for msg in WARNINGS:
+            print msg
+        print COLORS["reset"]
