@@ -26,7 +26,7 @@ class GMAv1Handler(xmlrpc.Dispatcher):
     def get_version(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            version, credential_types, fields = self._delegate.get_version()
+            version, credential_types, fields = self._delegate.get_version(self.requestCertificate())
             result = {}
             result['VERSION'] = version
             result['CREDENTIAL_TYPES'] = credential_types
@@ -41,17 +41,31 @@ class GMAv1Handler(xmlrpc.Dispatcher):
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_public_member_info(field_filter, field_match, options)
+            result = self._delegate.lookup_public_member_info(self.requestCertificate(), field_filter, field_match, options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
+    def lookup_identifying_member_info(self, credentials, options):
+        """Delegates the call and unwraps the needed parameter."""
+        try:
+            field_filter = options.pop('filter') if ('filter' in options) else None
+            field_match = options.pop('match') if ('match' in options) else None
+            result = self._delegate.lookup_identifying_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
     def lookup_private_member_info(self, credentials, options):
         """Delegates the call and unwraps the needed parameter."""
-        pass
-    def lookup_identifying_member_info(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        pass
+        try:
+            field_filter = options.pop('filter') if ('filter' in options) else None
+            field_match = options.pop('match') if ('match' in options) else None
+            result = self._delegate.lookup_private_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
     def update_member_info(self, member_urn, credentials, options):
         """Delegates the call and unwraps the needed parameter."""
         pass
@@ -101,7 +115,7 @@ class GMAv1DelegateBase(object):
     def __init__(self):
         super(GMAv1DelegateBase, self).__init__()
     
-    def get_version(self):
+    def get_version(self, client_cert):
         """
         Return information about version and options (filter, query, credential types) accepted by this member authority
         NB: This is an unprotected call, no client cert required.
@@ -113,7 +127,7 @@ class GMAv1DelegateBase(object):
         """
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def lookup_public_member_info(self, field_filter, field_match, options):
+    def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
         """
         Lookup public information about members matching given criteria.
         NB: This is an unprotected call, no client cert required.
@@ -121,21 +135,21 @@ class GMAv1DelegateBase(object):
         """
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def lookup_private_member_info(self, credentials, field_filter, field_match, options):
-        """
-        Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
-        Returns a list of dictionaries
-        """
-        raise GCHv1NotImplementedError("Method not implemented")
-
-    def lookup_identifying_member_info(self, credentials, field_filter, field_match, options):
+    def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
         """
         Lookup identifying (e.g. name, email) info about matching members Arguments:
         Returns a list of dictionaries
         """
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def update_member_info(self, member_urn, credentials, update_dict, options):
+    def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
+        """
+        Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
+        Returns a list of dictionaries
+        """
+        raise GCHv1NotImplementedError("Method not implemented")
+
+    def update_member_info(self, client_cert, member_urn, credentials, update_dict, options):
         """
         Update information about given member public, private or identifying information
         Arguments:
@@ -144,12 +158,13 @@ class GMAv1DelegateBase(object):
         """
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def get_credentials(self, member_urn, credentials, options):
+    def get_credentials(self, client_cert, member_urn, credentials, options):
         """
         Provide list of credentials (signed statements) for given member
         This is member-specific information suitable for passing as credentials in an AM API call for aggregate authorization.
-        Arguments: member_urn: URN of member for which to retrieve credentials
-        options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
+        Arguments:
+          member_urn: URN of member for which to retrieve credentials
+          options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
         Return: List of credentials in "CREDENTIAL_LIST" format, i.e. a list of credentials with type information suitable for passing to aggregates speaking AM API V3.
         """
         raise GCHv1NotImplementedError("Method not implemented")
@@ -162,3 +177,7 @@ class GMAv1DelegateBase(object):
     def _filter_fields(self, d, field_filter):
         """see documentation in gapitools"""
         return gapitools.filter_fields(d, field_filter)
+
+    def _does_match_fields(self, d, field_match):
+        """see documentation in gapitools"""
+        return gapitools.does_match_fields(d, field_match)

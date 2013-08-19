@@ -3,16 +3,24 @@
 import unittest
 from testtools import *
 
-def ma_call(method_name, params=[]):
+def ma_call(method_name, params=[], verbose=True):
     res = ssl_call(method_name, params, 'MA')
-    print_call(method_name, params, res)
+    if verbose:
+        print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
 
 class TestGMAv1(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
+    @classmethod
+    def setUpClass(klass):
+        # try to get custom fields before we start the tests
+        klass.sup_fields = []
+        try:
+            code, value, output = ma_call('get_version', verbose=False)
+            klass.sup_fields = value['FIELDS']
+        except:
+            warn("Error while trying to setup supplementary fields before starting tests")
+        
     def test_get_version(self):
         code, value, output = ma_call('get_version')
         self.assertEqual(code, 0) # no error
@@ -48,36 +56,59 @@ class TestGMAv1(unittest.TestCase):
         else:
             warn("No supplementary fields to test with.")
     
+     # TODO test if match attributes are rejected if match is not allowed by get_version
+     # TODO make sure PROTECT attributes are not given out unless public
+
     def test_lookup_public_member_info(self):
-        method_name = "lookup_public_member_info"
-        code, value, output = ma_call(method_name, [{}])
+        req_fields = ["MEMBER_URN", "MEMBER_UID", "MEMBER_USERNAME"]
+        req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PUBLIC']
+        self._check_lookup("lookup_public_member_info", "MEMBER_UID", req_fields)
+
+    def test_lookup_identifying_member_info(self):
+        req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME"]
+        req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'IDENTIFYING']
+        self._check_lookup("lookup_identifying_member_info", "MEMBER_EMAIL", req_fields, ["CREDENTIAL"])
+
+    def test_lookup_private_member_info(self):
+        req_fields = []
+        req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PRIVATE']
+        uniq_field = req_fields[0] if len(req_fields) > 0 else None
+        self._check_lookup("lookup_private_member_info", uniq_field, req_fields, ['CREDENTIAL'])
+
+    def _check_lookup(self, method_name, unique_field_to_test_match_with, required_fields, credentials=None):
+        if credentials:
+            code, value, output = ma_call(method_name, [credentials, {}])
+        else:
+            code, value, output = ma_call(method_name, [{}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for member_info in value:
-            for req_str_field in ["MEMBER_URN", "MEMBER_UID", "MEMBER_USERNAME"]: # "MEMBER_URN", "MEMBER_UID", "MEMBER_FIRSTNAME", "MEMBER_LASTNAME", "MEMBER_USERNAME", "MEMBER_EMAIL"
+            for req_str_field in required_fields:
                 self.assertIn(req_str_field, member_info)
-                self.assertIsInstance(member_info[req_str_field], str)
+                self.assertIn(type(member_info[req_str_field]), [str, bool])
         if len(value) == 0:
-            warn("No member info to test with.")
+            warn("No member info to test with (returned no records by %s)." % (method_name,))
         # test match
         if len(value) > 0:
-            fcode, fvalue, foutput = ma_call(method_name, [{'match' : {'MEMBER_UID' : value[0]['MEMBER_UID']}}])
+            params = [{'match' : {unique_field_to_test_match_with : value[0][unique_field_to_test_match_with]}}]
+            if credentials:
+                params.insert(0, credentials)
+            fcode, fvalue, foutput = ma_call(method_name, params)
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = ma_call(method_name, [{'filter' : ['MEMBER_UID']}])
+            params = [{'filter' : [unique_field_to_test_match_with]}]
+            if credentials:
+                params.insert(0, credentials)
+            fcode, fvalue, foutput = ma_call(method_name, params)
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)
-            self.assertEqual(fvalue[0].keys(), ['MEMBER_UID'])
+            self.assertEqual(fvalue[0].keys(), [unique_field_to_test_match_with])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
-            
-
-    
-         # TODO test if match attributes are rejected if match is not allowed by get_version
-         # TODO make sure PROTECT attributes are not given out unless public
         
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main(verbosity=0, exit=False)
+    print_warnings()
