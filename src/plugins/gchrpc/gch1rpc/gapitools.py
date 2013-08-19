@@ -20,11 +20,14 @@ def form_success_return(result):
 
 # --- helpers for filtering/selecting stuff
 def match_and_filter(list_of_dicts, field_filter, field_match):
-    """Takes a list of dicts and applies the given filter and matches the results (please GENI CH API on how matching and filtering works)."""
+    """
+    Takes a list of dicts and applies the given filter and matches the results (please GENI CH API on how matching and filtering works).
+    if field_filter is None the unfiltered list is returned.
+    """
     return [filter_fields(d, field_filter) for d in list_of_dicts if does_match_fields(d, field_match)]
 
 def filter_fields(d, field_filter):
-    """Takes a dictionary and applies the filter."""
+    """Takes a dictionary and applies the filter. Returns the unfiltered d if None is given."""
     if not field_filter:
         return d
     result = {}

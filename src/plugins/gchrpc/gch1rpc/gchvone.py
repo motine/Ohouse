@@ -28,7 +28,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
     def get_version(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            version, fields = self._delegate.get_version()
+            version, fields = self._delegate.get_version(self.requestCertificate())
             result = {}
             result['VERSION'] = version
             if fields:
@@ -42,7 +42,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_aggregates(field_filter, field_match, options)
+            result = self._delegate.get_aggregates(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -52,7 +52,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_member_authorities(field_filter, field_match, options)
+            result = self._delegate.get_member_authorities(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -62,7 +62,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_slice_authorities(field_filter, field_match, options)
+            result = self._delegate.get_slice_authorities(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -70,7 +70,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
     def lookup_authorities_for_urns(self, urns):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            result = self._delegate.lookup_authorities_for_urns(urns)
+            result = self._delegate.lookup_authorities_for_urns(self.requestCertificate(), urns)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -78,7 +78,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
     def get_trust_roots(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            result = self._delegate.get_trust_roots()
+            result = self._delegate.get_trust_roots(self.requestCertificate())
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -87,6 +87,7 @@ class GCHv1DelegateBase(object):
     """
     The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse API (v1). 
     {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
+    {client_cert} might be None if the user connects without SSL.
     """
 
     DEFAULT_FIELDS = {
@@ -110,7 +111,7 @@ class GCHv1DelegateBase(object):
     def __init__(self):
         super(GCHv1DelegateBase, self).__init__()
     
-    def get_version(self):
+    def get_version(self, client_cert):
         """Overwrite this method in the actual delegate implementation.
         Provide a structure detailing the version information as well as details of accepted options s for CH API calls.
         NB: This is an unprotected call, no client cert required.
@@ -121,35 +122,35 @@ class GCHv1DelegateBase(object):
         """
         raise GCHv1NotImplementedError("Method not implemented")
         
-    def get_aggregates(self, field_filter, field_match, options):
+    def get_aggregates(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all aggregates associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
 
-    def get_member_authorities(self, field_filter, field_match, options):
+    def get_member_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all MA's associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
-    def get_slice_authorities(self, field_filter, field_match, options):
+    def get_slice_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all SA's associated with the Federation
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
-    def lookup_authorities_for_urns(self, urns):
+    def lookup_authorities_for_urns(self, client_cert, urns):
         """Overwrite this method in the actual delegate implementation.
         Lookup the authorities for a given URNs. There should be at most one (potentially none) per URN.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GCHv1NotImplementedError("Method not implemented")
         
-    def get_trust_roots(self):
+    def get_trust_roots(self, client_cert):
         """Overwrite this method in the actual delegate implementation.
         Return list of trust roots (certificates) associated with this CH.
         Often this is a concatenatation of the trust roots of the included authorities.
