@@ -94,6 +94,9 @@ if __name__ == "__main__":
 
     if not opts.silent:
         print "Creating bad test user cert and cred (invalid, self-signed)"
+
+    if not opts.silent:
+        print "Creating bad test user cert (invalid, self-signed)"
     urn = geniutil.encode_urn(opts.authority, 'user', BAD_USER_NAME)
     bu_c,bu_pu,bu_pr = geniutil.create_certificate(urn, email=BAD_USER_EMAIL)
     write_file(dir_path, BAD_USER_CERT_FILE, bu_c, opts.silent)
@@ -121,4 +124,3 @@ if __name__ == "__main__":
         print "--------------------"
         print "You can use the user certificates and slice cert to test. In production you may acquire them from a MA and SA."
         print "--------------------"
-

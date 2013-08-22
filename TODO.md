@@ -2,6 +2,10 @@
 
 ## OHouse
 
+
+* document and use gen-certs
+* TODOs in gen-certs
+
 * Refactor tests to take a good cert, a bad cert and a server host/port
 
 * add authentication and authorization when implementing other MA methods (see http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#MemberAuthorityAPI)
@@ -18,6 +22,7 @@
 * add servicemethod where possible
 * Wrap the delegate for auth?
 
+* test with jProbe
 * do deployment
   * write doc (incl. cert stuff)
   * remove authentication from nginx config
