@@ -10,6 +10,21 @@ def setup():
     
     pm.registerService("geniutil", geniutil)
 
+    # view certificates with: openssl x509 -in ca_cert -text -noout
+    # or use mac osx's Keychain Access (go into "Keychain Access"-Menu and use the Cerificate Assistant)
+    # infer public key from private key for testing: openssl rsa -in mykey.pem -pubout
+    
+    # creates a self-signed CA cert including a new key pair
+    ca_c,ca_pu,ca_pr = geniutil.create_certificate("urn:publicid:IDN+eict.de+authority+sa", is_ca=True, email="auth@example.com")
+
+    # creates a user cert with a new key pair
+    u_c,u_pu,u_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+tom", issuer_key=ca_pr, issuer_cert=ca_c, email="tom@example.com")
+    
+    # creates a user cert with a given public key
+    u2_c,u2_pu,u2_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+manfred", issuer_key=ca_pr, issuer_cert=ca_c, public_key=u_pu, email="manni@example.com")
+
+    logger.info(">>> CERT <<<\n %s>>> PUB <<<\n %s>>> PRIV <<<\n %s" % (u2_c,u2_pu,u2_pr))
+    
     # import ext.geni
     # from ext.geni.util import cert_util as gcf_cert_util
     #
@@ -21,14 +36,14 @@ def setup():
     # import os.path
     # 
     # # TEST: create key-pair
-    # # from ext.sfa.trust.certificate import Keypair
-    # # kp = Keypair()
-    # # kp.create()
-    # # # kp.load_from_file() # from pem
-    # # # kp.save_to_file() # as pem
-    # # # kp.load_from_string() # from pem
-    # # logger.info("private key PEM: %s" % (kp.as_pem(),))
-    # # logger.info("public key DER: %s" % (kp.get_pubkey_string(),))
+    # from ext.sfa.trust.certificate import Keypair
+    # kp = Keypair()
+    # kp.create()
+    # kp.load_from_file() # from pem
+    # kp.save_to_file() # as pem
+    # kp.load_from_string() # from pem
+    # logger.info("private key PEM: %s" % (kp.as_pem(),))
+    # logger.info("public key DER: %s" % (kp.get_pubkey_string(),))
     # 
     # # TEST: load key-pair
     # 
@@ -38,7 +53,7 @@ def setup():
     # logger.info("CA private key PEM: %s" % (ca_keys.as_pem(),))
     # logger.info("CA CRT: %s" % (ca_gid.save_to_string(),))
     # ca_keys.save_to_file(os.path.join(TMP_PATH, 'ca_key.pem'))
-    # ca_gid.save_to_file(os.path.join(TMP_PATH, 'ca_cert.crt')) # view with openssl "# openssl x509 -in ca_cert -text -noout"
+    # ca_gid.save_to_file(os.path.join(TMP_PATH, 'ca_cert.crt')) 
     # 
     # 
     # # --------------------------------------------------
@@ -49,7 +64,7 @@ def setup():
     # user_gid.save_to_file(os.path.join(TMP_PATH, 'user_cert.crt')) # this includes the parents
     # 
     # # write the public key out (needed for the next use case)
-    # user_pub_key = user_keys.get_m2_pkey().get_rsa().as_pem() # or user_gid.get_pubkey()
+    # user_pub_key = user_keys.get_m2_pkey().get_rsa().pem() # or user_gid.get_pubkey()
     # with open(os.path.join(TMP_PATH, 'user_pub_key.pem'), 'w') as f:
     #     f.write(user_pub_key)
     # 
