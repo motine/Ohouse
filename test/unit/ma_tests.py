@@ -70,18 +70,18 @@ class TestGMAv1(unittest.TestCase):
     def test_lookup_identifying_member_info(self):
         req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME"]
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'IDENTIFYING']
-        self._check_lookup("lookup_identifying_member_info", "MEMBER_EMAIL", req_fields, ["CREDENTIAL"])
+        self._check_lookup("lookup_identifying_member_info", "MEMBER_EMAIL", req_fields, self._user_credentail_list())
 
     def test_lookup_private_member_info(self):
         req_fields = []
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PRIVATE']
         uniq_field = req_fields[0] if len(req_fields) > 0 else None
-        self._check_lookup("lookup_private_member_info", uniq_field, req_fields, ['CREDENTIAL'])
+        self._check_lookup("lookup_private_member_info", uniq_field, req_fields, self._user_credentail_list())
 
     def test_bad_user_attempts(self):
         code, value, output = ma_call("lookup_public_member_info", [{}], valid_user=False)
         self.assertIn(code, [1,2]) # should throw any auth error
-        code, value, output = ma_call("lookup_private_member_info", [["CREDENTIAL"], {}], valid_user=False)
+        code, value, output = ma_call("lookup_private_member_info", [self._user_credentail_list(), {}], valid_user=False)
         self.assertIn(code, [1,2]) # should throw any auth error
 
     def _check_lookup(self, method_name, unique_field_to_test_match_with, required_fields, credentials=None):
@@ -117,6 +117,10 @@ class TestGMAv1(unittest.TestCase):
             self.assertIsInstance(fvalue[0], dict)
             self.assertEqual(fvalue[0].keys(), [unique_field_to_test_match_with])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
+
+    def _user_credentail_list(self):
+        """Returns the _user_ credential for alice."""
+        return [get_creds_file_contents('alice-cred.xml')]
         
 if __name__ == '__main__':
     unittest.main(verbosity=0, exit=False)

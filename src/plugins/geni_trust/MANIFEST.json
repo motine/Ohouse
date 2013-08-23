@@ -3,7 +3,7 @@
   "author" : "Tom Rothe (with a lot of code from gcf/PlanetLab)",
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,
-  "implements" : ["geniutil", "genicertificate", "genicredential"],
+  "implements" : ["geniutil"],
   "loads-after" : [],
   "requires" : []
 }

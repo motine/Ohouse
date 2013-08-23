@@ -1,14 +1,18 @@
 import tempfile
 import uuid
 import os
+import os.path
 
 from ext.geni.util.urn_util import URN
 from ext.sfa.trust.gid import GID
 # import ext.geni
 from ext.sfa.trust.certificate import Keypair
 from ext.geni.util import cert_util as gcf_cert_util
+from ext.geni.util import cred_util as gcf_cred_util
 import ext.sfa.trust.credential as sfa_cred
 import ext.sfa.trust.rights as sfa_rights
+from ext.sfa.util.faults import SfaFault
+import ext.geni
 
 def decode_urn(urn):
     """Returns authority, type and name associated with the URN as string.
@@ -101,3 +105,75 @@ def create_credential(owner_cert, target_cert, issuer_key, issuer_cert, typ, exp
     os.remove(issuer_cert_filename)
 
     return ucred.save_to_string()
+    
+def extract_certificate_info(certificate):
+    """Returns the urn, uuid and email of the given certificate."""
+    user_gid = GID(string=certificate)
+    user_urn = user_gid.get_urn()
+    user_uuid = user_gid.get_uuid()
+    user_email = user_gid.get_email()
+    return user_urn, user_uuid, user_email
+
+def verify_certificate(certificate, trusted_cert_path=None):
+    """
+    Taken from ext...gid
+    Verifies the chain of authenticity of the GID. First performs the checks of the certificate class (verifying that each parent signs the child, etc).
+    In addition, GIDs also confirm that the parent's HRN is a prefix of the child's HRN, and the parent is of type 'authority'.
+    
+    Raises a ValueError if bad certificate.
+    Does not return anything if successful.
+    """
+    try:
+        trusted_certs = None
+        if trusted_cert_path:
+            trusted_certs_paths = [os.path.join(os.path.expanduser(trusted_cert_path), name) for name in os.listdir(os.path.expanduser(trusted_cert_path)) if (name != gcf_cred_util.CredentialVerifier.CATEDCERTSFNAME) and (name[0] != '.')]
+            trusted_certs = [GID(filename=name) for name in trusted_certs_paths]
+        gid = GID(string=certificate)
+        gid.verify_chain(trusted_certs)
+    except SfaFault as e:
+        raise ValueError("Error verifying certificate: %s" % (str(e),))
+    return None
+    
+def verify_credential(credentials, owner_cert, target_urn, trusted_cert_path, privileges=()):
+    """
+    Give a list of credentials and they will be checked to have the privleges and to be trusted by the trusted_certs.
+    The privileges should be tuple.
+    
+    To verify a user: owner_cert=user_cert, target_urn=user
+    To verify a slice: owner_cert=user_cert, target_urn=slice_urn
+    
+    Here a list of possible privileges (format: right_in_credential: [privilege1, privilege2, ...]):
+        "authority" : ["register", "remove", "update", "resolve", "list", "getcredential", "*"],
+        "refresh"   : ["remove", "update"],
+        "resolve"   : ["resolve", "list", "getcredential"],
+        "sa"        : ["getticket", "redeemslice", "redeemticket", "createslice", "createsliver", "deleteslice", "deletesliver", "updateslice",
+                       "getsliceresources", "getticket", "loanresources", "stopslice", "startslice", "renewsliver",
+                        "deleteslice", "deletesliver", "resetslice", "listslices", "listnodes", "getpolicy", "sliverstatus"],
+        "embed"     : ["getticket", "redeemslice", "redeemticket", "createslice", "createsliver", "renewsliver", "deleteslice", 
+                       "deletesliver", "updateslice", "sliverstatus", "getsliceresources", "shutdown"],
+        "bind"      : ["getticket", "loanresources", "redeemticket"],
+        "control"   : ["updateslice", "createslice", "createsliver", "renewsliver", "sliverstatus", "stopslice", "startslice", 
+                       "deleteslice", "deletesliver", "resetslice", "getsliceresources", "getgids"],
+        "info"      : ["listslices", "listnodes", "getpolicy"],
+        "ma"        : ["setbootstate", "getbootstate", "reboot", "getgids", "gettrustedcerts"],
+        "operator"  : ["gettrustedcerts", "getgids"],                   
+        "*"         : ["createsliver", "deletesliver", "sliverstatus", "renewsliver", "shutdown"]
+        
+    When using the gcf clearinghouse implementation the credentials will have the rights:
+    - user: "refresh", "resolve", "info" (which resolves to the privileges: "remove", "update", "resolve", "list", "getcredential", "listslices", "listnodes", "getpolicy").
+    - slice: "refresh", "embed", "bind", "control", "info" (well, do the resolving yourself...)        
+    """
+
+    # if client_cert == None:
+    #     # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
+    #     if config.get("flask.debug"):
+    #         import ext.sfa.trust.credential as cred
+    #         client_cert = cred.Credential(string=geni_credentials[0]).gidCaller.save_to_string(save_parents=True)
+    #     else:
+    #         raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
+    # test the credential
+    try:
+        cred_verifier = ext.geni.CredentialVerifier(trusted_cert_path)
+        cred_verifier.verify_from_strings(owner_cert, credentials, target_urn, privileges)
+    except Exception as e:
+        raise ValueError("Error verifying the credential: %s" % (str(e),))

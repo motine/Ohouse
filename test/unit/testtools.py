@@ -31,6 +31,16 @@ def ssl_call(method_name, params, endpoint, key_path='alice-key.pem', cert_path=
     method = getattr(proxy, method_name)
     
     return method(*params)
+
+def get_creds_file_contents(filename):
+    creds_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'creds'))
+    if not os.path.isabs(filename):
+        filename = os.path.join(creds_path, filename)
+    filename = os.path.abspath(os.path.expanduser(filename))
+    contents = None
+    with open(filename, 'r') as f:
+        contents = f.read()
+    return contents
     
 COLORS={"reset":"\x1b[00m",
     "blue":   "\x1b[01;34m",
