@@ -60,16 +60,16 @@ def setup():
     # or use mac osx's Keychain Access (go into "Keychain Access"-Menu and use the Cerificate Assistant)
     # infer public key from private key for testing: openssl rsa -in mykey.pem -pubout
     
-    # creates a self-signed CA cert including a new key pair
-    ca_c,ca_pu,ca_pr = geniutil.create_certificate("urn:publicid:IDN+eict.de+authority+sa", is_ca=True, email="auth@example.com")
-
-    # creates a user cert with a new key pair
-    u_c,u_pu,u_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+tom", issuer_key=ca_pr, issuer_cert=ca_c, email="tom@example.com")
-    
-    # creates a user cert with a given public key
-    u2_c,u2_pu,u2_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+manfred", issuer_key=ca_pr, issuer_cert=ca_c, public_key=u_pu, email="manni@example.com")
-
-    logger.info(">>> CERT <<<\n %s>>> PUB <<<\n %s>>> PRIV <<<\n %s" % (u2_c,u2_pu,u2_pr))
+    # # creates a self-signed CA cert including a new key pair
+    # ca_c,ca_pu,ca_pr = geniutil.create_certificate("urn:publicid:IDN+eict.de+authority+sa", is_ca=True, email="auth@example.com")
+    # 
+    # # creates a user cert with a new key pair
+    # u_c,u_pu,u_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+tom", issuer_key=ca_pr, issuer_cert=ca_c, email="tom@example.com")
+    # 
+    # # creates a user cert with a given public key
+    # u2_c,u2_pu,u2_pr = geniutil.create_certificate("urn:publicid:IDN+eict:de+user+manfred", issuer_key=ca_pr, issuer_cert=ca_c, public_key=u_pu, email="manni@example.com")
+    # 
+    # logger.info(">>> CERT <<<\n %s>>> PUB <<<\n %s>>> PRIV <<<\n %s" % (u2_c,u2_pu,u2_pr))
     
     # import ext.geni
     # from ext.geni.util import cert_util as gcf_cert_util
