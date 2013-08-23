@@ -7,6 +7,7 @@
 * TODOs in gen-certs
 
 * Refactor tests to take a good cert, a bad cert and a server host/port
+* refactor tests to send a decent credential (load from file)
 
 * Trust Plugin: add servicemethod where possible
 

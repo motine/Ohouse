@@ -3,8 +3,11 @@
 import unittest
 from testtools import *
 
-def ma_call(method_name, params=[], verbose=True):
-    res = ssl_call(method_name, params, 'MA')
+def ma_call(method_name, params=[], valid_user=True, verbose=True):
+    key_path, cert_path = 'alice-key.pem', 'alice-cert.pem'
+    if not valid_user:
+        key_path, cert_path = 'malcom-key.pem', 'malcom-cert.pem'
+    res = ssl_call(method_name, params, 'MA', key_path=key_path, cert_path=cert_path)
     if verbose:
         print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
@@ -74,6 +77,12 @@ class TestGMAv1(unittest.TestCase):
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PRIVATE']
         uniq_field = req_fields[0] if len(req_fields) > 0 else None
         self._check_lookup("lookup_private_member_info", uniq_field, req_fields, ['CREDENTIAL'])
+
+    def test_bad_user_attempts(self):
+        code, value, output = ma_call("lookup_public_member_info", [{}], valid_user=False)
+        self.assertIn(code, [1,2]) # should throw any auth error
+        code, value, output = ma_call("lookup_private_member_info", [["CREDENTIAL"], {}], valid_user=False)
+        self.assertIn(code, [1,2]) # should throw any auth error
 
     def _check_lookup(self, method_name, unique_field_to_test_match_with, required_fields, credentials=None):
         if credentials:
