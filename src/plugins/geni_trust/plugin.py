@@ -2,13 +2,17 @@ from amsoil.core import pluginmanager as pm
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> added testing use cases of existing libraries
+=======
+>>>>>>> b8f8ae67069dea3e295a4c43068788f9bd032c09
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('genitrust')
 
 import geniutil
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -53,6 +57,10 @@ def setup():
     # TEST: create user cert signed by a CA cert (incl. a new keypair)
 =======
 >>>>>>> config file and more ch api methods
+=======
+
+def setup():
+>>>>>>> b8f8ae67069dea3e295a4c43068788f9bd032c09
     
     pm.registerService("geniutil", geniutil)
 
@@ -133,6 +141,7 @@ def setup():
     # create two users from different CAs
     # then verify these (one should fail, one should succeed)
     
+<<<<<<< HEAD
     
     # TEST: get root certs
     #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
@@ -204,14 +213,19 @@ def setup():
     # --------------------------------------------------
 
     
+=======
+>>>>>>> b8f8ae67069dea3e295a4c43068788f9bd032c09
     # TEST: get root certs
     #    self.trusted_root_files = cred_util.CredentialVerifier(ca_certs).root_cert_files
 
     # TEST: load cert from file
     
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> added geni_trust plugin
 =======
+=======
+>>>>>>> b8f8ae67069dea3e295a4c43068788f9bd032c09
     # TEST: create user cred (see ch.py)
     # TEST: create slice cred (see ch.py)
 
@@ -220,7 +234,10 @@ def setup():
     # see GID
     # TEST: verify cert against a trusted root
     # see GID verify chain
+<<<<<<< HEAD
 >>>>>>> added testing use cases of existing libraries
+=======
+>>>>>>> b8f8ae67069dea3e295a4c43068788f9bd032c09
 
     # # get the cert_root
     # config = pm.getService("config")
