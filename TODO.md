@@ -8,6 +8,8 @@
 
 * Refactor tests to take a good cert, a bad cert and a server host/port
 
+* Trust Plugin: add servicemethod where possible
+
 * add authentication and authorization when implementing other MA methods (see http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#MemberAuthorityAPI)
   * Actually implement cred verification
   * Add tests for it
@@ -27,16 +29,11 @@
   * write doc (incl. cert stuff)
   * remove authentication from nginx config
 
-## Trust plugin
-* Add extract info method (+client_options)
-* Add exceptions
-* add servicemethod where possible
-
-
 ## AMsoil
 
+* document how to create certs
 * add test tools
-* Add trust plugin
+* Bump trust plugin
   * Remove auth method from delegate base
   * Adjust example (incl. translate exceptions)
 * Remove lib include from genirpc

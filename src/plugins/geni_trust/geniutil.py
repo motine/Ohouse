@@ -40,6 +40,9 @@ def create_certificate(urn, issuer_key=None, issuer_cert=None, is_ca=False,
       x509 certificate in PEM format
       public key of the keypair related to the new certificate in PEM format
       public key of the keypair related to the new certificate in PEM format or None if the the {public_key} was given.
+    
+    IMPORTANT
+    Do not add an email when creating sa/ma/cm. This may lead to unverificable certs later.
     """
     # create temporary files for some params, because gcf's create_cert works with files and I did not want to duplicate the code
     pub_key_param = None
@@ -70,7 +73,7 @@ def create_slice_certificate(slice_urn, issuer_key, issuer_cert, expiration):
 def create_credential(owner_cert, target_cert, issuer_key, issuer_cert, typ, expiration, delegatable=False):
     """
     {expiration} can be a datetime.datetime or a int/float (see http://docs.python.org/2/library/datetime.html#datetime.date.fromtimestamp) or a string with a UTC timestamp in it
-    {typ} is used to determine the rights (via ext/sfa/truse/rights.py) can either of the following: "user", "sa", "ma", "cm", "sm", "authority", "slice", "component"
+    {typ} is used to determine the rights (via ext/sfa/truse/rights.py) can either of the following: "user", "sa", "ma", "cm", "sm", "authority", "slice", "component" also you may specify "admin" for all privileges.
     Returns the credential as String
     """
     ucred = sfa_cred.Credential()
@@ -78,8 +81,13 @@ def create_credential(owner_cert, target_cert, issuer_key, issuer_cert, typ, exp
     ucred.set_gid_object(GID(string=target_cert))
     ucred.set_expiration(expiration)
 
-    privileges = sfa_rights.determine_rights(typ, None)
-    privileges.delegate_all_privileges(delegatable)
+    if typ == "admin":
+        if delegatable:
+            raise ValueError("Admin credentials can not be delegatable")
+        privileges = sfa_rights.Rights("*")
+    else:
+        privileges = sfa_rights.determine_rights(typ, None)
+        privileges.delegate_all_privileges(delegatable)
     ucred.set_privileges(privileges)
     ucred.encode()
 
