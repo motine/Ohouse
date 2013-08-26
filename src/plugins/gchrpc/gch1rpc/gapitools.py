@@ -19,6 +19,21 @@ def form_success_return(result):
 
 
 # --- helpers for filtering/selecting stuff
+def match_and_filter_and_to_dict(list_of_dicts, key_field, field_filter, field_match):
+    """Takes a list of dicts applies the {field_filter} and {field_match} (see match_and_filter).
+    Then converts the list into a dict by using the {key_field} as key.
+    E.g. match_and_filter_and_to_dict([{"x":1,"y":5}, {"x":2,"y":6}], "x", ...) results in {1:{"y":5}, 2:{"y":6}}
+    """
+    if field_filter and not key_field in field_filter:
+        field_filter += [key_field]
+    matched_and_filtered = match_and_filter(list_of_dicts, field_filter, field_match)
+    
+    for d in matched_and_filtered:
+        if not key_field in d:
+            raise ValueError("Can not convert to dict because the key_field name (%s) is not in the dictionary (%s)" % (key_field, d))
+    return { d[key_field] : dict(filter(lambda (k,v): (k != key_field), d.iteritems())) for d in matched_and_filtered}
+    
+
 def match_and_filter(list_of_dicts, field_filter, field_match):
     """
     Takes a list of dicts and applies the given filter and matches the results (please GENI CH API on how matching and filtering works).
