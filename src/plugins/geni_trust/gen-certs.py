@@ -107,7 +107,7 @@ if __name__ == "__main__":
     a_c,a_pu,a_pr = geniutil.create_certificate(urn, issuer_key=ma_pr, issuer_cert=ma_c, email=ADMIN_EMAIL)
     write_file(dir_path, ADMIN_CERT_FILE, a_c, opts.silent)
     write_file(dir_path, ADMIN_KEY_FILE, a_pr, opts.silent)
-    a_cred = geniutil.create_credential(a_c, a_c, ma_pr, ma_c, "user", CRED_EXPIRY)
+    a_cred = geniutil.create_credential(a_c, a_c, ma_pr, ma_c, "admin", CRED_EXPIRY)
     write_file(dir_path, ADMIN_CRED_FILE, a_cred, opts.silent)
 
     if not opts.silent:

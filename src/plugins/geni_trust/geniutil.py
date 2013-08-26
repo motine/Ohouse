@@ -14,12 +14,6 @@ import ext.sfa.trust.rights as sfa_rights
 from ext.sfa.util.faults import SfaFault
 import ext.geni
 
-import amsoil.core.log
-logger=amsoil.core.log.getLogger('geni_trust')
-
-import amsoil.core.pluginmanager as pm
-config = pm.getService('config')
-
 def decode_urn(urn):
     """Returns authority, type and name associated with the URN as string.
     example call:
@@ -197,6 +191,12 @@ def infer_client_cert(client_cert, credentials):
     """Returns client_cert if it is not None. It returns the first cert of the credentials if one is given.
     This is only needed to work around if the certificate could not be acquired due to the shortcommings of the werkzeug library.
     """
+    import amsoil.core.log
+    logger=amsoil.core.log.getLogger('geni_trust')
+
+    import amsoil.core.pluginmanager as pm
+    config = pm.getService('config')
+
     if client_cert != None:
         return client_cert
     elif config.get("flask.debug"):

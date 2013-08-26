@@ -99,7 +99,7 @@ class OMA1Delegate(GMAv1DelegateBase):
         members = self._map_field_names(members)
         members = [info for info in members if self._does_match_fields(info, field_match)] # enforce (at least) the URN filter before authorization and not later with _match_and_filter, otherwise the authorization may deny the request even if the user did not ask for privileged stuff
 
-        members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING'))
+        members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING') + self._field_names_for_protect('PUBLIC'))
         members = self._match_and_filter(members, field_filter, field_match)
         return members
 
@@ -107,7 +107,7 @@ class OMA1Delegate(GMAv1DelegateBase):
         c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
-        members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE'))
+        members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE') + self._field_names_for_protect('IDENTIFYING') + self._field_names_for_protect('PUBLIC'))
         return self._match_and_filter(members, field_filter, field_match)
 
     # -- Helper methods
@@ -155,6 +155,20 @@ class OMA1Delegate(GMAv1DelegateBase):
 
     TEST_DATA = [
         {
+            "urn" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice",
+            "uuid" : "7ab95414-0e03-4007-91c0-fb771e11111",
+            "first_name" : 'Alice',
+            "last_name" : 'Merry',
+            "user_name" : 'alice',  # e.g. to be used as linux login name, needs to be unique
+            "email" : 'alice@example.com',
+            "affiliation" : 'OFELIA PO',
+            "island" : 'Berlin, Germany',
+            "x509_cert" : '<cert>..ALICE..</cert>',
+            "x509_priv_key_str" : '', # None if user generated key; save None in the database but offer a xxx_str method which gives out an empty string to comply with XML-RPC
+            "ssh_pub_key" : 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhEds1KZkBCX9e91wN4ADs1+dGEm1wUYIe2WfDW3MwLkxwsiFvHAeD7uKUOOGXAZLevTaXWRuinkFaEu9hXfmnG46R2yyxgtq3zNQP+a7mPCbYV8x9LLQtGHXD9A19300WdsSmBlFvM6cTVWXeSnRSQq1LL2vbp0GlJk/UvqOoAEOEBMeQgQL4h1Bd4tMb8b2+FceFa43vDkHVy9QaVWjIVeCMqmYoR0A8MRI2Xm52KJ+XbyamtGWwyx817BSUurrVFc2levWHnz69GK9QuZWNL9LihkkMQoWRrKfr4lf5rbXCyRoUjZ+hTxxL0oEfjfXiaeinmJEMN5gudQ8oi6Y5',
+            "ssh_priv_key_str" : '', # None
+            "enabled" : True
+        }, {
             "urn" : "urn:publicid:IDN+eict:de+user+tom",
             "uuid" : "7ab95414-0e03-4007-91c0-fb771eeb523f",
             "first_name" : 'Tom',
