@@ -121,19 +121,22 @@ class OMA1Delegate(GMAv1DelegateBase):
             # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
             if config.get("flask.debug"):
                 import ext.sfa.trust.credential as cred
-                client_cert = cred.Credential(string=credentials[0]).gidCaller.save_to_string(save_parents=True)
+                first_cred = credentials[0]
+                first_cred_val = first_cred.values()[0]
+                client_cert = cred.Credential(string=first_cred_val).gidCaller.save_to_string(save_parents=True)
+                logger.warning("Infered client cert from credential as workaround missing feature in werkzeug")
             else:
-                raise RuntimeError("Could not determine the client SSL certificate (bloody werkzeug library)")
+                raise gch_ex.GCHv1AuthenticationError("Could not determine the client SSL certificate (bloody werkzeug library)")
+        try:
+            c_urn, c_uuid, c_email = geniutil.extract_certificate_info(client_cert)
+            from amsoil.config import expand_amsoil_path
+            trusted_cert_path = expand_amsoil_path('deploy/trusted')
 
-        c_urn, c_uuid, c_email = geniutil.extract_certificate_info(client_cert)
+            geniutil.verify_certificate(client_cert, trusted_cert_path)
+            geniutil.verify_credential(credentials, client_cert, "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice", trusted_cert_path, ('list',))
+        except Exception as e:
+            raise gch_ex.GCHv1AuthorizationError(str(e))
 
-        from amsoil.config import expand_amsoil_path
-        trusted_cert_path = expand_amsoil_path('deploy/trusted')
-
-        geniutil.verify_certificate(client_cert, trusted_cert_path)
-        geniutil.verify_credential(credentials, client_cert, "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice", trusted_cert_path, ('list',))
-        
-        
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
         members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE'))

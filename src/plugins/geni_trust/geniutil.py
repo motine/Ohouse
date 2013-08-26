@@ -14,6 +14,9 @@ import ext.sfa.trust.rights as sfa_rights
 from ext.sfa.util.faults import SfaFault
 import ext.geni
 
+import amsoil.core.log
+logger=amsoil.core.log.getLogger('geni_trust')
+
 def decode_urn(urn):
     """Returns authority, type and name associated with the URN as string.
     example call:
@@ -142,6 +145,12 @@ def verify_credential(credentials, owner_cert, target_urn, trusted_cert_path, pr
     To verify a user: owner_cert=user_cert, target_urn=user
     To verify a slice: owner_cert=user_cert, target_urn=slice_urn
     
+    {credentials} a list of strings (["CRED1", "CRED2"]) or a list of dictionaries [{"SFA" : "CRED1"}, {"ABAC" : "CRED2"}]
+    {owner_cert} a string with the cert in PEM format
+    {target_urn} a string with a urn
+    {trusted_cert_path} a string containing the file system path with files (trusted certificates) in pem format in it
+    {privileges} a list of the privileges (see below)
+    
     Here a list of possible privileges (format: right_in_credential: [privilege1, privilege2, ...]):
         "authority" : ["register", "remove", "update", "resolve", "list", "getcredential", "*"],
         "refresh"   : ["remove", "update"],
@@ -172,8 +181,27 @@ def verify_credential(credentials, owner_cert, target_urn, trusted_cert_path, pr
     #     else:
     #         raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
     # test the credential
+    creds = credentials # strip the type info if a list of dicts is given
+    if len(credentials) > 0 and isinstance(credentials[0], dict):
+        creds = [cred.values()[0] for cred in credentials]
     try:
         cred_verifier = ext.geni.CredentialVerifier(trusted_cert_path)
-        cred_verifier.verify_from_strings(owner_cert, credentials, target_urn, privileges)
+        cred_verifier.verify_from_strings(owner_cert, creds, target_urn, privileges)
     except Exception as e:
         raise ValueError("Error verifying the credential: %s" % (str(e),))
+
+
+
+def infer_client_cert(client_cert, credentials):
+    """Returns client_cert if it is not None. It returns the first cert of the credentials if one is given.
+    This is only needed to work around if the certificate could not be acquired due to the shortcommings of the werkzeug library.
+    """
+    if client_cert != None:
+        return client_cert
+    elif config.get("flask.debug"):
+        first_cred = credentials[0]
+        first_cred_val = first_cred.values()[0]
+        client_cert = sfa_cred.Credential(string=first_cred_val).gidCaller.save_to_string(save_parents=True)
+        logger.warning("Infered client cert from credential as workaround missing feature in werkzeug")
+    else:
+        raise RuntimeError("The workaround could not determine the client SSL certificate (bloody werkzeug library! please try to use production mode)")
