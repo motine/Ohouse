@@ -23,8 +23,8 @@ def ssl_call(method_name, params, endpoint, key_path='alice-key.pem', cert_path=
         cert_path = os.path.join(creds_path, cert_path)
     key_path = os.path.abspath(os.path.expanduser(key_path))
     cert_path = os.path.abspath(os.path.expanduser(cert_path))
-    if not os.path.abspath(key_path) or not os.path.abspath(cert_path):
-        raise RuntimeError("Key or cert file not found")
+    if not os.path.isfile(key_path) or not os.path.isfile(cert_path):
+        raise RuntimeError("Key or cert file not found (%s, %s)" % (key_path, cert_path))
     transport = SafeTransportWithCert(key_path, cert_path)
     proxy = xmlrpclib.ServerProxy("https://%s:%s/%s" % (host, str(port), endpoint), transport=transport)
     # return proxy.get_version()
