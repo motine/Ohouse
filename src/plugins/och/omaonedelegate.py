@@ -117,16 +117,7 @@ class OMA1Delegate(GMAv1DelegateBase):
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
         # TODO refactor the following
-        if client_cert == None:
-            # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
-            if config.get("flask.debug"):
-                import ext.sfa.trust.credential as cred
-                first_cred = credentials[0]
-                first_cred_val = first_cred.values()[0]
-                client_cert = cred.Credential(string=first_cred_val).gidCaller.save_to_string(save_parents=True)
-                logger.warning("Infered client cert from credential as workaround missing feature in werkzeug")
-            else:
-                raise gch_ex.GCHv1AuthenticationError("Could not determine the client SSL certificate (bloody werkzeug library)")
+        client_cert = geniutil.infer_client_cert(client_cert, credentials)
         try:
             c_urn, c_uuid, c_email = geniutil.extract_certificate_info(client_cert)
             from amsoil.config import expand_amsoil_path

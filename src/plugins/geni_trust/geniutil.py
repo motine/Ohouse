@@ -17,6 +17,9 @@ import ext.geni
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('geni_trust')
 
+import amsoil.core.pluginmanager as pm
+config = pm.getService('config')
+
 def decode_urn(urn):
     """Returns authority, type and name associated with the URN as string.
     example call:
@@ -201,7 +204,7 @@ def infer_client_cert(client_cert, credentials):
     elif config.get("flask.debug"):
         first_cred = credentials[0]
         first_cred_val = first_cred.values()[0]
-        client_cert = sfa_cred.Credential(string=first_cred_val).gidCaller.save_to_string(save_parents=True)
         logger.warning("Infered client cert from credential as workaround missing feature in werkzeug")
+        return sfa_cred.Credential(string=first_cred_val).gidCaller.save_to_string(save_parents=True)
     else:
         raise RuntimeError("The workaround could not determine the client SSL certificate (bloody werkzeug library! please try to use production mode)")
