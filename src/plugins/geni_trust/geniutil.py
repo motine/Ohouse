@@ -10,6 +10,9 @@ from ext.geni.util import cert_util as gcf_cert_util
 import ext.sfa.trust.credential as sfa_cred
 import ext.sfa.trust.rights as sfa_rights
 
+import amsoil.core.log
+logger=amsoil.core.log.getLogger('geni_trust')
+
 def decode_urn(urn):
     """Returns authority, type and name associated with the URN as string.
     example call:

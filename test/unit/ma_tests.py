@@ -117,6 +117,16 @@ class TestGMAv1(unittest.TestCase):
             self.assertIsInstance(fvalue[0], dict)
             self.assertEqual(fvalue[0].keys(), [unique_field_to_test_match_with])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
+<<<<<<< HEAD
+=======
+
+    def _user_credentail_list(self):
+        """Returns the _user_ credential for alice."""
+        return [{"SFA" : get_creds_file_contents('alice-cred.xml')}]
+    def _bad_user_credentail_list(self):
+        """Returns the _user_ credential for malcom."""
+        return [{"SFA" : get_creds_file_contents('malcom-cred.xml')}]
+>>>>>>> fixed authorization in geni_trust
         
 if __name__ == '__main__':
     unittest.main(verbosity=0, exit=False)
