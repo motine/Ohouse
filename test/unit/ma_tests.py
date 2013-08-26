@@ -80,8 +80,10 @@ class TestGMAv1(unittest.TestCase):
         # skip those tests in development mode, because the user cert can not be infered
         # code, value, output = ma_call("lookup_public_member_info", [{}], valid_user=False)
         # self.assertIn(code, [1,2]) # should throw any auth error
-        code, value, output = ma_call("lookup_private_member_info", [self._bad_user_credentail_list(), {}])
-        self.assertIn(code, [1,2]) # should throw any auth error
+
+        # code, value, output = ma_call("lookup_private_member_info", [self._bad_user_credentail_list(), {}])
+        # self.assertIn(code, [1,2]) # should throw any auth error
+        pass
 
     def _check_lookup(self, method_name, unique_field_to_test_match_with, required_fields, use_creds=False):
         if use_creds:

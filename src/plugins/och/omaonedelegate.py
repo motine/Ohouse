@@ -166,7 +166,7 @@ class OMA1Delegate(GMAv1DelegateBase):
             "x509_cert" : '<cert>..ALICE..</cert>',
             "x509_priv_key_str" : '', # None if user generated key; save None in the database but offer a xxx_str method which gives out an empty string to comply with XML-RPC
             "ssh_pub_key" : 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhEds1KZkBCX9e91wN4ADs1+dGEm1wUYIe2WfDW3MwLkxwsiFvHAeD7uKUOOGXAZLevTaXWRuinkFaEu9hXfmnG46R2yyxgtq3zNQP+a7mPCbYV8x9LLQtGHXD9A19300WdsSmBlFvM6cTVWXeSnRSQq1LL2vbp0GlJk/UvqOoAEOEBMeQgQL4h1Bd4tMb8b2+FceFa43vDkHVy9QaVWjIVeCMqmYoR0A8MRI2Xm52KJ+XbyamtGWwyx817BSUurrVFc2levWHnz69GK9QuZWNL9LihkkMQoWRrKfr4lf5rbXCyRoUjZ+hTxxL0oEfjfXiaeinmJEMN5gudQ8oi6Y5',
-            "ssh_priv_key_str" : '', # None
+            "ssh_priv_key_str" : 'bsbs', # None
             "enabled" : True
         }, {
             "urn" : "urn:publicid:IDN+eict:de+user+tom",
@@ -178,9 +178,9 @@ class OMA1Delegate(GMAv1DelegateBase):
             "affiliation" : 'EICT',
             "island" : 'Berlin, Germany',
             "x509_cert" : '<cert>..TOM..</cert>',
-            "x509_priv_key_str" : '', # None if user generated key; save None in the database but offer a xxx_str method which gives out an empty string to comply with XML-RPC
+            "x509_priv_key_str" : 'sss', # None if user generated key; save None in the database but offer a xxx_str method which gives out an empty string to comply with XML-RPC
             "ssh_pub_key" : 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhEds1KZkBCX9e91wN4ADs1+dGEm1wUYIe2WfDW3MwLkxwsiFvHAeD7uKUOOGXAZLevTaXWRuinkFaEu9hXfmnG46R2yyxgtq3zNQP+a7mPCbYV8x9LLQtGHXD9A19300WdsSmBlFvM6cTVWXeSnRSQq1LL2vbp0GlJk/UvqOoAEOEBMeQgQL4h1Bd4tMb8b2+FceFa43vDkHVy9QaVWjIVeCMqmYoR0A8MRI2Xm52KJ+XbyamtGWwyx817BSUurrVFc2levWHnz69GK9QuZWNL9LihkkMQoWRrKfr4lf5rbXCyRoUjZ+hTxxL0oEfjfXiaeinmJEMN5gudQ8oi6Y5',
-            "ssh_priv_key_str" : '', # None
+            "ssh_priv_key_str" : 'asd', # None
             "enabled" : True
         }, {
             "urn" : "urn:publicid:IDN+eict:de+user+manfred",
