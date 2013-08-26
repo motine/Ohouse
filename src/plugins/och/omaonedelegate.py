@@ -92,41 +92,17 @@ class OMA1Delegate(GMAv1DelegateBase):
         return self._match_and_filter(members, field_filter, field_match)
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        self._validate_trust_chain(client_cert, credentials)
-        
         # TODO get the data from the database
         members = self.TEST_DATA
         members = self._map_field_names(members)
         members = [info for info in members if self._does_match_fields(info, field_match)] # enforce (at least) the URN filter before authorization and not later with _match_and_filter, otherwise the authorization may deny the request even if the user did not ask for privileged stuff
-        for info in members:
-            self._authorize(client_cert, credentials, urn=info['MEMBER_URN'])
 
         members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING'))
         members = self._match_and_filter(members, field_filter, field_match)
         return members
 
-    def _validate_trust_chain(self, client_cert, credentials):
-        # TODO raise exception if the trust chain is not right
-        pass
-    def _authorize(self, client_cert, credentials, urn=None):
-        # TODO raise exception if there the privileges are not sufficent
-        # TODO implement workaround if client_cert not given and debug true
-        logger.info("Checking Creds for %s" % (urn,))
-        pass
-
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        # TODO refactor the following
-        client_cert = geniutil.infer_client_cert(client_cert, credentials)
-        try:
-            c_urn, c_uuid, c_email = geniutil.extract_certificate_info(client_cert)
-            from amsoil.config import expand_amsoil_path
-            trusted_cert_path = expand_amsoil_path('deploy/trusted')
-
-            geniutil.verify_certificate(client_cert, trusted_cert_path)
-            geniutil.verify_credential(credentials, client_cert, "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice", trusted_cert_path, ('list',))
-        except Exception as e:
-            raise gch_ex.GCHv1AuthorizationError(str(e))
-
+        c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
         members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE'))
