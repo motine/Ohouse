@@ -91,24 +91,21 @@ class OMA1Delegate(GMAv1DelegateBase):
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
         members = self._whitelist_fields(members, self._field_names_for_protect('PUBLIC')) # filter data, so only public/identifying/private member info is given out
-        return self._match_and_filter(members, field_filter, field_match)
+        return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
         # TODO get the data from the database
         members = self.TEST_DATA
         members = self._map_field_names(members)
-        members = [info for info in members if self._does_match_fields(info, field_match)] # enforce (at least) the URN filter before authorization and not later with _match_and_filter, otherwise the authorization may deny the request even if the user did not ask for privileged stuff
-
-        members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING') + self._field_names_for_protect('PUBLIC'))
-        members = self._match_and_filter(members, field_filter, field_match)
-        return members
+        members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING') + ['MEMBER_URN'])
+        return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
         c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
-        members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE') + self._field_names_for_protect('IDENTIFYING') + self._field_names_for_protect('PUBLIC'))
-        return self._match_and_filter(members, field_filter, field_match)
+        members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE') + ['MEMBER_URN'])
+        return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
     # -- Helper methods
     def _field_names_for_protect(self, protect):

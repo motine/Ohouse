@@ -12,6 +12,9 @@ The guard on the other hand checks the outgoing result and raises an exception i
 """
 
 def setup():
+    config = pm.getService('config')
+    config.install("och.cert_root", "deploy/trusted", "Folder which includes trusted certificates (in .pem format). If relative path, the root is assumed to be git repo root.")
+    
     ch_delegate = OCH1Delegate()
     ch_handler = pm.getService('gchv1handler')
     ch_handler.setDelegate(ch_delegate)

@@ -44,7 +44,7 @@ class TestGMAv1(unittest.TestCase):
                 self.assertIsInstance(fv, dict)
                 self.assertIn("TYPE", fv)
                 self.assertIn(fv["TYPE"], ["URN", "UID", "STRING", "DATETIME", "EMAIL", "KEY","BOOLEAN", "CREDENTIAL", "CERTIFICATE"])
-
+    
                 if "CREATE" in fv:
                     self.assertIn(fv["CREATE"], ["REQUIRED", "ALLOWED", "NOT ALLOWED"])
                 if "MATCH" in fv:
@@ -56,43 +56,42 @@ class TestGMAv1(unittest.TestCase):
                     
         else:
             warn("No supplementary fields to test with.")
-    
-     # TODO test if match attributes are rejected if match is not allowed by get_version
-     # TODO make sure PROTECT attributes are not given out unless public
+    # 
+    #  # TODO test if match attributes are rejected if match is not allowed by get_version
+    #  # TODO make sure PROTECT attributes are not given out unless public
 
     def test_lookup_public_member_info(self):
-        req_fields = ["MEMBER_URN", "MEMBER_UID", "MEMBER_USERNAME"]
+        req_fields = ["MEMBER_UID", "MEMBER_USERNAME"]
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PUBLIC']
-        self._check_lookup("lookup_public_member_info", "MEMBER_UID", req_fields)
-
+        self._check_lookup("lookup_public_member_info", req_fields)
+    
     def test_lookup_identifying_member_info(self):
         req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME"]
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'IDENTIFYING']
-        self._check_lookup("lookup_identifying_member_info", "MEMBER_EMAIL", req_fields, True)
-
+        self._check_lookup("lookup_identifying_member_info", req_fields, True)
+    
     def test_lookup_private_member_info(self):
         req_fields = []
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PRIVATE']
-        uniq_field = req_fields[0] if len(req_fields) > 0 else None
-        self._check_lookup("lookup_private_member_info", uniq_field, req_fields, True)
+        self._check_lookup("lookup_private_member_info", req_fields, True)
+    
+    def test_filter_with_auth(self):
+        for meth in ["lookup_identifying_member_info", "lookup_private_member_info"]:
+            code, value, output = ma_call(meth, [self._credentail_list("alice"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+            self.assertEqual(code, 0)
+            code, value, output = ma_call(meth, [self._credentail_list("malcom"), {}])
+            self.assertIn(code, [1,2])
+            code, value, output = ma_call(meth, [self._credentail_list("malcom"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+            self.assertIn(code, [1,2])
 
-    def test_bad_user_attempts(self):
-        # skip those tests in development mode, because the user cert can not be infered
-        # code, value, output = ma_call("lookup_public_member_info", [{}], valid_user=False)
-        # self.assertIn(code, [1,2]) # should throw any auth error
-
-        # code, value, output = ma_call("lookup_private_member_info", [self._bad_user_credentail_list(), {}])
-        # self.assertIn(code, [1,2]) # should throw any auth error
-        pass
-
-    def _check_lookup(self, method_name, unique_field_to_test_match_with, required_fields, use_creds=False):
+    def _check_lookup(self, method_name, required_fields, use_creds=False):
         if use_creds:
             code, value, output = ma_call(method_name, [self._credentail_list("admin"), {}], user_name="admin")
         else:
-            code, value, output = ma_call(method_name, [{}])
+            code, value, output = ma_call(method_name, [{}], user_name="admin")
         self.assertEqual(code, 0) # no error
-        self.assertIsInstance(value, list)
-        for member_info in value:
+        self.assertIsInstance(value, dict)
+        for member_urn, member_info in value.iteritems():
             for req_str_field in required_fields:
                 self.assertIn(req_str_field, member_info)
                 self.assertIn(type(member_info[req_str_field]), [str, bool])
@@ -100,23 +99,26 @@ class TestGMAv1(unittest.TestCase):
             warn("No member info to test with (returned no records by %s)." % (method_name,))
         # test match
         if len(value) > 0:
-            params = [{'match' : {unique_field_to_test_match_with : value[0][unique_field_to_test_match_with]}}]
+            params = [{'match' : {"MEMBER_URN" : value.keys()[0]}}]
             if use_creds:
                 params.insert(0, self._credentail_list("admin"))
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
-            self.assertIsInstance(fvalue, list)
+            self.assertIsInstance(fvalue.keys()[0], str)
+            self.assertIsInstance(fvalue.values()[0], dict)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            params = [{'filter' : [unique_field_to_test_match_with]}]
+            filter_key = value.values()[0].keys()[0]
+            params = [{'filter' : [filter_key]}] # take any field which was sent before
             if use_creds:
                 params.insert(0, self._credentail_list("admin"))
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
-            self.assertIsInstance(fvalue, list)
-            self.assertIsInstance(fvalue[0], dict)
-            self.assertEqual(fvalue[0].keys(), [unique_field_to_test_match_with])
+            self.assertIsInstance(fvalue, dict)
+            self.assertIsInstance(fvalue.keys()[0], str)
+            self.assertIsInstance(fvalue.values()[0], dict)
+            self.assertEqual(fvalue.values()[0].keys(), [filter_key])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
 
     def _credentail_list(self, user_name):

@@ -160,6 +160,10 @@ class GCHv1DelegateBase(object):
 
 
     # -- helper methods
+    def _match_and_filter_and_to_dict(self, list_of_dicts, key_field, field_filter, field_match):
+        """see documentation in gapitools"""
+        return gapitools.match_and_filter_and_to_dict(list_of_dicts, key_field, field_filter, field_match)
+    
     def _match_and_filter(self, list_of_dicts, field_filter, field_match):
         """see documentation in gapitools"""
         return gapitools.match_and_filter(list_of_dicts, field_filter, field_match)
