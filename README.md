@@ -25,3 +25,11 @@ Note that sometimes the output is only given to the log in `log/amsoil.log`.
 
 You may run the `xx_tests.py` scripts in `test/unit` to make sure everything works fine.
 The test scripts assume that there are test certificates and credentials in `test/creds` (for creating them please see `test/creds/TODO.md`).
+
+
+# Open issues
+
+**MA delegate**
+
+* document wrapping in guard
+* see TODOs in the file

@@ -193,8 +193,6 @@ def verify_credential(credentials, owner_cert, target_urn, trusted_cert_path, pr
     except Exception as e:
         raise ValueError("Error verifying the credential: %s" % (str(e),))
 
-
-
 def infer_client_cert(client_cert, credentials):
     """Returns client_cert if it is not None. It returns the first cert of the credentials if one is given.
     This is only needed to work around if the certificate could not be acquired due to the shortcommings of the werkzeug library.
