@@ -15,6 +15,8 @@
 * do deployment
   * write doc (incl. cert stuff)
   * remove authentication from nginx config
+* Implement speaks-for (see code from Marshall)
+* Add methods for adding users
 
 **CH delegate**
 
