@@ -15,6 +15,7 @@ class GMAv1Handler(xmlrpc.Dispatcher):
         super(GMAv1Handler, self).__init__(logger)
         self._delegate = None
     
+    # ---- General methods
     @serviceinterface
     def setDelegate(self, adelegate):
         self._delegate = adelegate
@@ -37,6 +38,7 @@ class GMAv1Handler(xmlrpc.Dispatcher):
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
+    # ---- Member Service Methods
     def lookup_public_member_info(self, options):
         """Delegates the call and unwraps the needed parameter."""
         try:
@@ -69,10 +71,29 @@ class GMAv1Handler(xmlrpc.Dispatcher):
 
     def update_member_info(self, member_urn, credentials, options):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        raise GFedv1NotImplementedError("Method not implemented yet")
     def get_credentials(self, member_urn, credentials, options):
         """Delegates the call and unwraps the needed parameter."""
-        pass
+        raise GFedv1NotImplementedError("Method not implemented yet") 
+
+    # ---- Key Service Methods
+    def create_key(self, member_urn, credentials, options):
+        """Delegates the call and unwraps the needed parameter."""
+        raise GFedv1NotImplementedError("Method not implemented yet") 
+
+    def delete_key(self, member_urn, key_id, credentials, options):
+        """Delegates the call and unwraps the needed parameter."""
+        raise GFedv1NotImplementedError("Method not implemented yet") 
+
+    def update_key(self, member_urn, key_id, credentials, options):
+        """Delegates the call and unwraps the needed parameter."""
+        raise GFedv1NotImplementedError("Method not implemented yet") 
+
+    def lookup_keys(self, credentials, options):
+        """Delegates the call and unwraps the needed parameter."""
+        raise GFedv1NotImplementedError("Method not implemented yet") 
+    
+
 
 
 class GMAv1DelegateBase(object):
@@ -81,7 +102,27 @@ class GMAv1DelegateBase(object):
     {match}, {filter} and {fields} semantics are explained in the GENI Federation API document.
     """
     
-    DEFAULT_FIELDS = {
+    def __init__(self):
+        super(GMAv1DelegateBase, self).__init__()
+    
+    # ---- General methods
+    
+    def get_version(self, client_cert):
+        """
+        Return information about version and options (filter, query, credential types) accepted by this member authority
+        NB: This is an unprotected call, no client cert required.
+        
+        This method shall return (in this order)
+        - a version string (e.g. "1.0.3")
+        - a list of additional services (additional to 'MEMBER') provided by the MA e.g. [] or ['KEY']
+        - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
+        - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    # ---- Member Service Methods
+    MEMBER_DEFAULT_FIELDS = {
         "MEMBER_URN" : {
             "TYPE"    : "URN",
             "DESC"    : "URN of given member",
@@ -112,42 +153,25 @@ class GMAv1DelegateBase(object):
             "DESC"    : "Email of user",
             "MATCH"   : False,
             "PROTECT" : "IDENTIFYING"}}
-
-    def __init__(self):
-        super(GMAv1DelegateBase, self).__init__()
     
-    def get_version(self, client_cert):
-        """
-        Return information about version and options (filter, query, credential types) accepted by this member authority
-        NB: This is an unprotected call, no client cert required.
-        
-        This method shall return (in this order)
-        - a version string (e.g. "1.0.3")
-        - a list of additional services (additional to 'MEMBER') provided by the MA e.g. [] or ['KEY']
-        - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
-        - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
-        """
-        raise GFedv1NotImplementedError("Method not implemented")
-
     def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
         """
         Lookup public information about members matching given criteria.
-        NB: This is an unprotected call, no client cert required.
-        Returns a list of dictionaries
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
         """
         raise GFedv1NotImplementedError("Method not implemented")
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
         """
         Lookup identifying (e.g. name, email) info about matching members Arguments:
-        Returns a list of dictionaries
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
         """
         raise GFedv1NotImplementedError("Method not implemented")
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
         """
         Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
-        Returns a list of dictionaries
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
         """
         raise GFedv1NotImplementedError("Method not implemented")
 
@@ -156,7 +180,7 @@ class GMAv1DelegateBase(object):
         Update information about given member public, private or identifying information
         Arguments:
           member_urn: URN of member for whom to set information
-        Returns nothing
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
         """
         raise GFedv1NotImplementedError("Method not implemented")
 
@@ -168,10 +192,96 @@ class GMAv1DelegateBase(object):
           member_urn: URN of member for which to retrieve credentials
           options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
         Return: List of credentials in "CREDENTIAL_LIST" format, i.e. a list of credentials with type information suitable for passing to aggregates speaking AM API V3.
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
         """
         raise GFedv1NotImplementedError("Method not implemented")
     
-    # -- helper methods
+    # ---- Key Service Methods
+    KEY_DEFAULT_FIELDS = {
+        "KEY_MEMBER" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of member associated with key pair",
+            "MATCH"	  : True,
+            "CREATE"  : "REQUIRED",
+            "UPDATE"  : False },
+        "KEY_ID" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Unique identifier of key: typically a fingerprint or hash of public key",
+            "MATCH"	  : True,
+            "CREATE"  : "REQUIRED",
+            "UPDATE"  : False },
+        "KEY_PUBLIC" : {
+            "TYPE"    : "KEY",
+            "DESC"    : "Public key value",
+            "MATCH"	  : True,
+            "CREATE"  : "REQUIRED",
+            "UPDATE"  : False },
+        "KEY_PRIVATE" : {
+            "TYPE"    : "KEY",
+            "DESC"    : "Private key value",
+            "MATCH"	  : True,
+            "CREATE"  : "ALLOWED",
+            "UPDATE"  : False },
+        "KEY_DESCRIPTION" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Human readable description of key pair",
+            "MATCH"	  : True,
+            "CREATE"  : "ALLOWED",
+            "UPDATE"  : True }}
+    
+    def create_key(self, client_cert, member_urn, credentials, create_dict, options):
+        """
+        Create a record for a key pair for given member
+        Arguments:
+          member_urn: URN of member for which to retrieve credentials
+          options: 'fields' containing the fields for the key pair being stored
+        Return:
+          Dictionary of name/value pairs for created key record including the KEY_ID
+
+          Should return DUPLICATE_ERROR if a key with the same KEY_ID is already stored for given user
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    def delete_key(self, client_cert, member_urn, key_id, credentials, options):
+        """
+        Delete a key pair for given member
+        Arguments:
+          member_urn: urn of member for which to delete key pair
+          key_id: KEY_ID (fingerprint) of key pair to be deleted
+        Return:
+          True if succeeded
+        Should return ARGUMENT_ERROR if no such key is found for user
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    def update_key(self, client_cert, member_urn, key_id, credentials, update_dict, options):
+        """
+        Update the details of a key pair for given member
+        Arguments:
+          member_urn: urn of member for which to delete key pair
+          key_id: KEY_ID (fingerprint) of key pair to be deleted
+          options: 'fields' containing fields for key pairs that are permitted for update
+        Return:
+          True if succeeded
+        Should return ARGUMENT_ERROR if no such key is found for user
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    def lookup_keys(self, client_cert, credentials, field_filter, field_match, options):
+        """
+        Lookup keys for given match criteria return fields in given filter criteria
+        Arguments:
+          options: 'match' for query match criteria, 'filter' for fields to be returned
+        Return:
+          Dictionary (indexed by member_urn) of dictionaries containing name/value pairs for all keys registered for that given user.
+        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+    
+    # ---- helper methods
     def _match_and_filter_and_to_dict(self, list_of_dicts, key_field, field_filter, field_match):
         """see documentation in gapitools"""
         return gapitools.match_and_filter_and_to_dict(list_of_dicts, key_field, field_filter, field_match)

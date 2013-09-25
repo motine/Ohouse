@@ -8,10 +8,11 @@
 **General**
 
 * check method names in MA
-* add KEY service and remove supplemtary fields
+* added KEY service spec and remove obsolete supplementary fields
 
-* MA: add update_member_info
-* MA: add get_credentials
+* MA: add update_member_info (incl. tests)
+* MA: add get_credentials (incl. tests)
+* MA: add implementation for key service (incl. tests)
 
 * MA test if match attributes are rejected if match is not allowed by get_version
 * MA test: make sure PROTECT attributes are not given out unless public
