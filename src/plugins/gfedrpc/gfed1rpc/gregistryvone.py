@@ -12,9 +12,9 @@ from exceptions import *
 
 xmlrpc = pm.getService('xmlrpc')
 
-class GRegv1Handler(xmlrpc.Dispatcher):
+class GRegistryv1Handler(xmlrpc.Dispatcher):
     def __init__(self):
-        super(GRegv1Handler, self).__init__(logger)
+        super(GRegistryv1Handler, self).__init__(logger)
         self._delegate = None
     
     @serviceinterface
@@ -37,32 +37,32 @@ class GRegv1Handler(xmlrpc.Dispatcher):
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-    def get_aggregates(self, options):
+    def lookup_aggregates(self, options):
         """Delegates the call and unwraps the needed parameter."""
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_aggregates(self.requestCertificate(), field_filter, field_match, options)
+            result = self._delegate.lookup_aggregates(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-    def get_member_authorities(self, options):
+    def lookup_member_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_member_authorities(self.requestCertificate(), field_filter, field_match, options)
+            result = self._delegate.lookup_member_authorities(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-    def get_slice_authorities(self, options):
+    def lookup_slice_authorities(self, options):
         """Delegates the call and unwraps the needed parameter."""
         try:
             field_filter = options.pop('filter') if ('filter' in options) else None
             field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.get_slice_authorities(self.requestCertificate(), field_filter, field_match, options)
+            result = self._delegate.lookup_slice_authorities(self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -83,7 +83,7 @@ class GRegv1Handler(xmlrpc.Dispatcher):
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-class GRegv1DelegateBase(object):
+class GRegistryv1DelegateBase(object):
     """
     The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse API (v1). 
     {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
@@ -109,7 +109,7 @@ class GRegv1DelegateBase(object):
         }
 
     def __init__(self):
-        super(GRegv1DelegateBase, self).__init__()
+        super(GRegistryv1DelegateBase, self).__init__()
     
     def get_version(self, client_cert):
         """Overwrite this method in the actual delegate implementation.
@@ -122,21 +122,21 @@ class GRegv1DelegateBase(object):
         """
         raise GFedv1NotImplementedError("Method not implemented")
         
-    def get_aggregates(self, client_cert, field_filter, field_match, options):
+    def lookup_aggregates(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all aggregates associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GFedv1NotImplementedError("Method not implemented")
 
-    def get_member_authorities(self, client_cert, field_filter, field_match, options):
+    def lookup_member_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all MA's associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
         raise GFedv1NotImplementedError("Method not implemented")
         
-    def get_slice_authorities(self, client_cert, field_filter, field_match, options):
+    def lookup_slice_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all SA's associated with the Federation
         Should return a list of dicts (filtered and matched).

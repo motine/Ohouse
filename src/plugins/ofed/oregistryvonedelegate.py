@@ -13,15 +13,15 @@ class ORegistryv1Delegate(GRegistryv1DelegateBase):
         fields = dict( (name.upper(), {"TYPE" : typ.upper()}) for (name, typ) in regrm.supplementary_fields().iteritems()) # convert the fields to the correct format
         return VERSION, fields
 
-    def get_aggregates(self, client_cert, field_filter, field_match, options):
+    def lookup_aggregates(self, client_cert, field_filter, field_match, options):
         regrm = pm.getService('oregistryrm')
         return self._match_and_filter(regrm.all_aggregates(), field_filter, field_match)
         
-    def get_member_authorities(self, client_cert, field_filter, field_match, options):
+    def lookup_member_authorities(self, client_cert, field_filter, field_match, options):
         regrm = pm.getService('oregistryrm')
         return self._match_and_filter(regrm.all_member_authorities(), field_filter, field_match)
 
-    def get_slice_authorities(self, client_cert, field_filter, field_match, options):
+    def lookup_slice_authorities(self, client_cert, field_filter, field_match, options):
         regrm = pm.getService('oregistryrm')
         return self._match_and_filter(regrm.all_slice_authorities(), field_filter, field_match)
 

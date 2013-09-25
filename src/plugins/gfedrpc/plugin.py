@@ -1,5 +1,5 @@
 import amsoil.core.pluginmanager as pm
-from gfed1rpc.gregistryvone import GRegv1Handler, GRegv1DelegateBase
+from gfed1rpc.gregistryvone import GRegistryv1Handler, GRegistryv1DelegateBase
 from gfed1rpc.gmavone import GMAv1Handler, GMAv1DelegateBase
 from gfed1rpc import exceptions as gfed_exceptions
 
@@ -8,9 +8,9 @@ def setup():
 
     xmlrpc = pm.getService('xmlrpc')
 
-    greg_handler = GRegv1Handler()
+    greg_handler = GRegistryv1Handler()
     pm.registerService('gregistryv1handler', greg_handler)
-    pm.registerService('gregistryv1delegatebase', GRegv1DelegateBase)
+    pm.registerService('gregistryv1delegatebase', GRegistryv1DelegateBase)
     xmlrpc.registerXMLRPC('greg', greg_handler, '/REG') # name, handlerObj, endpoint
 
     gma_handler = GMAv1Handler()
