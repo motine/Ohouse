@@ -19,14 +19,22 @@ class TestGMAv1(unittest.TestCase):
         try:
             code, value, output = ma_call('get_version', verbose=False)
             klass.sup_fields = value['FIELDS']
-        except:
-            warn("Error while trying to setup supplementary fields before starting tests")
+            klass.has_key_service = ('KEY' in value['SERVICES'])
+        except Exception as e:
+            warn(["Error while trying to setup supplementary fields before starting tests (%s)" % (repr(e),)])
         
     def test_get_version(self):
         code, value, output = ma_call('get_version')
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, dict)
         self.assertIn('VERSION', value)
+
+        self.assertIn('SERVICES', value)
+        self.assertIsInstance(value['SERVICES'], list)
+        self.assertIn('MEMBER', value['SERVICES'])
+        for service_name in value['SERVICES']:
+            self.assertIn(service_name, ['MEMBER', 'KEY'])
+
         self.assertIn('CREDENTIAL_TYPES', value)
         creds = value['CREDENTIAL_TYPES']
         self.assertIsInstance(creds, dict)
@@ -37,6 +45,7 @@ class TestGMAv1(unittest.TestCase):
             if isinstance(cver, list):
                 for cv in cver:
                     self.assertIsInstance(cv, str)
+        
         if 'FIELDS' in value:
             self.assertIsInstance(value['FIELDS'], dict)
             for fk, fv in value['FIELDS'].iteritems():
@@ -56,17 +65,14 @@ class TestGMAv1(unittest.TestCase):
                     
         else:
             warn("No supplementary fields to test with.")
-    # 
-    #  # TODO test if match attributes are rejected if match is not allowed by get_version
-    #  # TODO make sure PROTECT attributes are not given out unless public
-
+    
     def test_lookup_public_member_info(self):
-        req_fields = ["MEMBER_UID", "MEMBER_USERNAME"]
+        req_fields = ["MEMBER_UID", "MEMBER_USERNAME"] # MEMBER_URN is implicit, since it is used to index the returned dict
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PUBLIC']
         self._check_lookup("lookup_public_member_info", req_fields)
     
     def test_lookup_identifying_member_info(self):
-        req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME"]
+        req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME", "MEMBER_EMAIL"]
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'IDENTIFYING']
         self._check_lookup("lookup_identifying_member_info", req_fields, True)
     

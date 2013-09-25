@@ -4,7 +4,7 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('ofed')
 
 from omavonedelegate import OMAv1Delegate
-gch_ex = pm.getService('gfedv1exceptions')
+gfed_ex = pm.getService('gfedv1exceptions')
 
 config = pm.getService('config')
 geniutil = pm.getService('geniutil')
@@ -28,7 +28,7 @@ class OMAv1DelegateGuard(OMAv1Delegate):
     def _authorize_dict_list(self, client_cert, credentials, result, options):
         client_cert = geniutil.infer_client_cert(client_cert, credentials)
         try:
-            trusted_cert_path = expand_amsoil_path(config.get("och.cert_root"))
+            trusted_cert_path = expand_amsoil_path(config.get("ofed.cert_root"))
             geniutil.verify_certificate(client_cert, trusted_cert_path)
             # TODO remove this (only for testing)
             # BEGING REMOVE
@@ -39,4 +39,4 @@ class OMAv1DelegateGuard(OMAv1Delegate):
                 for urn, info in result.iteritems():
                     geniutil.verify_credential(credentials, client_cert, urn, trusted_cert_path, ('list',))
         except Exception as e:
-            raise gch_ex.GCHv1AuthorizationError(str(e))
+            raise gfed_ex.GFedv1AuthorizationError(str(e))
