@@ -2,7 +2,7 @@ import amsoil.core.pluginmanager as pm
 from amsoil.core import serviceinterface
 
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('gch1rpc')
+logger=amsoil.core.log.getLogger('gmarpc')
 
 import gapitools
 
@@ -26,10 +26,11 @@ class GMAv1Handler(xmlrpc.Dispatcher):
     def get_version(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            version, credential_types, fields = self._delegate.get_version(self.requestCertificate())
+            version, add_services, credential_types, fields = self._delegate.get_version(self.requestCertificate())
             result = {}
             result['VERSION'] = version
             result['CREDENTIAL_TYPES'] = credential_types
+            result['SERVICES'] = ['MEMBER'] + add_services
             if fields:
                 result["FIELDS"] = fields
         except Exception as e:
@@ -122,6 +123,7 @@ class GMAv1DelegateBase(object):
         
         This method shall return (in this order)
         - a version string (e.g. "1.0.3")
+        - a list of additional services (additional to 'MEMBER') provided by the MA e.g. [] or ['KEY']
         - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
         - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
         """

@@ -3,7 +3,7 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('ofed')
 
 GMAv1DelegateBase = pm.getService('gmav1delegatebase')
-gch_ex = pm.getService('gfedv1exceptions')
+gfed_ex = pm.getService('gfedv1exceptions')
 
 
 class OMAv1Delegate(GMAv1DelegateBase):
@@ -82,7 +82,7 @@ class OMAv1Delegate(GMAv1DelegateBase):
                 fields[fname]["MATCH"] = f["MATCH"]
             if "UPDATE" in f:
                 fields[fname]["UPDATE"] = f["UPDATE"]
-        return self.VERSION, certs, fields
+        return self.VERSION, ['KEY'], certs, fields
 
     def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
         # no auth necessary

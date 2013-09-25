@@ -5,7 +5,7 @@ from exceptions import *
 # --- deal with the GENI CH API returns
 def form_error_return(logger, e):
     """Assembles a GENI compliant return result for faulty methods."""
-    if not isinstance(e, GCHv1BaseError): # convert unknown errors into GCHv1ServerError
+    if not isinstance(e, GFedv1BaseError): # convert unknown errors into GFedv1ServerError
         e = GFedv1ServerError(str(e))
     # do some logging
     logger.error(e)

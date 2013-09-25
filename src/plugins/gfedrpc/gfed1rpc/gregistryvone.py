@@ -2,7 +2,7 @@ import amsoil.core.pluginmanager as pm
 from amsoil.core import serviceinterface
 
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('gch1rpc')
+logger=amsoil.core.log.getLogger('gregistryrpc')
 
 import gapitools
 # from amsoil.config import ROOT_PATH

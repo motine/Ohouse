@@ -8,7 +8,7 @@ def reg_call(method_name, params=[]):
     print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
 
-class TestGCHv1(unittest.TestCase):
+class TestGRegistryv1(unittest.TestCase):
 
     def setUp(self):
         pass

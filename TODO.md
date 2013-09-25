@@ -7,13 +7,19 @@
 
 **General**
 
-* change supplementary field names to _OFELIA_
-* get_version: add roles and objects
-* add KEY service
+* check method names in MA
+* add KEY service and remove supplemtary fields
+
+* MA: add update_member_info
+* MA: add get_credentials
+
+* MA test if match attributes are rejected if match is not allowed by get_version
+* MA test: make sure PROTECT attributes are not given out unless public
+
+* get_version: add roles and objects for MA
 
 * add an `additional_info` return value to the extract_certificate_info
 * add admin credentials (see below)
-* reflect changes from mail (see below)
 * reflect changes from wiki (outcome from discussion on wednesday 26th of Aug)
 * add test case to test an error / bad arguments (MA, SA)
 * add servicemethod where possible
@@ -49,19 +55,11 @@
   * Adjust example to do auth* with the geni_trust plugin (incl. translate exceptions)
   * add admin credentials to config client and validate the cert (see Ohouse)
 * Remove ext from genirpc
-* Update to new version of Flask in AMsoil
 * Fix development server problem to acquire the client cert
+* Update to new version of Flask in AMsoil
 
 ## Change Mail
 
-- Added an 'OBJECTS' field to the get_version (to indicate that, e.g. the SA might represent a PROJECT object)
-- Clarified the return type of lookup_authorities_for_urns
-- Clarified the semantics of the 'speaks-for' call sequence.
-- Clarified that the CH get_* calls take match and filter methods like other lookup_* methods (see below).
-- Changed SERVICE_DESCRIPTION to (hypothetical) SERVICE_PROVIDER in CH get_version return
-- Updated that the get_version call CREDENTIAL_TYPES field is a dictionary of type => list of supported versions.(e.g. {"SFA" : ["1"], "ABAC : ["1", "2"]}
-- Fixed the error of type of MEMBER_FIRSTNAME, MEMBER_LASTNAME and MEMBER_USERNAME to STRING
-- Added "MATCH" as an additional field on FIELDS in get_version, indicating (as in the subsequent tables) whether a field is allowed as a 'match' criterion in lookup calls.
 - Corrected the description of the return type of lookup_slice_members, lookup_slices_for_member and lookup_project members to indicate that these are lists of dictionaries, not dictionaries.
 
 ## Admin creds
