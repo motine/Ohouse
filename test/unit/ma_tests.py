@@ -43,7 +43,7 @@ class TestGMAv1(unittest.TestCase):
                 self.assertIsInstance(fk, str)
                 self.assertIsInstance(fv, dict)
                 self.assertIn("TYPE", fv)
-                self.assertIn(fv["TYPE"], ["URN", "UID", "STRING", "DATETIME", "EMAIL", "KEY","BOOLEAN", "CREDENTIAL", "CERTIFICATE"])
+                self.assertIn(fv["TYPE"], ["URN", "UID", "STRING", "DATETIME", "EMAIL", "KEY", "BOOLEAN", "CREDENTIAL", "CERTIFICATE"])
     
                 if "CREATE" in fv:
                     self.assertIn(fv["CREATE"], ["REQUIRED", "ALLOWED", "NOT ALLOWED"])

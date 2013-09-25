@@ -1,6 +1,6 @@
 {
     "__comment" : "the keys are case sensitive (depending on the field, the values might as well). do not forget to restart the server after chaning this file.",
-    "CH" : {
+    "registry" : {
         "supplementary_fields" : {
             "__comment" : "additional fields to further specify the services. each field specified here must be set in the 'services' section. available field types are URN, UID, STRING, DATETIME, EMAIL, KEY, BOOLEAN, CREDENTIAL, CERTIFICATE.",
             "island_name" : "STRING"

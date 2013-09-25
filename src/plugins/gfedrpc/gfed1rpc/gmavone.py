@@ -76,8 +76,8 @@ class GMAv1Handler(xmlrpc.Dispatcher):
 
 class GMAv1DelegateBase(object):
     """
-    The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse MA API (v1).
-    {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
+    The contract of this class (methods, params and returns) are derived from the GENI Federation MA API (v1).
+    {match}, {filter} and {fields} semantics are explained in the GENI Federation API document.
     """
     
     DEFAULT_FIELDS = {
@@ -123,9 +123,9 @@ class GMAv1DelegateBase(object):
         This method shall return (in this order)
         - a version string (e.g. "1.0.3")
         - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
-        - None or a dictionary of custom CH fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
+        - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
         """
@@ -133,21 +133,21 @@ class GMAv1DelegateBase(object):
         NB: This is an unprotected call, no client cert required.
         Returns a list of dictionaries
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
         """
         Lookup identifying (e.g. name, email) info about matching members Arguments:
         Returns a list of dictionaries
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
         """
         Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
         Returns a list of dictionaries
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def update_member_info(self, client_cert, member_urn, credentials, update_dict, options):
         """
@@ -156,7 +156,7 @@ class GMAv1DelegateBase(object):
           member_urn: URN of member for whom to set information
         Returns nothing
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def get_credentials(self, client_cert, member_urn, credentials, options):
         """
@@ -167,7 +167,7 @@ class GMAv1DelegateBase(object):
           options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
         Return: List of credentials in "CREDENTIAL_LIST" format, i.e. a list of credentials with type information suitable for passing to aggregates speaking AM API V3.
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
     
     # -- helper methods
     def _match_and_filter_and_to_dict(self, list_of_dicts, key_field, field_filter, field_match):

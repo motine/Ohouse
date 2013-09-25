@@ -1,9 +1,0 @@
-{
-  "name" : "OFELIA Clearinghouse resource managers (delivering data for CH, SA, MA)",
-  "author" : "Tom Rothe",
-  "author-email" : "tom.rothe@eict.de",
-  "version" : 1,
-  "implements" : ["ochrm", "ochexceptions"],
-  "loads-after" : ["config", "geniutil"],
-  "requires" : []
-}

@@ -1,12 +1,12 @@
 import amsoil.core.pluginmanager as pm
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('och1')
+logger=amsoil.core.log.getLogger('ofed')
 
 GMAv1DelegateBase = pm.getService('gmav1delegatebase')
-gch_ex = pm.getService('gchv1exceptions')
+gch_ex = pm.getService('gfedv1exceptions')
 
 
-class OMA1Delegate(GMAv1DelegateBase):
+class OMAv1Delegate(GMAv1DelegateBase):
     VERSION = '0.1'
     SUPPLEMENTARY_FIELDS = {
         "MEMBER_AFFILIATION" : {
