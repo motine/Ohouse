@@ -11,61 +11,50 @@ geniutil = pm.getService('geniutil')
 class OMAv1Delegate(GMAv1DelegateBase):
     VERSION = '0.1'
     SUPPLEMENTARY_FIELDS = {
-        "MEMBER_AFFILIATION" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Organization the member belongs to",
+        "_OFELIA_MEMBER_AFFILIATION" : {
+            "OBJECT" : "MEMBER",
+            "TYPE"   : "STRING",
+            "DESC"   : "Organization the member belongs to",
             "CREATE" : "ALLOWED",
             "UPDATE" : True,
-            "MATCH"   : True,
-            "PROTECT" : "IDENTIFYING"
+            "MATCH"  : True,
+            "PROTECT": "IDENTIFYING"
         },
-        "ISLAND_NAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Home island of the member (island of OFELIA)",
+        "_OFELIA_ISLAND_NAME": {
+            "OBJECT" : "MEMBER",
+            "TYPE"   : "STRING",
+            "DESC"   : "Home island of the member",
             "CREATE" : "ALLOWED",
             "UPDATE" : True,
-            "MATCH"   : True,
-            "PROTECT" : "PUBLIC"
+            "MATCH"  : True,
+            "PROTECT": "PUBLIC"
         },
-        "MEMBER_X509_CERTIFICATE" : {
-            "TYPE"    : "CERTIFICATE",
-            "DESC"    : "X509 Certificate",
+        "_OFELIA_MEMBER_X509_CERTIFICATE" : {
+            "OBJECT" : "MEMBER",
+            "TYPE"   : "CERTIFICATE",
+            "DESC"   : "X509 Certificate",
             "CREATE" : "ALLOWED",
             "UPDATE" : False,
-            "MATCH"   : False,
-            "PROTECT" : "PUBLIC"
+            "MATCH"  : False,
+            "PROTECT": "PUBLIC"
         },
-        "MEMBER_X509_PRIVATE_KEY" : {
-            "TYPE"    : "KEY",
-            "DESC"    : "Private key for the X509 Certificate",
+        "_OFELIA_MEMBER_X509_PRIVATE_KEY" : {
+            "OBJECT" : "MEMBER",
+            "TYPE"   : "KEY",
+            "DESC"   : "Private key for the X509 Certificate",
             "CREATE" : "ALLOWED",
             "UPDATE" : False,
-            "MATCH"   : False,
-            "PROTECT" : "PRIVATE"
+            "MATCH"  : False,
+            "PROTECT": "PRIVATE"
         },
-        "MEMBER_SSH_PUBLIC_KEY" : {
-            "TYPE"    : "KEY",
-            "DESC"    : "Public portion of the SSH key",
+        "_OFELIA_MEMBER_ENABLED" : {
+            "OBJECT" : "MEMBER",
+            "TYPE"   : "BOOLEAN",
+            "DESC"   : "If the user is allowed to perform actions",
             "CREATE" : "ALLOWED",
             "UPDATE" : True,
-            "MATCH"   : True,
-            "PROTECT" : "PUBLIC"
-        },
-        "MEMBER_SSH_PRIVATE_KEY" : {
-            "TYPE"    : "KEY",
-            "DESC"    : "Public portion of the SSH key",
-            "CREATE" : "ALLOWED",
-            "UPDATE" : True,
-            "MATCH"   : False,
-            "PROTECT" : "PRIVATE"
-        },
-        "MEMBER_ENABLED" : {
-            "TYPE"    : "BOOLEAN",
-            "DESC"    : "If the user is allowed to perform actions (on the CH or elsewhere)",
-            "CREATE" : "ALLOWED",
-            "UPDATE" : True,
-            "MATCH"   : True,
-            "PROTECT" : "PUBLIC"
+            "MATCH"  : True,
+            "PROTECT": "PUBLIC"
         }
     }
 
@@ -90,32 +79,34 @@ class OMAv1Delegate(GMAv1DelegateBase):
         # no auth necessary
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
-        members = self._whitelist_fields(members, self._field_names_for_protect('PUBLIC')) # filter data, so only public/identifying/private member info is given out
+        members = self._whitelist_fields(members, self._member_field_names_for_protect('PUBLIC')) # filter data, so only public/identifying/private member info is given out
         return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
         # TODO get the data from the database
         members = self.TEST_DATA
         members = self._map_field_names(members)
-        members = self._whitelist_fields(members, self._field_names_for_protect('IDENTIFYING') + ['MEMBER_URN'])
+        members = self._whitelist_fields(members, self._member_field_names_for_protect('IDENTIFYING') + ['MEMBER_URN'])
         return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
         c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
         members = self.TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)
-        members = self._whitelist_fields(members, self._field_names_for_protect('PRIVATE') + ['MEMBER_URN'])
+        members = self._whitelist_fields(members, self._member_field_names_for_protect('PRIVATE') + ['MEMBER_URN'])
         return self._match_and_filter_and_to_dict(members, "MEMBER_URN", field_filter, field_match)
 
+
+
     # -- Helper methods
-    def _field_names_for_protect(self, protect):
+    def _member_field_names_for_protect(self, protect):
         """
         Returns all keys (e.g. MEMEBER_URN) which have the given value for protect (e.g. PUBLIC).
-        Both the keys in DEFAULT_FIELDS and SUPPLEMENTARY_FIELDS are considered.
+        Both the keys in DEFAULT_FIELDS (with object 'MEMBER') and SUPPLEMENTARY_FIELDS are considered.
         """
         result = []
-        fields = self.DEFAULT_FIELDS.copy()
-        fields.update(self.SUPPLEMENTARY_FIELDS)
+        fields = self.MEMBER_DEFAULT_FIELDS.copy()
+        fields.update((k,v) for k,v in self.SUPPLEMENTARY_FIELDS.iteritems() if (v['OBJECT'] == 'MEMBER'))
         for (name, spec) in fields.iteritems():
             if spec['PROTECT'] == protect:
                 result.append(name)
@@ -202,11 +193,9 @@ class OMAv1Delegate(GMAv1DelegateBase):
         "last_name" : 'MEMBER_LASTNAME',
         "user_name" : 'MEMBER_USERNAME',
         "email" : 'MEMBER_EMAIL',
-        "affiliation" : 'MEMBER_AFFILIATION',
-        "island" : 'ISLAND_NAME',
-        "ssh_pub_key" : 'MEMBER_SSH_PUBLIC_KEY',
-        "ssh_priv_key_str" : 'MEMBER_SSH_PRIVATE_KEY',
-        "x509_cert" : 'MEMBER_X509_CERTIFICATE',
-        "x509_priv_key_str" : 'MEMBER_X509_PRIVATE_KEY',
-        "enabled" : 'MEMBER_ENABLED'
+        "affiliation" : '_OFELIA_MEMBER_AFFILIATION',
+        "island" : '_OFELIA_ISLAND_NAME',
+        "x509_cert" : '_OFELIA_MEMBER_X509_CERTIFICATE',
+        "x509_priv_key_str" : '_OFELIA_MEMBER_X509_PRIVATE_KEY',
+        "enabled" : '_OFELIA_MEMBER_ENABLED'
         }
