@@ -1,9 +1,0 @@
-{
-  "name" : "Implementation of the GENI Clearinghouse API for OFELIA (the CH API)",
-  "author" : "Tom Rothe",
-  "author-email" : "tom.rothe@eict.de",
-  "version" : 1,
-  "implements" : [],
-  "loads-after" : ["gchv1handler", "gchv1delegatebase", "gmav1handler", "gmav1delegatebase", "gchv1exceptions", "config", "ochrm", "geniutil"],
-  "requires" : []
-}

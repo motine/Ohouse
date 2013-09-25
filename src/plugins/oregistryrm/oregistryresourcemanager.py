@@ -1,11 +1,11 @@
 import amsoil.core.pluginmanager as pm
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('ochrm')
+logger=amsoil.core.log.getLogger('oregistryrm')
 
-from ochexceptions import *
-import ochutil
+from oregistryexceptions import *
+import oregistryutil
 
-class OCHResourceManager(object):
+class ORegistryResourceManager(object):
     """
     """
     AGGREGATE_SERVICE_TYPE = 'agg'
@@ -14,18 +14,18 @@ class OCHResourceManager(object):
 
 
     def __init__(self):
-        super(OCHResourceManager, self).__init__()
+        super(ORegistryResourceManager, self).__init__()
         self.consistency_check()
 
 
     def consistency_check(self):
         # try to catch the most common syntax errors in the config
-        self._check_raise("CH" in ochutil.CONFIG, "No CH element found.")
-        self._check_raise("supplementary_fields" in ochutil.CONFIG["CH"], "No 'supplementary_fields' found in 'CH' found (it can be empty but must be there).")
-        self._check_raise("services" in ochutil.CONFIG["CH"], "No 'services' found in 'CH'.")
-        self._check_raise("trust_roots" in ochutil.CONFIG["CH"], "No 'trust_roots' found in 'CH'.")
+        self._check_raise("registry" in oregistryutil.CONFIG, "No CH element found.")
+        self._check_raise("supplementary_fields" in oregistryutil.CONFIG["registry"], "No 'supplementary_fields' found in 'CH' found (it can be empty but must be there).")
+        self._check_raise("services" in oregistryutil.CONFIG["registry"], "No 'services' found in 'CH'.")
+        self._check_raise("trust_roots" in oregistryutil.CONFIG["registry"], "No 'trust_roots' found in 'CH'.")
         
-        for service in ochutil.CONFIG["CH"]["services"]:
+        for service in oregistryutil.CONFIG["registry"]["services"]:
             self._check_raise("service_url"  in service, "No 'service_url' found in 'services'.")
             self._check_raise("service_cert" in service, "No 'service_cert' found in 'services'.")
             self._check_raise("service_name" in service, "No 'service_name' found in 'services'.")
@@ -33,27 +33,27 @@ class OCHResourceManager(object):
             self._check_raise("service_urn"  in service, "No 'service_urn' found in 'services'.")
             self._check_raise("type"         in service, "No 'type' found in 'services'.")
             self._check_raise(service["type"] in [self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE], "A service type should be either %s, %s or %s" % (self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE))
-            for field in ochutil.CONFIG["CH"]["supplementary_fields"]:
+            for field in oregistryutil.CONFIG["registry"]["supplementary_fields"]:
                 self._check_raise(field in service, "Supplementary field not found in service (%s)." % (field,))
     
-        for tr in ochutil.CONFIG["CH"]["trust_roots"]:
+        for tr in oregistryutil.CONFIG["registry"]["trust_roots"]:
             self._check_raise(type(tr) in [str, unicode], "All 'trust_roots' entries should be strings.")
             
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""
-        return ochutil.CONFIG["CH"]["supplementary_fields"]
+        return oregistryutil.CONFIG["registry"]["supplementary_fields"]
         
     def all_aggregates(self):
-        return self._uppercase_keys_in_list([e for e in ochutil.CONFIG["CH"]["services"] if (e['type']==self.AGGREGATE_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.AGGREGATE_SERVICE_TYPE)])
         
     def all_member_authorities(self):
-        return self._uppercase_keys_in_list([e for e in ochutil.CONFIG["CH"]["services"] if (e['type']==self.MA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.MA_SERVICE_TYPE)])
         
     def all_slice_authorities(self):
-        return self._uppercase_keys_in_list([e for e in ochutil.CONFIG["CH"]["services"] if (e['type']==self.SA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.SA_SERVICE_TYPE)])
         
     def all_trusted_certs(self):
-        certs = ochutil.CONFIG["CH"]["trust_roots"]
+        certs = oregistryutil.CONFIG["registry"]["trust_roots"]
         # subsitute magic markers
         if "INFER_SAs" in certs:
             certs.remove("INFER_SAs")
@@ -88,7 +88,7 @@ class OCHResourceManager(object):
     def _find_service(self, typ, authority):
         """returns the first service dictionary matching the {typ}e and {urn}. None if none is found."""
         geniutil = pm.getService('geniutil')
-        for service in ochutil.CONFIG['CH']['services']:
+        for service in oregistryutil.CONFIG['registry']['services']:
             sauth, styp, sname = geniutil.decode_urn(service['service_urn'])
             if (service['type'] == typ) and (sauth == authority):
                 return service
@@ -102,4 +102,4 @@ class OCHResourceManager(object):
     
     def _check_raise(self, condition, message):
         if not condition:
-            raise CHMalformedConfigFile(ochutil.config_path(), message)
+            raise RegistryMalformedConfigFile(oregistryutil.config_path(), message)

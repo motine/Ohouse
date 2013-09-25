@@ -6,7 +6,7 @@ from exceptions import *
 def form_error_return(logger, e):
     """Assembles a GENI compliant return result for faulty methods."""
     if not isinstance(e, GCHv1BaseError): # convert unknown errors into GCHv1ServerError
-        e = GCHv1ServerError(str(e))
+        e = GFedv1ServerError(str(e))
     # do some logging
     logger.error(e)
     logger.error(traceback.format_exc())
@@ -36,7 +36,7 @@ def match_and_filter_and_to_dict(list_of_dicts, key_field, field_filter, field_m
 
 def match_and_filter(list_of_dicts, field_filter, field_match):
     """
-    Takes a list of dicts and applies the given filter and matches the results (please GENI CH API on how matching and filtering works).
+    Takes a list of dicts and applies the given filter and matches the results (please GENI Federation API on how matching and filtering works).
     if field_filter is None the unfiltered list is returned.
     """
     return [filter_fields(d, field_filter) for d in list_of_dicts if does_match_fields(d, field_match)]

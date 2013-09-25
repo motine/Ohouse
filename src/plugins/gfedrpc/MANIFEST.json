@@ -1,0 +1,9 @@
+{
+  "name" : "GENI Federation APIs RPC",
+  "author" : "Tom Rothe",
+  "author-email" : "tom.rothe@eict.de",
+  "version" : 1,
+  "implements" : ["gregistryv1handler", "gregistryv1delegatebase", "gmav1handler", "gmav1delegatebase", "gfedv1exceptions"],
+  "loads-after" : ["xmlrpc", "config"],
+  "requires" : []
+}

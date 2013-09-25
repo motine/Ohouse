@@ -1,0 +1,9 @@
+{
+  "name" : "OFELIA Federation Registry resource manager (delivering data for the registry service)",
+  "author" : "Tom Rothe",
+  "author-email" : "tom.rothe@eict.de",
+  "version" : 1,
+  "implements" : ["oregistryrm", "oregistryexceptions"],
+  "loads-after" : ["config", "geniutil"],
+  "requires" : []
+}

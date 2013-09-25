@@ -12,9 +12,9 @@ from exceptions import *
 
 xmlrpc = pm.getService('xmlrpc')
 
-class GCHv1Handler(xmlrpc.Dispatcher):
+class GRegv1Handler(xmlrpc.Dispatcher):
     def __init__(self):
-        super(GCHv1Handler, self).__init__(logger)
+        super(GRegv1Handler, self).__init__(logger)
         self._delegate = None
     
     @serviceinterface
@@ -83,7 +83,7 @@ class GCHv1Handler(xmlrpc.Dispatcher):
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-class GCHv1DelegateBase(object):
+class GRegv1DelegateBase(object):
     """
     The contract of this class (methods, params and returns) are derived from the GENI Clearinghouse API (v1). 
     {match}, {filter} and {fields} semantics are explained in the GENI CH API document.
@@ -109,7 +109,7 @@ class GCHv1DelegateBase(object):
         }
 
     def __init__(self):
-        super(GCHv1DelegateBase, self).__init__()
+        super(GRegv1DelegateBase, self).__init__()
     
     def get_version(self, client_cert):
         """Overwrite this method in the actual delegate implementation.
@@ -120,35 +120,35 @@ class GCHv1DelegateBase(object):
         - a version string (e.g. 1.0.3)
         - None or a dictionary of custom CH fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
         """
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
         
     def get_aggregates(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all aggregates associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
     def get_member_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all MA's associated with the Federation.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
         
     def get_slice_authorities(self, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
         Return information about all SA's associated with the Federation
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
         
     def lookup_authorities_for_urns(self, client_cert, urns):
         """Overwrite this method in the actual delegate implementation.
         Lookup the authorities for a given URNs. There should be at most one (potentially none) per URN.
         Should return a list of dicts (filtered and matched).
         NB: This is an unprotected call, no client cert required."""
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
         
     def get_trust_roots(self, client_cert):
         """Overwrite this method in the actual delegate implementation.
@@ -156,7 +156,7 @@ class GCHv1DelegateBase(object):
         Often this is a concatenatation of the trust roots of the included authorities.
         Should return a list of strings.
         NB: This is an unprotected call, no client cert required."""
-        raise GCHv1NotImplementedError("Method not implemented")
+        raise GFedv1NotImplementedError("Method not implemented")
 
 
     # -- helper methods

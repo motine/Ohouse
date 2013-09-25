@@ -1,27 +1,27 @@
 from amsoil.config import expand_amsoil_path
 import amsoil.core.pluginmanager as pm
 import amsoil.core.log
-logger=amsoil.core.log.getLogger('och1')
+logger=amsoil.core.log.getLogger('ofed')
 
-from omaonedelegate import OMA1Delegate
-gch_ex = pm.getService('gchv1exceptions')
+from omavonedelegate import OMAv1Delegate
+gch_ex = pm.getService('gfedv1exceptions')
 
 config = pm.getService('config')
 geniutil = pm.getService('geniutil')
 
-class OMA1DelegateGuard(OMA1Delegate):
-    """Wraps the OMA1Delegate and performs authorization."""
+class OMAv1DelegateGuard(OMAv1Delegate):
+    """Wraps the OMAv1Delegate and performs authorization."""
 
     # no authentication, hence no overwrite
     # def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
 
     def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        result = super(OMA1DelegateGuard, self).lookup_identifying_member_info(client_cert, credentials, field_filter, field_match, options)
+        result = super(OMAv1DelegateGuard, self).lookup_identifying_member_info(client_cert, credentials, field_filter, field_match, options)
         self._authorize_dict_list(client_cert, credentials, result, options)
         return result
 
     def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        result = super(OMA1DelegateGuard, self).lookup_private_member_info(client_cert, credentials, field_filter, field_match, options)
+        result = super(OMAv1DelegateGuard, self).lookup_private_member_info(client_cert, credentials, field_filter, field_match, options)
         self._authorize_dict_list(client_cert, credentials, result, options)
         return result
     

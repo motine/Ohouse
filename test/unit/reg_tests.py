@@ -3,8 +3,8 @@
 import unittest
 from testtools import *
 
-def ch_call(method_name, params=[]):
-    res = ssl_call(method_name, params, 'CH')
+def reg_call(method_name, params=[]):
+    res = ssl_call(method_name, params, 'REG')
     print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
 
@@ -14,7 +14,7 @@ class TestGCHv1(unittest.TestCase):
         pass
 
     def test_get_version(self):
-        code, value, output = ch_call('get_version')
+        code, value, output = reg_call('get_version')
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, dict)
         self.assertIn('VERSION', value)
@@ -34,7 +34,7 @@ class TestGCHv1(unittest.TestCase):
 
 
     def test_get_trust_roots(self):
-        code, value, output = ch_call('get_trust_roots', [])
+        code, value, output = reg_call('get_trust_roots', [])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         if len(value) == 0:
@@ -46,9 +46,9 @@ class TestGCHv1(unittest.TestCase):
         # slice, user, sliver, project
         
         # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
-        _, aggs, _ = ch_call('get_aggregates', [{}])
-        _, mas, _ = ch_call('get_member_authorities', [{}])
-        _, sas, _ = ch_call('get_slice_authorities', [{}])
+        _, aggs, _ = reg_call('get_aggregates', [{}])
+        _, mas, _ = reg_call('get_member_authorities', [{}])
+        _, sas, _ = reg_call('get_slice_authorities', [{}])
         
         mappings = {} # contains {test_urn_to_send : service_url, ... }
         if (len(aggs) == 0):
@@ -64,7 +64,7 @@ class TestGCHv1(unittest.TestCase):
         else:
             mappings[sas[0]['SERVICE_URN'].replace('authority+sa', 'slice+pizzaslice')] = sas[0]['SERVICE_URL']
         
-        code, value, output = ch_call('lookup_authorities_for_urns', [[urn for (urn, _) in mappings.iteritems()]])
+        code, value, output = reg_call('lookup_authorities_for_urns', [[urn for (urn, _) in mappings.iteritems()]])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, dict)
         for (res_urn, res_url) in value.iteritems():
@@ -81,7 +81,7 @@ class TestGCHv1(unittest.TestCase):
         self._check_a_listing('get_slice_authorities', 'slice authority')
 
     def _check_a_listing(self, method_name, entity_name):
-        code, value, output = ch_call(method_name, [{}])
+        code, value, output = reg_call(method_name, [{}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -92,13 +92,13 @@ class TestGCHv1(unittest.TestCase):
         if len(value) == 0:
             warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = ch_call(method_name, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
+            fcode, fvalue, foutput = reg_call(method_name, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = ch_call(method_name, [{'filter' : ['SERVICE_URL']}])
+            fcode, fvalue, foutput = reg_call(method_name, [{'filter' : ['SERVICE_URL']}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)
