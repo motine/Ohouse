@@ -22,6 +22,7 @@ class TestGCHv1(unittest.TestCase):
             self.assertIsInstance(value['FIELDS'], dict)
             for fk, fv in value['FIELDS'].iteritems():
                 self.assertIsInstance(fk, str)
+                self.assertEqual(fk[0], '_')
                 self.assertIsInstance(fv, dict)
                 self.assertIn("TYPE", fv)
                 self.assertIn(fv["TYPE"], ["URN", "UID", "STRING", "DATETIME", "EMAIL", "KEY","BOOLEAN", "CREDENTIAL", "CERTIFICATE"])
@@ -32,7 +33,6 @@ class TestGCHv1(unittest.TestCase):
         else:
             warn("No supplementary fields to test with.")
 
-
     def test_get_trust_roots(self):
         code, value, output = reg_call('get_trust_roots', [])
         self.assertEqual(code, 0) # no error
@@ -41,14 +41,14 @@ class TestGCHv1(unittest.TestCase):
             warn("No trust roots returned.")
         for tr in value:
             self.assertIsInstance(tr, str)
-
+    
     def test_lookup_authorities_for_urns(self):
         # slice, user, sliver, project
         
         # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
-        _, aggs, _ = reg_call('get_aggregates', [{}])
-        _, mas, _ = reg_call('get_member_authorities', [{}])
-        _, sas, _ = reg_call('get_slice_authorities', [{}])
+        _, aggs, _ = reg_call('lookup_aggregates', [{}])
+        _, mas, _ = reg_call('lookup_member_authorities', [{}])
+        _, sas, _ = reg_call('lookup_slice_authorities', [{}])
         
         mappings = {} # contains {test_urn_to_send : service_url, ... }
         if (len(aggs) == 0):
@@ -70,16 +70,16 @@ class TestGCHv1(unittest.TestCase):
         for (res_urn, res_url) in value.iteritems():
             self.assertIn(res_urn, mappings)
             self.assertEqual(mappings[res_urn], res_url)
-
-    def test_get_aggregates(self):
-        self._check_a_listing('get_aggregates', 'aggregate')
-
-    def test_get_member_authorities(self):
-        self._check_a_listing('get_member_authorities', 'member authority')
-
-    def test_get_slice_authorities(self):
-        self._check_a_listing('get_slice_authorities', 'slice authority')
-
+    
+    def test_lookup_aggregates(self):
+        self._check_a_listing('lookup_aggregates', 'aggregate')
+    # 
+    def test_lookup_member_authorities(self):
+        self._check_a_listing('lookup_member_authorities', 'member authority')
+    
+    def test_lookup_slice_authorities(self):
+        self._check_a_listing('lookup_slice_authorities', 'slice authority')
+    
     def _check_a_listing(self, method_name, entity_name):
         code, value, output = reg_call(method_name, [{}])
         self.assertEqual(code, 0) # no error

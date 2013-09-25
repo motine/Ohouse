@@ -24,11 +24,6 @@
 * Implement speaks-for (see code from Marshall)
 * Add methods for adding users
 
-**CH delegate**
-
-* if change is approved on wednesday 26th of Aug, rename the get methods to lookup
-* also if change is approved, change the lookup methods to return a dict of dicts not a list of dicts
-
 **MA delegate**
 
 * add parsing of the admin cert (discussion on wednesday 26th of Aug)
