@@ -16,6 +16,8 @@ def setup():
     config.install("flask.app_port", 8001, "Port to bind the Flask RPC to (standalone server).")
     config.install("flask.debug", True, "Write logging messages for the Flask RPC server.")
     config.install("flask.fcgi", False, "Use FCGI server instead of the development server.")
+    config.install("flask.force_client_cert", True, "Only applies if flask.debug is set: Determines if the client _must_ present a certificate. No validation is performed.")
+    
 
     # create and register the RPC server
     flaskserver = FlaskServer()

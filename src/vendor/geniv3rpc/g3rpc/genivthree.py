@@ -479,14 +479,9 @@ class GENIv3DelegateBase(object):
         # get the cert_root
         config = pm.getService("config")
         cert_root = expand_amsoil_path(config.get("geniv3rpc.cert_root"))
-        
+
         if client_cert == None:
-            # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
-            if config.get("flask.debug"):
-                import ext.sfa.trust.credential as cred
-                client_cert = cred.Credential(string=geni_credentials[0]).gidCaller.save_to_string(save_parents=True)
-            else:
-                raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
+            raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
         # test the credential
         try:
             cred_verifier = ext.geni.CredentialVerifier(cert_root)
