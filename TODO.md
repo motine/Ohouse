@@ -7,8 +7,7 @@
 
 **General**
 
-* check method names in MA
-* added KEY service spec and remove obsolete supplementary fields
+* Factor in changes from Marshal (see Mail from Marshal)
 
 * MA: add update_member_info (incl. tests)
 * MA: add get_credentials (incl. tests)
@@ -58,10 +57,6 @@
 * Remove ext from genirpc
 * Fix development server problem to acquire the client cert
 * Update to new version of Flask in AMsoil
-
-## Change Mail
-
-- Corrected the description of the return type of lookup_slice_members, lookup_slices_for_member and lookup_project members to indicate that these are lists of dictionaries, not dictionaries.
 
 ## Admin creds
 > I don't think there is anything much to look for... the only thing that
