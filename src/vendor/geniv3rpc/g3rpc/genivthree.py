@@ -108,6 +108,7 @@ class GENIv3Handler(xmlrpc.Dispatcher):
         # TODO check the end_time against the duration of the credential
         try:
             # delegate
+            # self._checkRSpecVersion(options['geni_rspec_version']) # omni does not send this option
             result_rspec, result_sliver_list = self._delegate.allocate(slice_urn, self.requestCertificate(), credentials, rspec, geni_end_time)
             # change datetime's to strings
             result = { 'geni_rspec' : result_rspec, 'geni_slivers' : self._convertExpiresDate(result_sliver_list) }
@@ -215,10 +216,12 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
 class GENIv3DelegateBase(object):
     """
-    TODO document
-    The GENIv3 handler assumes that this class uses RSpec version 3 when interacting with the client.
+    Please find more information about the concept of Handlers and Delegates via the wiki (e.g. https://github.com/fp7-ofelia/AMsoil/wiki/GENI).
     
-    General parameters:
+    The GENIv3 handler (see above) assumes that this class uses RSpec version 3 when interacting with the client.
+    For creating new a new RSpec type/extension, please see the wiki via https://github.com/fp7-ofelia/AMsoil/wiki/RSpec.
+    
+    General parameters for all following methods:
     {client_cert} The client's certificate. See [flaskrpcs]XMLRPCDispatcher.requestCertificate(). Also see http://groups.geni.net/geni/wiki/GeniApiCertificates
     {credentials} The a list of credentials in the format specified at http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#credentials
 
@@ -478,14 +481,9 @@ class GENIv3DelegateBase(object):
         # get the cert_root
         config = pm.getService("config")
         cert_root = expand_amsoil_path(config.get("geniv3rpc.cert_root"))
-        
+
         if client_cert == None:
-            # work around if the certificate could not be acquired due to the shortcommings of the werkzeug library
-            if config.get("flask.debug"):
-                import ext.sfa.trust.credential as cred
-                client_cert = cred.Credential(string=geni_credentials[0]).gidCaller.save_to_string(save_parents=True)
-            else:
-                raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
+            raise GENIv3ForbiddenError("Could not determine the client SSL certificate")
         # test the credential
         try:
             cred_verifier = ext.geni.CredentialVerifier(cert_root)
