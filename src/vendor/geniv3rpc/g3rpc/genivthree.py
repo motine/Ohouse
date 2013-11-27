@@ -216,10 +216,12 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
 class GENIv3DelegateBase(object):
     """
-    TODO document
-    The GENIv3 handler assumes that this class uses RSpec version 3 when interacting with the client.
+    Please find more information about the concept of Handlers and Delegates via the wiki (e.g. https://github.com/fp7-ofelia/AMsoil/wiki/GENI).
     
-    General parameters:
+    The GENIv3 handler (see above) assumes that this class uses RSpec version 3 when interacting with the client.
+    For creating new a new RSpec type/extension, please see the wiki via https://github.com/fp7-ofelia/AMsoil/wiki/RSpec.
+    
+    General parameters for all following methods:
     {client_cert} The client's certificate. See [flaskrpcs]XMLRPCDispatcher.requestCertificate(). Also see http://groups.geni.net/geni/wiki/GeniApiCertificates
     {credentials} The a list of credentials in the format specified at http://groups.geni.net/geni/wiki/GAPI_AM_API_V3/CommonConcepts#credentials
 
