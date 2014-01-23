@@ -35,8 +35,19 @@ class DHCPResourceManager(object):
     def get_all_leases(self):
         # # TODO TESTING
         # ipSchedule = Schedule("DHCPLease", self.MAX_LEASE_DURATION)
+        # # testing reservation
         # reservation_id = ipSchedule.reserve("someip", {"some_info" : "something"}, "slice", user_id="tom.rothe@eict.de")
-        # logger.info("%s" % (reservation_id,))
+        # logger.info("RESERVE: %s" % (reservation_id,))
+        # # testing listing
+        # st = datetime.utcnow()+timedelta(-1,00)
+        # logger.info("%s" % (st,))
+        # reservations = ipSchedule.find(start_time=st, end_time=st+timedelta(1,1))
+        # logger.info("LISTING: %s" % (reservations,))
+        # # testing update
+        # reservation = ipSchedule.update(reservation_id, user_id="someone")
+        # logger.info("UPDATE: %s" % (reservation,))
+        # # testing delete
+        # ipSchedule.cancel(reservation_id)
         # # TODO TESTING
         
         leases = []
