@@ -97,7 +97,7 @@ class Schedule(object):
         db_session.add(new_record)
         db_session.commit()
         db_session.expunge_all()
-        return new_record.reservation_id
+        return self._convert_record_to_value_object(new_record)
     
     @serviceinterface
     def find(self, reservation_id=None, resource_id=None, slice_id=None, user_id=None, start_time=None, end_time=None):
@@ -106,8 +106,8 @@ class Schedule(object):
         If all parameters a None, all reservations for this schedule_subject will be returned.
         If given parameters are not-None the result will be filtered by the respective field.
         If multiple params are given the result will be reduced (conditions will be AND-ed).
-        If {start_time} is given, {end_time} must be given and vice versa.
-        If the times are given, all records which touch the given period will be returned
+        If the times are given, all records which touch the given period will be returned.
+        If {start_time} is given, but {end_time} is omitted, all records which span start_time will be returned.
         
         Limitations:
         - This method can not be used to filter records with NULL fields. E.g. it is not possible to filter all records to the ones which have set user_id to NULL.
@@ -123,13 +123,13 @@ class Schedule(object):
         if not user_id is None:
             q = q.filter_by(user_id=user_id)
 
-        if (start_time is None) ^ (end_time is None):
-            raise ValueError("If start_time is given, end_time must be given and vice versa.")
+        if (not start_time is None) and (end_time is None):
+            end_time = start_time
         if (not start_time is None) and (not end_time is None):
             q = q.filter(not_(or_(ReservationRecord.end_time < start_time, ReservationRecord.start_time > end_time)))
 
         records = q.all()
-        result = [self._convertRecordtoValueObject(r) for r in records]
+        result = [self._convert_record_to_value_object(r) for r in records]
         db_session.expunge_all()
         return result
 
@@ -159,7 +159,7 @@ class Schedule(object):
             reservation.end_time = end_time
         db_session.commit()
         db_session.expunge_all()
-        return self._convertRecordtoValueObject(reservation)
+        return self._convert_record_to_value_object(reservation)
 
     def cancel(self, reservation_id):
         """
@@ -168,7 +168,7 @@ class Schedule(object):
         Returns the values of the removed object as value object (see class description).
         """
         reservation = self._find_reservation(reservation_id)
-        result = self._convertRecordtoValueObject(reservation)
+        result = self._convert_record_to_value_object(reservation)
         db_session.delete(reservation)
         db_session.commit()
         db_session.expunge_all()
@@ -182,7 +182,7 @@ class Schedule(object):
         except NoResultFound, e:
             raise sex.ScheduleNoSuchReservationError(reservation_id)
 
-    def _convertRecordtoValueObject(self, db_record):
+    def _convert_record_to_value_object(self, db_record):
         """Converts a given database record to a value object (see class description)."""
         result_dict = {c.name: getattr(db_record, c.name) for c in db_record.__table__.columns}
         del result_dict['schedule_subject']

@@ -46,11 +46,11 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
         root_node = self.lxml_ad_root()
         E = self.lxml_ad_element_maker('dhcp')
         for lease in self._resource_manager.get_all_leases():
-            if (not lease.available) and geni_available: continue # taking care of geni_available
+            if (not lease["available"]) and geni_available: continue # taking care of geni_available
             r = E.resource()
-            r.append(E.available("True" if lease.available else "False"))
+            r.append(E.available("True" if lease["available"] else "False"))
             # possible to list other properties
-            r.append(E.ip(lease.ip_str))
+            r.append(E.ip(lease["ip_str"]))
             root_node.append(r)
         
         return self.lxml_to_string(root_node)
@@ -104,7 +104,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
                 slice_leases = self._resource_manager.leases_in_slice(urn)
                 for lease in slice_leases: # extend the lease, so we have a longer timeout.
                     try:
-                        self._resource_manager.extend_lease(lease, expiration_time)
+                        self._resource_manager.extend_lease(lease["ip_str"], expiration_time)
                     except dhcp_ex.DHCPMaxLeaseDurationExceeded as e:
                         raise geni_ex.GENIv3BadArgsError("Lease can not be extended that long (%s)" % (str(e),))
                 leases.extend(slice_leases)
@@ -121,7 +121,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
     def provision(self, urns, client_cert, credentials, best_effort, end_time, geni_users):
         """Documentation see [geniv3rpc] GENIv3DelegateBase.
         {geni_users} is not relevant here."""
-        # TODO honor best_effort
+        # TODO honor best_effort option
         provisioned_leases = []
         for urn in urns:
             if (self.urn_type(urn) == 'slice'):
@@ -129,7 +129,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
                 leases = self._resource_manager.leases_in_slice(urn)
                 for lease in leases: # extend the lease, so we have a longer timeout.
                     try:
-                        self._resource_manager.extend_lease(lease, end_time)
+                        self._resource_manager.extend_lease(lease["ip_str"], end_time)
                     except dhcp_ex.DHCPMaxLeaseDurationExceeded as e:
                         raise geni_ex.GENIv3BadArgsError("Lease can not be extended that long (%s)" % (str(e),))
                 # usually you would really instanciate resources here (not necessary for IP-resources)
@@ -160,6 +160,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
         if len(leases) == 0:
             raise geni_ex.GENIv3SearchFailedError("There are no resources in the given slice(s)")
         # assemble return values
+        # logger.info(str(leases))
         sliver_list = [self._get_sliver_status_hash(lease, True, True, "") for lease in leases]
         return self.lxml_to_string(self._get_manifest_rspec(leases)), sliver_list
 
@@ -177,7 +178,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
                 client_urn, client_uuid, client_email = self.auth(client_cert, credentials, urn, ('deletesliver',)) # authenticate for each given slice
                 slice_leases = self._resource_manager.leases_in_slice(urn)
                 for lease in slice_leases:
-                    self._resource_manager.free_lease(lease)
+                    self._resource_manager.free_lease(lease["ip_str"])
                 leases.extend(slice_leases)
             else:
                 raise geni_ex.GENIv3OperationUnsupportedError('Only slice URNs can be deleted in this aggregate')
@@ -209,10 +210,10 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
 
     def _get_sliver_status_hash(self, lease, include_allocation_status=False, include_operational_status=False, error_message=None):
         """Helper method to create the sliver_status return values of allocate and other calls."""
-        result = {'geni_sliver_urn' : self._ip_to_urn(lease.ip_str),
-                  'geni_expires'    : lease.end_time,
+        result = {'geni_sliver_urn' : self._ip_to_urn(str(lease["ip_str"])),
+                  'geni_expires'    : lease["end_time"],
                   'geni_allocation_status' : self.ALLOCATION_STATE_ALLOCATED}
-        result['geni_allocation_status'] = self.ALLOCATION_STATE_UNALLOCATED if lease.available else self.ALLOCATION_STATE_PROVISIONED
+        result['geni_allocation_status'] = self.ALLOCATION_STATE_UNALLOCATED if lease["available"] else self.ALLOCATION_STATE_PROVISIONED
         if (include_operational_status): # there is no state to an ip, so we always return ready
             result['geni_operational_status'] = self.OPERATIONAL_STATE_READY
         if (error_message):
@@ -226,7 +227,7 @@ class DHCPGENI3Delegate(GENIv3DelegateBase):
         for lease in leases:
             # assemble manifest
             r = E.resource()
-            r.append(E.ip(lease.ip_str))
+            r.append(E.ip(lease["ip_str"]))
             # TODO add more info here
             manifest.append(r)
         return manifest
