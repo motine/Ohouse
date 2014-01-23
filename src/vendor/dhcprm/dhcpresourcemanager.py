@@ -8,6 +8,7 @@ from ip import IP
 from dhcpexceptions import *
 
 worker = pm.getService('worker')
+Schedule = pm.getService('schedule')
 
 class DHCPResourceManager(object):
     """
@@ -32,6 +33,12 @@ class DHCPResourceManager(object):
         worker.addAsReccurring("dhcpresourcemanager", "expire_leases", None, self.EXPIRY_CHECK_INTERVAL)
     
     def get_all_leases(self):
+        # # TODO TESTING
+        # ipSchedule = Schedule("DHCPLease", self.MAX_LEASE_DURATION)
+        # reservation_id = ipSchedule.reserve("someip", {"some_info" : "something"}, "slice", user_id="tom.rothe@eict.de")
+        # logger.info("%s" % (reservation_id,))
+        # # TODO TESTING
+        
         leases = []
         for ip in IP([192,168,1,1]).upto(IP([192,168,1,20])): # for the sake of simplicity, we set the ip range statically (should be a config option)
             lease = db_session.query(DHCPLease).filter(DHCPLease.ip_str == str(ip)).first()
@@ -91,10 +98,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import exists
-
-import amsoil.core.pluginmanager as pm
-import amsoil.core.log
-logger=amsoil.core.log.getLogger('worker')
 
 from amsoil.config import expand_amsoil_path
 
