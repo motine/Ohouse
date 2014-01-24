@@ -14,47 +14,8 @@ from attributedict import AttributeDict
 class Schedule(object):
     """
     
+    Please see the wiki for more information: https://github.com/fp7-ofelia/AMsoil/wiki/Schedule
     Please create one instance of this class for each schedule_subject.
-    What is a schedule_subject? There is one schedule for each resource classification/type.
-    Conceptionally, two different subjects mean distinct databases.
-    Example:
-    find... -> 2 results
-    find... -> 1 result
-    
-    Describe resource_id (e.g. the IP as string) to later find the record for a specific resource (e.g. IP).
-    
-    The schedule plugin can be used in two ways.
-    - Either as best-effort booking system, which can not handle future reservations, but only reservations starting from now.
-    - Or it can be used as pre-booking reservation system. In the latter case, the {start_time} parameter can be given to methods.
-    
-    Reservation booking constraints:
-    - There shall never be _two_ reservations for the same subject and resource_id at any given time.
-      Examples (pseudocode):
-      ipSchedule = Schedule("IP")
-      vmSchedule = Schedule("VM")
-      ipSchedule.reserve(..., '192.168.10.1', datetime.utcnow())
-      ipSchedule.reserve(..., '192.168.10.1', datetime.utcnow()) # ERROR
-    
-    Reservation value objects:
-    Are of class AttributeDict. Behave like dicts but the keys can also be accessed/mutated as properties.
-    You can use the str() method to see all info about one reservation.
-    Example:
-    
-    The following parameters are parameters to methods of this class:
-    - reservation_id (int) managed internally, can be used to identify specific a reservation record.
-    - resource_id str (should be string)
-    - resource_spec pickle, optional (should be a dict), can be nested but please do not include objects (except you are sure how pickle serialization works)
-    - user_id str, optional
-    - slice_id str, optional (can be empty, slice's name, a uuid, or however you distiguish experiments)
-    - start_time datetime, optional (defaults to `utcnow()`)
-    - end_time datetime, optional (init's {default_duration} (number in seconds) If no {end_time} is given in subsequent methods, this value will be added to the {start_time} to get the end of the reservation.)
-    
-    For specifying time always use the pyhton class datetime. UTC is assumed as timezone.
-    
-    TODO
-    - create wiki page for documentation
-    - create slides for documentation
-    - What happens with expiry?
     
     NOTE:
     This class will never deliver a Database record to the outside.
