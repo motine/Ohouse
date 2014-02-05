@@ -1,6 +1,6 @@
-# The OFELIA Clearinghouse
+# The Clearinghouse
 
-This is/shall be OFELIA's Clearinghouse.
+This is/shall a Clearinghouse for all the projects mentioned.
 
 ## Installation
 
