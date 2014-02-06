@@ -19,9 +19,9 @@ In a nutshell, AMsoil solves problems when implementing test-bed orchestration s
 
 # Documentation
 
-Before you do anything else, please checkout the [Quickstart](https://raw.github.com/fp7-ofelia/AMsoil/development/doc/AMsoil%20Quickstart.pdf)
-Please see the [Wiki](https://github.com/fp7-ofelia/AMsoil/wiki) for more information.
+Before you do anything else, please checkout the [Quickstart](https://raw.github.com/motine/AMsoil/development/doc/AMsoil%20Quickstart.pdf)
+Please see the [Wiki](https://github.com/motine/AMsoil/wiki) for more information.
 
 # Logo
 
-![GCF Setup](https://raw.github.com/fp7-ofelia/AMsoil/development/doc/img/logo.jpg)
+![GCF Setup](https://raw.github.com/motine/AMsoil/development/doc/img/logo.jpg)

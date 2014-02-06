@@ -14,13 +14,13 @@ from attributedict import AttributeDict
 class Schedule(object):
     """
     
-    Please see the wiki for more information: https://github.com/fp7-ofelia/AMsoil/wiki/Schedule
+    Please see the wiki for more information: https://github.com/motine/AMsoil/wiki/Schedule
     Please create one instance of this class for each schedule_subject.
     
     NOTE:
     This class will never deliver a Database record to the outside.
     It will copy the contents of the database record, so the plugin user can not accidentally change the database.
-    For problem statement see https://github.com/fp7-ofelia/AMsoil/wiki/Persistence#expunge
+    For problem statement see https://github.com/motine/AMsoil/wiki/Persistence#expunge
     """
     
     @serviceinterface

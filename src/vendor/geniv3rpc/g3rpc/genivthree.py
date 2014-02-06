@@ -216,10 +216,10 @@ class GENIv3Handler(xmlrpc.Dispatcher):
 
 class GENIv3DelegateBase(object):
     """
-    Please find more information about the concept of Handlers and Delegates via the wiki (e.g. https://github.com/fp7-ofelia/AMsoil/wiki/GENI).
+    Please find more information about the concept of Handlers and Delegates via the wiki (e.g. https://github.com/motine/AMsoil/wiki/GENI).
     
     The GENIv3 handler (see above) assumes that this class uses RSpec version 3 when interacting with the client.
-    For creating new a new RSpec type/extension, please see the wiki via https://github.com/fp7-ofelia/AMsoil/wiki/RSpec.
+    For creating new a new RSpec type/extension, please see the wiki via https://github.com/motine/AMsoil/wiki/RSpec.
     
     General parameters for all following methods:
     {client_cert} The client's certificate. See [flaskrpcs]XMLRPCDispatcher.requestCertificate(). Also see http://groups.geni.net/geni/wiki/GeniApiCertificates
