@@ -10,9 +10,6 @@ This guard derives from the original delegate and checks the incoming/outgoing v
 E.g. The orginal delegate would deliver private information to the user becuase it is not concerned with authorization.
 The guard on the other hand checks the outgoing result and raises an exception if the user does not have the right privileges.
 """
-
-# TODO consider the following privileges for OFELIA: https://github.com/fp7-ofelia/ocf/blob/ofelia.stable/expedient/src/python/expedient/clearinghouse/project/permissions.py
-
 def setup():
     config = pm.getService('config')
     config.install("ofed.cert_root", "deploy/trusted", "Folder which includes trusted certificates (in .pem format). If relative path, the root is assumed to be git repo root.")
