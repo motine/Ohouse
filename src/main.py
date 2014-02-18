@@ -1,4 +1,5 @@
-import sys
+#!/usr/bin/env python
+import sys, os
 import getopt
 
 from amsoil import config
@@ -13,6 +14,9 @@ def print_usage():
     print "  --worker  Starts the worker process instead of the RPC server."
 
 def main():
+    # set home environment variable to something (needed for apache deployment)
+    os.environ['HOME'] = config.expand_amsoil_path('~')
+    
     # load plugins
     pm.init(config.PLUGINS_PATH)
     try:
