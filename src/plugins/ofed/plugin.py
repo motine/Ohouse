@@ -11,6 +11,8 @@ E.g. The orginal delegate would deliver private information to the user becuase 
 The guard on the other hand checks the outgoing result and raises an exception if the user does not have the right privileges.
 """
 
+# TODO consider the following privileges for OFELIA: https://github.com/fp7-ofelia/ocf/blob/ofelia.stable/expedient/src/python/expedient/clearinghouse/project/permissions.py
+
 def setup():
     config = pm.getService('config')
     config.install("ofed.cert_root", "deploy/trusted", "Folder which includes trusted certificates (in .pem format). If relative path, the root is assumed to be git repo root.")

@@ -29,4 +29,4 @@ The test scripts assume that there are test certificates and credentials in `tes
 
 ## Architectural decisions
 
-* Please see the `och` - `plugin.py` for considerations on how to protect information regarding authZ.
+* Please see the `ofed` - `plugin.py` for considerations on how to protect information regarding authZ.
