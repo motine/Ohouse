@@ -7,7 +7,8 @@
 
 **General**
 
-* Factor in changes from Marshal (see Mail from Marshal)
+* rebase to newer AMsoil (it's a pain due to geni_trust)
+* Revise all calls according to V2
 
 * MA: add update_member_info (incl. tests)
 * MA: add get_credentials (incl. tests)
@@ -34,6 +35,7 @@
 
 * add parsing of the admin cert (discussion on wednesday 26th of Aug)
 * see TODOs in the file
+* Consider the following OFELIA privileges: https://github.com/fp7-ofelia/ocf/blob/ofelia.stable/expedient/src/python/expedient/clearinghouse/project/permissions.py
 
 * document gen-certs in geni_trust in amsoil and link from Ohouse
 * Trust Plugin: add servicemethod where possible
