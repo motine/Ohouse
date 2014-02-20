@@ -47,6 +47,10 @@
   * either move MA code to RM and move get version to delegate base
   * or move CH info from RM to Delegate?
 
+## Registration app
+
+* Consider https://github.com/duerig/xml-signer
+
 ## AMsoil
 
 * Refactor SSL call from test, 2x Client to own module
