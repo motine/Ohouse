@@ -7,7 +7,7 @@
 
 **General**
 
-* rebase to newer AMsoil (it's a pain due to geni_trust)
+* Use pyPElib to enforce policies. (feed it back to AMsoil)
 * Revise all calls according to V2
 
 * MA: add update_member_info (incl. tests)
