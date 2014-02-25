@@ -7,6 +7,7 @@
 
 **General**
 
+* add test monitoring for github in travis-ci.org
 * Use pyPElib to enforce policies. (feed it back to AMsoil)
 * Revise all calls according to V2
 
