@@ -26,6 +26,10 @@ Note that sometimes the output is only given to the log in `log/amsoil.log`.
 You may run the `xx_tests.py` scripts in `test/unit` to make sure everything works fine.
 The test scripts assume that there are test certificates and credentials in `test/creds` (for creating them please see `test/creds/TODO.md`).
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 887a4f9b32f1f4bcfd02e7656a70b47734b44874
 ## Architectural decisions
 
 * Please see the `ofed` - `plugin.py` for considerations on how to protect information regarding authZ.
