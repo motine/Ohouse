@@ -5,6 +5,8 @@ logger=amsoil.core.log.getLogger('ofed')
 GMAv1DelegateBase = pm.getService('gmav1delegatebase')
 gfed_ex = pm.getService('gfedv1exceptions')
 
+config = pm.getService('config')
+geniutil = pm.getService('geniutil')
 
 class OMAv1Delegate(GMAv1DelegateBase):
     VERSION = '0.1'

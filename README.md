@@ -28,16 +28,4 @@ The test scripts assume that there are test certificates and credentials in `tes
 
 ## Architectural decisions
 
-Please see the `och` - `plugin.py` for considerations on how to protect information regarding authZ.
-
-# Open issues
-
-**CH delegate**
-
-* if change is approved on wednesday 26th of Aug, rename the get methods to lookup
-* also if change is approved, change the lookup methods to return a dict of dicts not a list of dicts
-
-**MA delegate**
-
-* document wrapping in guard
-* see TODOs in the file
+* Please see the `ofed` - `plugin.py` for considerations on how to protect information regarding authZ.

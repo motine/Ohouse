@@ -106,4 +106,5 @@ class TestGRegistryv1(unittest.TestCase):
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
         
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main(verbosity=0, exit=False)
+    print_warnings()
