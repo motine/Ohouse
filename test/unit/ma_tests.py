@@ -83,16 +83,16 @@ class TestGMAv1(unittest.TestCase):
     
     def test_filter_with_auth(self):
         for meth in ["lookup_identifying_member_info", "lookup_private_member_info"]:
-            code, value, output = ma_call(meth, [self._credentail_list("alice"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+            code, value, output = ma_call(meth, [self._credential_list("alice"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
             self.assertEqual(code, 0)
-            code, value, output = ma_call(meth, [self._credentail_list("malcom"), {}])
+            code, value, output = ma_call(meth, [self._credential_list("malcom"), {}])
             self.assertIn(code, [1,2])
-            code, value, output = ma_call(meth, [self._credentail_list("malcom"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+            code, value, output = ma_call(meth, [self._credential_list("malcom"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
             self.assertIn(code, [1,2])
 
     def _check_lookup(self, method_name, required_fields, use_creds=False):
         if use_creds:
-            code, value, output = ma_call(method_name, [self._credentail_list("admin"), {}], user_name="admin")
+            code, value, output = ma_call(method_name, [self._credential_list("admin"), {}], user_name="admin")
         else:
             code, value, output = ma_call(method_name, [{}], user_name="admin")
         self.assertEqual(code, 0) # no error
@@ -107,7 +107,7 @@ class TestGMAv1(unittest.TestCase):
         if len(value) > 0:
             params = [{'match' : {"MEMBER_URN" : value.keys()[0]}}]
             if use_creds:
-                params.insert(0, self._credentail_list("admin"))
+                params.insert(0, self._credential_list("admin"))
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue.keys()[0], str)
@@ -118,7 +118,7 @@ class TestGMAv1(unittest.TestCase):
             filter_key = value.values()[0].keys()[0]
             params = [{'filter' : [filter_key]}] # take any field which was sent before
             if use_creds:
-                params.insert(0, self._credentail_list("admin"))
+                params.insert(0, self._credential_list("admin"))
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, dict)
@@ -133,6 +133,9 @@ class TestGMAv1(unittest.TestCase):
     def _bad_user_credentail_list(self):
         """Returns the _user_ credential for malcom."""
         return [{"SFA" : get_creds_file_contents('malcom-cred.xml')}]
+    def _credential_list(self, user_name):
+        """Returns the _user_ credential for the given user_name."""
+        return [{"SFA" : get_creds_file_contents('%s-cred.xml' % (user_name,))}]
 
 if __name__ == '__main__':
     unittest.main(verbosity=0, exit=False)
