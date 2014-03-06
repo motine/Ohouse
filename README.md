@@ -9,7 +9,14 @@ This is/shall a Clearinghouse for all the projects mentioned.
 This software is based on AMsoil, please refer to the [installation guide there](https://github.com/fp7-ofelia/amsoil/wiki/Installation).  
 Please follow at least the "Base" and "Plugins" steps.
 
-**Troubleshooting** Fire up the server via `python src/main.py` and install the packages which are not found.
+### Dependencies
+
+Dependencies can be installed using `pip install -r requirements.txt`. 
+
+## Run
+
+Fire up the server via `python src/main.py` and install the packages which are not found.
+
 Note that sometimes the output is only given to the log in `log/amsoil.log`.
 
 ### Additional
