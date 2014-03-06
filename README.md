@@ -11,7 +11,9 @@ Please follow at least the "Base" and "Plugins" steps.
 
 ### Dependencies
 
-Dependencies can be installed using `pip install -r requirements.txt`. 
+Please install [Swig](http://www.swig.org/) (needed for the M2Crypto Python package).
+
+Python dependencies can then be installed using `pip install -r requirements.txt`.  
 
 ## Run
 
