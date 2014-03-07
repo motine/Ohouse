@@ -5,6 +5,7 @@ import os.path
 import optparse
 import geniutil
 import datetime
+import subprocess
 
 SA_CERT_FILE = 'sa-cert.pem'
 SA_KEY_FILE = 'sa-key.pem'
@@ -49,6 +50,14 @@ if __name__ == "__main__":
 
     if len(args) == 1: # no args given, index 0 is the script name
         parser.print_help()
+        sys.exit(0)
+
+    #Simple test for xmlsec1 presence on system
+    try :
+        with open(os.devnull, "w") as null:
+            subprocess.call(["xmlsec1", "-h"], stdout = null, stderr = null)
+    except OSError:
+        print "xmlsec1 not found. Please install xmsec1 (http://www.aleksey.com/xmlsec/)."
         sys.exit(0)
     
     dir_path = args[1]
