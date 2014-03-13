@@ -29,7 +29,7 @@
 * do deployment
   * write doc (incl. cert stuff)
   * remove authentication from nginx config
-* Implement speaks-for (see code from Marshall)
+* Implement speaks-for (see code from Marshall, http://groups.geni.net/geni/wiki/GAPI_AM_API_DRAFT#ChangeSetP:SupportproxyclientsthatSpeakForanexperimenter)
 * Add methods for adding users
 
 **MA delegate**
