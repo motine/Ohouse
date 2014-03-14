@@ -4,7 +4,7 @@ import unittest
 from testtools import *
 
 def reg_call(method_name, params=[]):
-    res = ssl_call(method_name, params, 'REG')
+    res = ssl_call(method_name, params, 'v1/REG')
     print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
 
