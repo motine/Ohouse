@@ -8,9 +8,9 @@ import oregistryutil
 class ORegistryResourceManager(object):
     """
     """
-    AGGREGATE_SERVICE_TYPE = 'agg'
-    SA_SERVICE_TYPE = 'sa'
-    MA_SERVICE_TYPE = 'ma'
+    AGGREGATE_SERVICE_TYPE = 'AGGREGATE_MANAGER'
+    SA_SERVICE_TYPE = 'SLICE_AUTHORITY'
+    MA_SERVICE_TYPE = 'MEMBER_AUTHORITY'
 
 
     def __init__(self):
@@ -37,7 +37,29 @@ class ORegistryResourceManager(object):
                 self._check_raise(field in service, "Supplementary field not found in service (%s)." % (field,))
     
         for tr in oregistryutil.CONFIG["registry"]["trust_roots"]:
-            self._check_raise(type(tr) in [str, unicode], "All 'trust_roots' entries should be strings.")
+            self._check_raise(type(tr) in [str, unicode], "All 'trust_roots' entries should be strings.")   
+
+    def urn(self):
+        try:
+            return oregistryutil.CONFIG["registry"]["urn"]
+        except:
+            return None
+
+    def implementation(self):
+        return None
+
+    def services(self):
+        return 'SERVICE'
+
+    def service_types(self):
+        service_types = set()
+        for e in oregistryutil.CONFIG["registry"]["services"]:
+            service_types.add(e['type'])
+        return list(service_types)
+
+    def api_versions(self):
+        return {"1" : "https://example.com/xmlrpc/sa/1",
+         "2" : "https://example.com/xmlrpc/sa/2"} # where do we get this information from?
             
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""

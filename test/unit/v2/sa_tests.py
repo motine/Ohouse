@@ -5,7 +5,7 @@ from testtools import *
 
 def sa_call(method_name, params=[], user_name='alice', verbose=True):
     key_path, cert_path = "%s-key.pem" % (user_name,), "%s-cert.pem" % (user_name,)
-    res = ssl_call(method_name, params, 'v2/SA', key_path=key_path, cert_path=cert_path)
+    res = ssl_call(method_name, params, 'sa/2', key_path=key_path, cert_path=cert_path)
     if verbose:
         print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)

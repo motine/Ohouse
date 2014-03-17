@@ -1,5 +1,5 @@
 {
-  "name" : "Implementation of the GENI Federation Registry API for OFELIA (the CH API)",
+  "name" : "Implementation of the GENI Federation Registry API (v1) for OFELIA (the CH API)",
   "author" : "Tom Rothe",
   "author-email" : "tom.rothe@eict.de",
   "version" : 1,

@@ -5,7 +5,7 @@ logger=amsoil.core.log.getLogger('ofed')
 GRegistryv1DelegateBase = pm.getService('gregistryv1delegatebase')
 gfed_ex = pm.getService('gfedv1exceptions')
 
-VERSION = '0.1'
+VERSION = '1'
 
 class ORegistryv1Delegate(GRegistryv1DelegateBase):
     def get_version(self, client_cert):

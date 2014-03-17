@@ -2,14 +2,14 @@ import amsoil.core.pluginmanager as pm
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('ofed')
 
-GMAv1DelegateBase = pm.getService('gmav1delegatebase')
-gfed_ex = pm.getService('gfedv1exceptions')
+GMAv2DelegateBase = pm.getService('gmav2delegatebase')
+gfed_ex = pm.getService('gfedv2exceptions')
 
 config = pm.getService('config')
 geniutil = pm.getService('geniutil')
 
-class OMAv1Delegate(GMAv1DelegateBase):
-    VERSION = '0.1'
+class OMAv2Delegate(GMAv2DelegateBase):
+    VERSION = '2'
     SUPPLEMENTARY_FIELDS = {
         "_OFELIA_MEMBER_AFFILIATION" : {
             "OBJECT" : "MEMBER",

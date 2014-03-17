@@ -4,7 +4,7 @@ import unittest
 from testtools import *
 
 def reg_call(method_name, params=[]):
-    res = ssl_call(method_name, params, 'v2/REG')
+    res = ssl_call(method_name, params, 'reg/2')
     print_call(method_name, params, res)
     return res.get('code', None), res.get('value', None), res.get('output', None)
 
@@ -46,9 +46,9 @@ class TestGRegistryv2(unittest.TestCase):
         # slice, user, sliver, project
         
         # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
-        _, aggs, _ = reg_call('lookup_aggregates', [{}])
-        _, mas, _ = reg_call('lookup_member_authorities', [{}])
-        _, sas, _ = reg_call('lookup_slice_authorities', [{}])
+        _, aggs, _ = reg_call('lookup', ['AGGREGATE_MANAGER', [{}]])
+        _, mas, _ = reg_call('lookup', ['MEMBER_AUTHORITY', [{}]])
+        _, sas, _ = reg_call('lookup', ['SLICE_AUTHORITY', [{}]])
         
         mappings = {} # contains {test_urn_to_send : service_url, ... }
         if (len(aggs) == 0):
@@ -63,7 +63,6 @@ class TestGRegistryv2(unittest.TestCase):
             warn("No SAs to test with.")
         else:
             mappings[sas[0]['SERVICE_URN'].replace('authority+sa', 'slice+pizzaslice')] = sas[0]['SERVICE_URL']
-        
         code, value, output = reg_call('lookup_authorities_for_urns', [[urn for (urn, _) in mappings.iteritems()]])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, dict)
@@ -71,17 +70,13 @@ class TestGRegistryv2(unittest.TestCase):
             self.assertIn(res_urn, mappings)
             self.assertEqual(mappings[res_urn], res_url)
     
-    def test_lookup_aggregates(self):
-        self._check_a_listing('lookup_aggregates', 'aggregate')
-    # 
-    def test_lookup_member_authorities(self):
-        self._check_a_listing('lookup_member_authorities', 'member authority')
-    
-    def test_lookup_slice_authorities(self):
-        self._check_a_listing('lookup_slice_authorities', 'slice authority')
-    
-    def _check_a_listing(self, method_name, entity_name):
-        code, value, output = reg_call(method_name, [{}])
+    def test_lookup(self):
+        self._check_a_listing('lookup', 'AGGREGATE_MANAGER', 'aggregate')
+        self._check_a_listing('lookup', 'MEMBER_AUTHORITY', 'member authority')
+        self._check_a_listing('lookup', 'SLICE_AUTHORITY', 'slice authority')
+
+    def _check_a_listing(self, method_name, _type, entity_name):
+        code, value, output = reg_call(method_name, [_type, [{}]])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -92,13 +87,13 @@ class TestGRegistryv2(unittest.TestCase):
         if len(value) == 0:
             warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
+            fcode, fvalue, foutput = reg_call(method_name,  [_type, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}]])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name, [{'filter' : ['SERVICE_URL']}])
+            fcode, fvalue, foutput = reg_call(method_name, [_type, [{'filter' : ['SERVICE_URL']}]])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)

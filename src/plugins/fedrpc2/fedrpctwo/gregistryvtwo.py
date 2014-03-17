@@ -28,41 +28,32 @@ class GRegistryv2Handler(xmlrpc.Dispatcher):
     def get_version(self):
         """Delegates the call and unwraps the needed parameter."""
         try:
-            version, fields = self._delegate.get_version(self.requestCertificate())
+            version, urn, implementation, services, service_types, api_versions, fields = self._delegate.get_version(self.requestCertificate())
             result = {}
             result['VERSION'] = version
+            if urn:
+                result['URN'] = urn
+            if implementation:
+                result['IMPLEMENTATION'] = implementation
+            if services:
+                result['SERVICES'] = services
+            result['SERVICE_TYPES'] = service_types
+            result['API_VERSIONS'] = api_versions
             if fields:
                 result["FIELDS"] = fields
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
-    def lookup_aggregates(self, options):
-        """Delegates the call and unwraps the needed parameter."""
+    def lookup(self, _type, options):
         try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_aggregates(self.requestCertificate(), field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
-
-    def lookup_member_authorities(self, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_member_authorities(self.requestCertificate(), field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
-
-    def lookup_slice_authorities(self, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_slice_authorities(self.requestCertificate(), field_filter, field_match, options)
+            field_match = field_filter = None
+            for option in options:
+                if 'filter' in option:
+                    field_filter = option.get('filter')
+                elif 'match' in option:
+                    field_match = option.get('match')
+            result = self._delegate.lookup(_type, self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
@@ -111,37 +102,45 @@ class GRegistryv2DelegateBase(object):
     def __init__(self):
         super(GRegistryv2DelegateBase, self).__init__()
     
-    def get_version(self, client_cert):
+    def get_version(self):
         """Overwrite this method in the actual delegate implementation.
-        Provide a structure detailing the version information as well as details of accepted options s for CH API calls.
-        NB: This is an unprotected call, no client cert required.
+        Return information about version and options 
+          (e.g. filter, query, credential types) accepted by this service
         
-        This method shall return
-        - a version string (e.g. 1.0.3)
-        - None or a dictionary of custom CH fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
-        """
+        Arguments: None
+        
+        Return:
+            get_version structure information as described above
+       """
         raise GFedv2NotImplementedError("Method not implemented")
         
-    def lookup_aggregates(self, client_cert, field_filter, field_match, options):
+    def lookup(self, _type, client_cert, field_filter, field_match, options):
         """Overwrite this method in the actual delegate implementation.
-        Return information about all aggregates associated with the Federation.
-        Should return a list of dicts (filtered and matched).
+        Lookup requested details for objects matching 'match' options. 
+        This call takes a set of 'match' criteria provided in the 'options' field, 
+        and returns a dictionary of dictionaries of object attributes 
+        keyed by object URN matching these criteria. 
+        If a 'filter' option is provided, only those attributes listed in the 'filter' 
+        options are returned. 
+        The requirements on match criteria supported by a given service 
+        are service-specific; however it is recommended that policies 
+        restrict lookup calls to requests that are bounded 
+        to particular sets of explicitly listed objects (and not open-ended queries).
+
+        See additional details on the lookup method in the document section below.
+
+
+        Arguments:
+           type: type of objects for which details are being requested
+           options: What details to provide (filter options) 
+                   for which objects (match options)
+
+        Return: List of dictionaries (indexed by object URN) with field/value pairs 
+        for each returned object
+
         NB: This is an unprotected call, no client cert required."""
         raise GFedv2NotImplementedError("Method not implemented")
 
-    def lookup_member_authorities(self, client_cert, field_filter, field_match, options):
-        """Overwrite this method in the actual delegate implementation.
-        Return information about all MA's associated with the Federation.
-        Should return a list of dicts (filtered and matched).
-        NB: This is an unprotected call, no client cert required."""
-        raise GFedv2NotImplementedError("Method not implemented")
-        
-    def lookup_slice_authorities(self, client_cert, field_filter, field_match, options):
-        """Overwrite this method in the actual delegate implementation.
-        Return information about all SA's associated with the Federation
-        Should return a list of dicts (filtered and matched).
-        NB: This is an unprotected call, no client cert required."""
-        raise GFedv2NotImplementedError("Method not implemented")
         
     def lookup_authorities_for_urns(self, client_cert, urns):
         """Overwrite this method in the actual delegate implementation.
