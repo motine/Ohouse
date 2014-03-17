@@ -88,6 +88,9 @@ class GRegistryv2DelegateBase(object):
         "SERVICE_URL" : {
             "TYPE"    : "URL",
             "DESC"    : "URL by which to contact the service"},
+        "SERVICE_TYPE" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Name of service type (from Federation Registry get_version.TYPES)"},
         "SERVICE_CERT" : {
             "TYPE"    : "CERTIFICATE",
             "DESC"    : "Public certificate of service"},

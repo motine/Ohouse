@@ -31,8 +31,8 @@ class ORegistryResourceManager(object):
             self._check_raise("service_name" in service, "No 'service_name' found in 'services'.")
             self._check_raise("service_description" in service, "No 'service_description' found in 'services'.")
             self._check_raise("service_urn"  in service, "No 'service_urn' found in 'services'.")
-            self._check_raise("type"         in service, "No 'type' found in 'services'.")
-            self._check_raise(service["type"] in [self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE], "A service type should be either %s, %s or %s" % (self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE))
+            self._check_raise("service_type"         in service, "No 'type' found in 'services'.")
+            self._check_raise(service["service_type"] in [self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE], "A service type should be either %s, %s or %s" % (self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE))
             for field in oregistryutil.CONFIG["registry"]["supplementary_fields"]:
                 self._check_raise(field in service, "Supplementary field not found in service (%s)." % (field,))
     
@@ -54,7 +54,7 @@ class ORegistryResourceManager(object):
     def service_types(self):
         service_types = set()
         for e in oregistryutil.CONFIG["registry"]["services"]:
-            service_types.add(e['type'])
+            service_types.add(e['service_type'])
         return list(service_types)
 
     def api_versions(self):
@@ -66,13 +66,13 @@ class ORegistryResourceManager(object):
         return oregistryutil.CONFIG["registry"]["supplementary_fields"]
         
     def all_aggregates(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.AGGREGATE_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])
         
     def all_member_authorities(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.MA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['service_type']==self.MA_SERVICE_TYPE)])
         
     def all_slice_authorities(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.SA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['service_type']==self.SA_SERVICE_TYPE)])
         
     def all_trusted_certs(self):
         certs = oregistryutil.CONFIG["registry"]["trust_roots"]
@@ -112,7 +112,7 @@ class ORegistryResourceManager(object):
         geniutil = pm.getService('geniutil')
         for service in oregistryutil.CONFIG['registry']['services']:
             sauth, styp, sname = geniutil.decode_urn(service['service_urn'])
-            if (service['type'] == typ) and (sauth == authority):
+            if (service['service_type'] == typ) and (sauth == authority):
                 return service
         return None
     

@@ -31,6 +31,8 @@
   * remove authentication from nginx config
 * Implement speaks-for (see code from Marshall)
 * Add methods for adding users
+* Add registry endpoints and put in RPC
+* Expose the manifest plugin
 
 **MA delegate**
 
