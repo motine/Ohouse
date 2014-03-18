@@ -89,6 +89,10 @@ class OMemberAuthorityResourceManager(object):
             "MATCH"   : False,
             "PROTECT" : "IDENTIFYING"}}
 
+    SUPPORTED_SERVICES = ['MEMBER','KEY']
+
+    SUPPORTED_CREDENTIAL_TYPES = [{"type" : "SFA", "version" : 1}]
+
     def __init__(self):
         super(OMemberAuthorityResourceManager, self).__init__()
 
@@ -111,16 +115,22 @@ class OMemberAuthorityResourceManager(object):
         return 'urn:publicid:IDN+example.com+authority+ma'#update
 
     def implementation(self):
-        return None
+        additional_info = pm.getAdditionalInfo('omemberauthorityrm')
+        if len(additional_info) > 0:
+            return {'code_version' : str(additional_info['version'])} 
+        else: 
+            return None
 
-     #TODO: check correct
     def services(self):
-        return ['MEMBER','KEY']
+        return self.SUPPORTED_SERVICES
 
-    #TODO: check correct
     def api_versions(self):
-        return {"1" : "https://example.com/xmlrpc/ma/1",
-         "2" : "https://example.com/xmlrpc/ma/2"} # where do we get this information from?
+        base_url = 'https://example.com/xmlrpc'
+        endpoints = pm.getEndpoint('type', 'ma')
+        api_versions = {}
+        for key, endpoint in endpoints.iteritems():
+            api_versions[endpoint.get('version')] = base_url + endpoint.get('url')
+        return api_versions
 
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""
@@ -140,8 +150,7 @@ class OMemberAuthorityResourceManager(object):
 
     #TODO: Check this is correct
     def credential_types(self):
-        certs = [{"type" : "SFA", "version" : 1}]
-        return certs
+        return self.SUPPORTED_CREDENTIAL_TYPES
 
     # -- Helper methods
     def _member_field_names_for_protect(self, protect):

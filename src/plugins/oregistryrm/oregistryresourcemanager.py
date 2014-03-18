@@ -12,6 +12,7 @@ class ORegistryResourceManager(object):
     SA_SERVICE_TYPE = 'SLICE_AUTHORITY'
     MA_SERVICE_TYPE = 'MEMBER_AUTHORITY'
 
+    SUPPORTED_SERVICES = ['SERVICE']
 
     def __init__(self):
         super(ORegistryResourceManager, self).__init__()
@@ -46,10 +47,14 @@ class ORegistryResourceManager(object):
             return None
 
     def implementation(self):
-        return None
+        additional_info = pm.getAdditionalInfo('oregistryrm')
+        if len(additional_info) > 0:
+            return {'code_version' : str(additional_info['version'])} 
+        else: 
+            return None
 
     def services(self):
-        return ['SERVICE']
+        return self.SUPPORTED_SERVICES
 
     def service_types(self):
         service_types = set()
@@ -58,8 +63,12 @@ class ORegistryResourceManager(object):
         return list(service_types)
 
     def api_versions(self):
-        return {"1" : "https://example.com/xmlrpc/sa/1",
-         "2" : "https://example.com/xmlrpc/sa/2"} # where do we get this information from?
+        base_url = 'https://example.com/xmlrpc'
+        endpoints = pm.getEndpoint('type', 'reg')
+        api_versions = {}
+        for key, endpoint in endpoints.iteritems():
+            api_versions[endpoint.get('version')] = base_url + endpoint.get('url')
+        return api_versions
             
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""

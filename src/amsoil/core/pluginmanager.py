@@ -89,6 +89,7 @@ class ServiceNameNotFoundInManifestError(PluginException):
 
 _pluginList = []
 _serviceRegistry = {}
+_endpointRegistry = {}
 _currentSetupPluginInfo = None # in order to avoid passing pluginInfos to the setup methods of plugins, we remember
 # a reference to the current pluginInfo during the plugin setup. If there is not setup method being called this variable should be None.
 # This is a pure convenience for the plugin-developer, so he does not have to pass the pluginInfo back to registerService
@@ -101,6 +102,12 @@ MULTIPROCESS_SUPPORTED_KEY="multi-process-supported"
 
 REQUIRES_KEY='requires'
 BOOTSTRAP_MODULE_NAME='plugin'
+
+NAME_KEY='name'
+DESCRIPTION_KEY='description'
+AUTHOR_KEY='author'
+AUTHOR_EMAIL_KEY='author-email'
+VERSION_KEY='version'
 
 class PluginInfo(object):
     """
@@ -118,12 +125,20 @@ class PluginInfo(object):
             self._serviceNames = manifest[IMPLEMENTS_KEY]
             self._loadsAfter = manifest[LOADS_AFTER_KEY]
             self._requires = manifest[REQUIRES_KEY]
+
+            self._additionalInfo = {
+                'name' : manifest[NAME_KEY],
+                'author-key' :  manifest[AUTHOR_KEY],
+                'author-email' :  manifest[AUTHOR_EMAIL_KEY],
+                'version' :  manifest[VERSION_KEY]
+            }
+
             if (MULTIPROCESS_SUPPORTED_KEY in manifest):
                 self._supports_multiprocess = manifest[MULTIPROCESS_SUPPORTED_KEY]
             else:
                 self._supports_multiprocess = True
         except KeyError, e:
-            raise PluginMalformedManifestError(path)
+            raise PluginMalformedManifestError(pluginPath)
             
         self._pluginModule = None
 
@@ -199,6 +214,10 @@ class PluginInfo(object):
     @property
     def pluginName(self):
         return os.path.basename(self._pluginPath)
+
+    @property
+    def additionalInfo(self):
+        return self._additionalInfo
 
 
 def init(pluginsPath):
@@ -286,4 +305,26 @@ def registerService(name, service):
     if (_currentSetupPluginInfo) and (not _currentSetupPluginInfo.implementsService(name)):
         raise ServiceNameNotFoundInManifestError(name)
     _serviceRegistry[name] = service
+
+def getAdditionalInfo(name):
+    """
+    Retrieve additional information for a named plugin.
+    """
+    for pluginInfo in _pluginList:
+        if name == pluginInfo.pluginName:
+            return pluginInfo.additionalInfo
+    return {}
+
+def getEndpoint(field, value):
+    endpoints = {}
+    if field == 'name':
+        endpoints[value] = _endpointRegistry[value]
+    else:
+        for name, endpoint in _endpointRegistry.iteritems():
+            if endpoint.get(str(field)) == str(value):
+                endpoints[name] = endpoint
+    return endpoints
+
+def registerEndpoint(name, _type, version, url):
+    _endpointRegistry[name] = {'type' : _type, 'version' : version, 'url' : url}
 

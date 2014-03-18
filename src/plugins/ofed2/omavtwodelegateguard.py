@@ -18,7 +18,6 @@ class OMAv2DelegateGuard(OMAv2Delegate):
     def lookup(self, _type, client_cert, credentials, field_filter, field_match, options):
         result = super(OMAv2DelegateGuard, self).lookup( _type, client_cert, credentials, field_filter, field_match, options)
         self._authorize_dict_list(client_cert, credentials, result, options)
-        print 'wrapping!'
         return result
     
     def _authorize_dict_list(self, client_cert, credentials, result, options):
