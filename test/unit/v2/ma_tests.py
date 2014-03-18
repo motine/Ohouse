@@ -37,14 +37,17 @@ class TestGMAv2(unittest.TestCase):
 
         self.assertIn('CREDENTIAL_TYPES', value)
         creds = value['CREDENTIAL_TYPES']
-        self.assertIsInstance(creds, dict)
+        self.assertIsInstance(creds, list)
         self.assertTrue(len(creds) > 0)
-        for ctype, cver in creds.iteritems():
-            self.assertIsInstance(ctype, str)
-            self.assertIn(type(cver), [list, str])
-            if isinstance(cver, list):
-                for cv in cver:
-                    self.assertIsInstance(cv, str)
+        for cred in creds:
+            self.assertIsInstance(cred['type'], str)
+            self.assertIsInstance(cred['version'], int)
+        # for ctype, cver in creds.iteritems():
+        #     self.assertIsInstance(ctype, str)
+        #     self.assertIn(type(cver), [list, str])
+        #     if isinstance(cver, list):
+        #         for cv in cver:
+        #             self.assertIsInstance(cv, str)
         
         if 'FIELDS' in value:
             self.assertIsInstance(value['FIELDS'], dict)
@@ -69,32 +72,31 @@ class TestGMAv2(unittest.TestCase):
     def test_lookup_public_member_info(self):
         req_fields = ["MEMBER_UID", "MEMBER_USERNAME"] # MEMBER_URN is implicit, since it is used to index the returned dict
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PUBLIC']
-        self._check_lookup("lookup_public_member_info", req_fields)
+        self._check_lookup("lookup", req_fields)
     
     def test_lookup_identifying_member_info(self):
         req_fields = ["MEMBER_FIRSTNAME", "MEMBER_LASTNAME", "MEMBER_EMAIL"]
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'IDENTIFYING']
-        self._check_lookup("lookup_identifying_member_info", req_fields, True)
+        self._check_lookup("lookup", req_fields, True)
     
     def test_lookup_private_member_info(self):
         req_fields = []
         req_fields += [fn for (fn, fv) in self.__class__.sup_fields.iteritems() if fv['PROTECT'] == 'PRIVATE']
-        self._check_lookup("lookup_private_member_info", req_fields, True)
+        self._check_lookup("lookup", req_fields, True)
     
     def test_filter_with_auth(self):
-        for meth in ["lookup_identifying_member_info", "lookup_private_member_info"]:
-            code, value, output = ma_call(meth, [self._credential_list("alice"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
-            self.assertEqual(code, 0)
-            code, value, output = ma_call(meth, [self._credential_list("malcom"), {}])
-            self.assertIn(code, [1,2])
-            code, value, output = ma_call(meth, [self._credential_list("malcom"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
-            self.assertIn(code, [1,2])
+        code, value, output = ma_call('lookup', ['MEMBER', self._credential_list("alice"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+        self.assertEqual(code, 0)       
+        code, value, output = ma_call('lookup', ['MEMBER', self._credential_list("malcom"), {}])
+        self.assertIn(code, [1,2])
+        code, value, output = ma_call('lookup', ['MEMBER', self._credential_list("malcom"), {"match" : {"MEMBER_URN" : "urn:publicid:IDN+test:fp7-ofelia:eu+user+alice"}}])
+        self.assertIn(code, [1,2])
 
     def _check_lookup(self, method_name, required_fields, use_creds=False):
         if use_creds:
-            code, value, output = ma_call(method_name, [self._credential_list("admin"), {}], user_name="admin")
+            code, value, output = ma_call(method_name, ['MEMBER', self._credential_list("admin"), {}], user_name="admin")
         else:
-            code, value, output = ma_call(method_name, [{}], user_name="admin")
+            code, value, output = ma_call(method_name, ['MEMBER', {}, {}], user_name="admin")
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, dict)
         for member_urn, member_info in value.iteritems():
@@ -105,9 +107,11 @@ class TestGMAv2(unittest.TestCase):
             warn("No member info to test with (returned no records by %s)." % (method_name,))
         # test match
         if len(value) > 0:
-            params = [{'match' : {"MEMBER_URN" : value.keys()[0]}}]
+            params = ['MEMBER', {}, {'match' : {"MEMBER_URN" : value.keys()[0]}}]
             if use_creds:
-                params.insert(0, self._credential_list("admin"))
+                params = ['MEMBER', self._credential_list("admin"), {'match' : {"MEMBER_URN" : value.keys()[0]}}]
+            else:
+                params = ['MEMBER', {}, {'match' : {"MEMBER_URN" : value.keys()[0]}}]
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue.keys()[0], str)
@@ -116,9 +120,12 @@ class TestGMAv2(unittest.TestCase):
         # test filter
         if len(value) > 0:
             filter_key = value.values()[0].keys()[0]
-            params = [{'filter' : [filter_key]}] # take any field which was sent before
+             # take any field which was sent before
             if use_creds:
-                params.insert(0, self._credential_list("admin"))
+                params = ['MEMBER', self._credential_list("admin"), {'filter' : [filter_key]}]
+            else:
+                params = ['MEMBER', {}, {'filter' : [filter_key]}]
+                
             fcode, fvalue, foutput = ma_call(method_name, params, user_name="admin")
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, dict)

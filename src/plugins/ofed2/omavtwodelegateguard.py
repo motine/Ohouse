@@ -15,14 +15,10 @@ class OMAv2DelegateGuard(OMAv2Delegate):
     # no authentication, hence no overwrite
     # def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
 
-    def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        result = super(OMAv2DelegateGuard, self).lookup_identifying_member_info(client_cert, credentials, field_filter, field_match, options)
+    def lookup(self, _type, client_cert, credentials, field_filter, field_match, options):
+        result = super(OMAv2DelegateGuard, self).lookup( _type, client_cert, credentials, field_filter, field_match, options)
         self._authorize_dict_list(client_cert, credentials, result, options)
-        return result
-
-    def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        result = super(OMAv2DelegateGuard, self).lookup_private_member_info(client_cert, credentials, field_filter, field_match, options)
-        self._authorize_dict_list(client_cert, credentials, result, options)
+        print 'wrapping!'
         return result
     
     def _authorize_dict_list(self, client_cert, credentials, result, options):

@@ -34,7 +34,7 @@ class TestGRegistryv2(unittest.TestCase):
             warn("No supplementary fields to test with.")
 
     def test_get_trust_roots(self):
-        code, value, output = reg_call('get_trust_roots', [])
+        code, value, output = reg_call('get_trust_roots')
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         if len(value) == 0:
@@ -46,9 +46,9 @@ class TestGRegistryv2(unittest.TestCase):
         # slice, user, sliver, project
         
         # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
-        _, aggs, _ = reg_call('lookup', ['AGGREGATE_MANAGER', [{}]])
-        _, mas, _ = reg_call('lookup', ['MEMBER_AUTHORITY', [{}]])
-        _, sas, _ = reg_call('lookup', ['SLICE_AUTHORITY', [{}]])
+        _, aggs, _ = reg_call('lookup', ['AGGREGATE_MANAGER', {}])
+        _, mas, _ = reg_call('lookup', ['MEMBER_AUTHORITY', {}])
+        _, sas, _ = reg_call('lookup', ['SLICE_AUTHORITY', {}])
         
         mappings = {} # contains {test_urn_to_send : service_url, ... }
         if (len(aggs) == 0):
@@ -76,7 +76,7 @@ class TestGRegistryv2(unittest.TestCase):
         self._check_a_listing('lookup', 'SLICE_AUTHORITY', 'slice authority')
 
     def _check_a_listing(self, method_name, _type, entity_name):
-        code, value, output = reg_call(method_name, [_type, [{}]])
+        code, value, output = reg_call(method_name, [_type, {}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -87,13 +87,13 @@ class TestGRegistryv2(unittest.TestCase):
         if len(value) == 0:
             warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name,  [_type, [{'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}]])
+            fcode, fvalue, foutput = reg_call(method_name,  [_type, {'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name, [_type, [{'filter' : ['SERVICE_URL']}]])
+            fcode, fvalue, foutput = reg_call(method_name, [_type, {'filter' : ['SERVICE_URL']}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)

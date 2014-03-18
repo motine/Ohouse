@@ -10,8 +10,7 @@ VERSION = '1'
 class ORegistryv1Delegate(GRegistryv1DelegateBase):
     def get_version(self, client_cert):
         regrm = pm.getService('oregistryrm')
-        fields = dict( (name.upper(), {"TYPE" : typ.upper()}) for (name, typ) in regrm.supplementary_fields().iteritems()) # convert the fields to the correct format
-        return VERSION, fields
+        return VERSION, regrm.supplementary_fields()
 
     def lookup_aggregates(self, client_cert, field_filter, field_match, options):
         regrm = pm.getService('oregistryrm')

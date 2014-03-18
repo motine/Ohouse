@@ -1,6 +1,15 @@
 import traceback
+import ast
 from exceptions import *
 
+# --- fetch filter and match fields from options
+def fetch_match_and_filter(options):
+    field_match = field_filter = None
+    if 'match' in options:
+        field_match = options.get('match')
+    elif 'filter' in options:
+        field_filter = options.get('filter')
+    return field_match, field_filter
 
 # --- deal with the GENI CH API returns
 def form_error_return(logger, e):
@@ -27,7 +36,7 @@ def match_and_filter_and_to_dict(list_of_dicts, key_field, field_filter, field_m
     if field_filter and not key_field in field_filter:
         field_filter += [key_field]
     matched_and_filtered = match_and_filter(list_of_dicts, field_filter, field_match)
-    
+
     for d in matched_and_filtered:
         if not key_field in d:
             raise ValueError("Can not convert to dict because the key_field name (%s) is not in the dictionary (%s)" % (key_field, d))

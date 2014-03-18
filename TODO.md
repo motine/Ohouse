@@ -33,6 +33,7 @@
 * Add methods for adding users
 * Add registry endpoints and put in RPC
 * Expose the manifest plugin
+* Update SA defaults to include UPDATE boolean field
 
 **MA delegate**
 

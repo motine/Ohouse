@@ -25,76 +25,59 @@ class GMAv2Handler(xmlrpc.Dispatcher):
         return self._delegate
 
     def get_version(self):
-        """Delegates the call and unwraps the needed parameter."""
         try:
-            version, add_services, credential_types, fields = self._delegate.get_version(self.requestCertificate())
+            version, urn, implementation, services, credential_types, api_versions, fields = self._delegate.get_version()
             result = {}
             result['VERSION'] = version
+            result['URN'] = urn
+            if implementation:
+                result['IMPLEMENTATION'] = implementation
+            if services:
+                result['SERVICES'] = services
             result['CREDENTIAL_TYPES'] = credential_types
-            result['SERVICES'] = ['MEMBER'] + add_services
+            result['API_VERSIONS'] = api_versions
             if fields:
                 result["FIELDS"] = fields
         except Exception as e:
             return gapitools.form_error_return(logger, e)
         return gapitools.form_success_return(result)
 
+    def create(self, _type, credentials, options):
+        try:
+            result = self._delegate.create(_type, self.requestCertificate(), options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
+    def update(self, _type, urn, credentials, options):
+        try:
+            result = self._delegate.update(_type, self.requestCertificate(), options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
+    def delete(self, _type, urn, credentials, options):
+        try:
+            result = self._delegate.delete(_type, self.requestCertificate(), options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
+    def lookup(self, _type, credentials, options):
+        try:
+            field_match, field_filter = gapitools.fetch_match_and_filter(options)
+            print field_match
+            result = self._delegate.lookup(_type, self.requestCertificate(), credentials, field_match, field_filter, options)
+        except Exception as e:
+            return gapitools.form_error_return(logger, e)
+        return gapitools.form_success_return(result)
+
     # ---- Member Service Methods
-    def lookup_public_member_info(self, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_public_member_info(self.requestCertificate(), field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
-
-    def lookup_identifying_member_info(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_identifying_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
-
-    def lookup_private_member_info(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_private_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
-
-    def update_member_info(self, member_urn, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet")
     def get_credentials(self, member_urn, credentials, options):
         """Delegates the call and unwraps the needed parameter."""
         raise GFedv2NotImplementedError("Method not implemented yet") 
 
-    # ---- Key Service Methods
-    def create_key(self, member_urn, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
-
-    def delete_key(self, member_urn, key_id, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
-
-    def update_key(self, member_urn, key_id, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
-
-    def lookup_keys(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
     
-
-
 
 class GMAv2DelegateBase(object):
     """
@@ -106,93 +89,118 @@ class GMAv2DelegateBase(object):
         super(GMAv2DelegateBase, self).__init__()
     
     # ---- General methods
-    
-    def get_version(self, client_cert):
+    def get_version(self):
         """
-        Return information about version and options (filter, query, credential types) accepted by this member authority
-        NB: This is an unprotected call, no client cert required.
-        
-        This method shall return (in this order)
-        - a version string (e.g. "1.0.3")
-        - a list of additional services (additional to 'MEMBER') provided by the MA e.g. [] or ['KEY']
-        - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
-        - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        Return information about version and options 
+          (e.g. filter, query, credential types) accepted by this service
+
+        Arguments: None
+
+        Return:
+            get_version structure information as described above
         """
         raise GFedv2NotImplementedError("Method not implemented")
 
-    # ---- Member Service Methods
-    MEMBER_DEFAULT_FIELDS = {
-        "MEMBER_URN" : {
-            "TYPE"    : "URN",
-            "DESC"    : "URN of given member",
-            "MATCH"	  : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_UID" : {
-            "TYPE"    : "UID",
-            "DESC"    : "UID (unique within authority) of member",
-            "MATCH"	  : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_FIRSTNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "First name of member",
-            "MATCH"	  : True,
-            "PROTECT" : "IDENTIFYING"},
-        "MEMBER_LASTNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Last name of member",
-            "MATCH"	  : True,
-            "PROTECT" : "IDENTIFYING"},
-        "MEMBER_USERNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Username of user",
-            "MATCH"   : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_EMAIL" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Email of user",
-            "MATCH"   : False,
-            "PROTECT" : "IDENTIFYING"}}
-    
-    def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
+    def create(self, _type, credentials, options):
         """
-        Lookup public information about members matching given criteria.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
+        Creates a new instance of the given object with a 'fields' option 
+        specifying particular field values that are to be associated with the object. 
+        These may only include those fields specified as 'ALLOWED or 'REQUIRED' 
+        in the 'Creation' column of the object descriptions below 
+        or in the 'CREATE' key in the supplemental fields in the 
+        get_version specification for that object. 
+        If successful, the call returns a dictionary of the fields 
+        associated with the newly created object.
 
-    def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup identifying (e.g. name, email) info about matching members Arguments:
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
 
-    def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def update_member_info(self, client_cert, member_urn, credentials, update_dict, options):
-        """
-        Update information about given member public, private or identifying information
         Arguments:
-          member_urn: URN of member for whom to set information
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+
+           type : type of object to be created
+          options: 
+              'fields', a dictionary field/value pairs for object to be created
+
+        Return:
+          Dictionary of object-type specific field/value pairs for created object 
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def update(self, _type, urn, credentials, options):
+        """
+        Updates an object instance specified by URN with a 'fields' option 
+         specifying the particular fields to update. 
+        Only a single object can be updated from a single update call. 
+        The fields may include those specified as 'Yes' in the 'Update' column 
+        of the object descriptions below, or 'TRUE' in the 'UPDATE' key in the 
+        supplemental fields provided by the get_version call. 
+        Note: There may be more than one entity of a given URN at an authority, 
+        but only one 'live' one (any other is archived and cannot be updated).
+        
+        Arguments:
+          type: type of object to be updated
+          urn: URN of object to update
+            (Note: this may be a non-URN-formatted unique identifier e.g. in the case of keys)
+          options: Contains 'fields' key referring dictionary of 
+               name/value pairs to update
+        
+        Return: None
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def delete(self, _type, urn, credentials, options):
+        """
+        Deletes an object instance specified by URN 
+        Only a single object can be deleted from a single delete call. 
+        Note: not all objects can be deleted. In general, it is a matter
+            of authority policy.
+
+        Arguments:
+          type: type of object to be deleted
+          urn: URN of object to delete
+            (Note: this may be a non-URN-formatted unique identifier e.g. in the case of keys)
+
+        Return: None
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def lookup(self, _type, credentials, options):
+        """
+        Lookup requested details for objects matching 'match' options. 
+        This call takes a set of 'match' criteria provided in the 'options' field, 
+        and returns a dictionary of dictionaries of object attributes 
+        keyed by object URN matching these criteria. 
+        If a 'filter' option is provided, only those attributes listed in the 'filter' 
+        options are returned. 
+        The requirements on match criteria supported by a given service 
+        are service-specific; however it is recommended that policies 
+        restrict lookup calls to requests that are bounded 
+        to particular sets of explicitly listed objects (and not open-ended queries).
+
+        See additional details on the lookup method in the document section below.
+
+
+        Arguments:
+           type: type of objects for which details are being requested
+           options: What details to provide (filter options) 
+                   for which objects (match options)
+
+        Return: List of dictionaries (indexed by object URN) with field/value pairs 
+          for each returned object
         """
         raise GFedv2NotImplementedError("Method not implemented")
 
     def get_credentials(self, client_cert, member_urn, credentials, options):
         """
         Provide list of credentials (signed statements) for given member
-        This is member-specific information suitable for passing as credentials in an AM API call for aggregate authorization.
+        This is member-specific information suitable for passing as credentials in 
+         an AM API call for aggregate authorization.
         Arguments:
-          member_urn: URN of member for which to retrieve credentials
-          options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
-        Return: List of credentials in "CREDENTIAL_LIST" format, i.e. a list of credentials with type information suitable for passing to aggregates speaking AM API V3.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+           member_urn: URN of member for which to retrieve credentials
+           options: Potentially contains 'speaking_for' key indicating a speaks-for 
+               invocation (with certificate of the accountable member in the credentials argument)
+
+        Return:
+            List of credential in 'CREDENTIALS' format, i.e. a list of credentials with 
+               type information suitable for passing to aggregates speaking AM API V3.
         """
         raise GFedv2NotImplementedError("Method not implemented")
     
@@ -228,58 +236,6 @@ class GMAv2DelegateBase(object):
             "MATCH"	  : True,
             "CREATE"  : "ALLOWED",
             "UPDATE"  : True }}
-    
-    def create_key(self, client_cert, member_urn, credentials, create_dict, options):
-        """
-        Create a record for a key pair for given member
-        Arguments:
-          member_urn: URN of member for which to retrieve credentials
-          options: 'fields' containing the fields for the key pair being stored
-        Return:
-          Dictionary of name/value pairs for created key record including the KEY_ID
-
-          Should return DUPLICATE_ERROR if a key with the same KEY_ID is already stored for given user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def delete_key(self, client_cert, member_urn, key_id, credentials, options):
-        """
-        Delete a key pair for given member
-        Arguments:
-          member_urn: urn of member for which to delete key pair
-          key_id: KEY_ID (fingerprint) of key pair to be deleted
-        Return:
-          True if succeeded
-        Should return ARGUMENT_ERROR if no such key is found for user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def update_key(self, client_cert, member_urn, key_id, credentials, update_dict, options):
-        """
-        Update the details of a key pair for given member
-        Arguments:
-          member_urn: urn of member for which to delete key pair
-          key_id: KEY_ID (fingerprint) of key pair to be deleted
-          options: 'fields' containing fields for key pairs that are permitted for update
-        Return:
-          True if succeeded
-        Should return ARGUMENT_ERROR if no such key is found for user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def lookup_keys(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup keys for given match criteria return fields in given filter criteria
-        Arguments:
-          options: 'match' for query match criteria, 'filter' for fields to be returned
-        Return:
-          Dictionary (indexed by member_urn) of dictionaries containing name/value pairs for all keys registered for that given user.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
     
     # ---- helper methods
     def _match_and_filter_and_to_dict(self, list_of_dicts, key_field, field_filter, field_match):

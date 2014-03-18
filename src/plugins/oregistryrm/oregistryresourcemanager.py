@@ -49,7 +49,7 @@ class ORegistryResourceManager(object):
         return None
 
     def services(self):
-        return 'SERVICE'
+        return ['SERVICE']
 
     def service_types(self):
         service_types = set()
@@ -63,7 +63,7 @@ class ORegistryResourceManager(object):
             
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""
-        return oregistryutil.CONFIG["registry"]["supplementary_fields"]
+        return dict( (name.upper(), {"TYPE" : typ.upper()}) for (name, typ) in oregistryutil.CONFIG["registry"]["supplementary_fields"].iteritems()) 
         
     def all_aggregates(self):
         return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])

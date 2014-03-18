@@ -47,12 +47,7 @@ class GRegistryv2Handler(xmlrpc.Dispatcher):
 
     def lookup(self, _type, options):
         try:
-            field_match = field_filter = None
-            for option in options:
-                if 'filter' in option:
-                    field_filter = option.get('filter')
-                elif 'match' in option:
-                    field_match = option.get('match')
+            field_match, field_filter = gapitools.fetch_match_and_filter(options)
             result = self._delegate.lookup(_type, self.requestCertificate(), field_filter, field_match, options)
         except Exception as e:
             return gapitools.form_error_return(logger, e)

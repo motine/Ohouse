@@ -15,7 +15,7 @@ class GSAv2Handler(xmlrpc.Dispatcher):
         super(GSAv2Handler, self).__init__(logger)
         self._delegate = None
     
-    # ---- General methods
+    # ---- General Methods
     @serviceinterface
     def setDelegate(self, adelegate):
         self._delegate = adelegate
@@ -25,76 +25,33 @@ class GSAv2Handler(xmlrpc.Dispatcher):
         return self._delegate
 
     def get_version(self):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            version, add_services, credential_types, fields = self._delegate.get_version(self.requestCertificate())
-            result = {}
-            result['VERSION'] = version
-            result['CREDENTIAL_TYPES'] = credential_types
-            result['SERVICES'] = ['MEMBER'] + add_services
-            if fields:
-                result["FIELDS"] = fields
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
+        pass
 
-    # ---- Member Service Methods
-    def lookup_public_member_info(self, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_public_member_info(self.requestCertificate(), field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
+    def create(self, _type, credentials, options):
+        pass
 
-    def lookup_identifying_member_info(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_identifying_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
+    def update(self, _type, urn, credentials, options):
+        pass
 
-    def lookup_private_member_info(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        try:
-            field_filter = options.pop('filter') if ('filter' in options) else None
-            field_match = options.pop('match') if ('match' in options) else None
-            result = self._delegate.lookup_private_member_info(self.requestCertificate(), credentials, field_filter, field_match, options)
-        except Exception as e:
-            return gapitools.form_error_return(logger, e)
-        return gapitools.form_success_return(result)
+    def delete(self, _type, urn, credentials, options):
+        pass
 
-    def update_member_info(self, member_urn, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet")
-    def get_credentials(self, member_urn, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
+    def lookup (self, _type, credentials, options):
+        pass
 
-    # ---- Key Service Methods
-    def create_key(self, member_urn, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
+    # ---- Slice Service Methods
+    def get_credentials(self, slice_urn, credentials, options):
+        pass
 
-    def delete_key(self, member_urn, key_id, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
-
-    def update_key(self, member_urn, key_id, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
-
-    def lookup_keys(self, credentials, options):
-        """Delegates the call and unwraps the needed parameter."""
-        raise GFedv2NotImplementedError("Method not implemented yet") 
+    # ---- Slice Member Service Methods and Project Member Service Methods
+    def modify_membership(self, _type, urn, credentials, options):
+        pass
     
+    def lookup_members(self, _type, urn, credentials, options):
+        pass
 
-
+    def lookup_for_member(self, _type, member_urn, credentials, options):
+        pass
 
 class GSAv2DelegateBase(object):
     """
@@ -106,181 +63,312 @@ class GSAv2DelegateBase(object):
         super(GSAv2DelegateBase, self).__init__()
     
     # ---- General methods
-    
-    def get_version(self, client_cert):
+    def get_version(self):
         """
-        Return information about version and options (filter, query, credential types) accepted by this member authority
-        NB: This is an unprotected call, no client cert required.
+        Return information about version and options 
+          (e.g. filter, query, credential types) accepted by this service
+
+        Arguments: None
+
+        Return:
+            get_version structure information as described above
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def create(self, _type, credentials, options):
+        """
+        Creates a new instance of the given object with a 'fields' option 
+        specifying particular field values that are to be associated with the object. 
+        These may only include those fields specified as 'ALLOWED or 'REQUIRED' 
+        in the 'Creation' column of the object descriptions below 
+        or in the 'CREATE' key in the supplemental fields in the 
+        get_version specification for that object. 
+        If successful, the call returns a dictionary of the fields 
+        associated with the newly created object.
+
+
+        Arguments:
+
+           type : type of object to be created
+          options: 
+              'fields', a dictionary field/value pairs for object to be created
+
+        Return:
+          Dictionary of object-type specific field/value pairs for created object 
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def update(self, _type, urn, credentials, options):
+        """
+        Updates an object instance specified by URN with a 'fields' option 
+         specifying the particular fields to update. 
+        Only a single object can be updated from a single update call. 
+        The fields may include those specified as 'Yes' in the 'Update' column 
+        of the object descriptions below, or 'TRUE' in the 'UPDATE' key in the 
+        supplemental fields provided by the get_version call. 
+        Note: There may be more than one entity of a given URN at an authority, 
+        but only one 'live' one (any other is archived and cannot be updated).
         
-        This method shall return (in this order)
-        - a version string (e.g. "1.0.3")
-        - a list of additional services (additional to 'MEMBER') provided by the MA e.g. [] or ['KEY']
-        - accepted credential types (e.g. "CREDENTIAL_TYPES": {"SFA": "1"}, "ABAC" : ["1", "2"]})
-        - None or a dictionary of custom fields (e.g. {"TYPE" : "URN"}, for more info and available types, please see the API spec (http://groups.geni.net/geni/wiki/UniformClearinghouseAPI#APIget_versionmethods))
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
+        Arguments:
+          type: type of object to be updated
+          urn: URN of object to update
+            (Note: this may be a non-URN-formatted unique identifier e.g. in the case of keys)
+          options: Contains 'fields' key referring dictionary of 
+               name/value pairs to update
+        
+        Return: None
         """
         raise GFedv2NotImplementedError("Method not implemented")
 
-    # ---- Member Service Methods
-    MEMBER_DEFAULT_FIELDS = {
-        "MEMBER_URN" : {
+    def delete(self, _type, urn, credentials, options):
+        """
+        Deletes an object instance specified by URN 
+        Only a single object can be deleted from a single delete call. 
+        Note: not all objects can be deleted. In general, it is a matter
+            of authority policy.
+
+        Arguments:
+          type: type of object to be deleted
+          urn: URN of object to delete
+            (Note: this may be a non-URN-formatted unique identifier e.g. in the case of keys)
+
+        Return: None
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    def lookup(self, _type, credentials, options):
+        """
+        Lookup requested details for objects matching 'match' options. 
+        This call takes a set of 'match' criteria provided in the 'options' field, 
+        and returns a dictionary of dictionaries of object attributes 
+        keyed by object URN matching these criteria. 
+        If a 'filter' option is provided, only those attributes listed in the 'filter' 
+        options are returned. 
+        The requirements on match criteria supported by a given service 
+        are service-specific; however it is recommended that policies 
+        restrict lookup calls to requests that are bounded 
+        to particular sets of explicitly listed objects (and not open-ended queries).
+
+        See additional details on the lookup method in the document section below.
+
+
+        Arguments:
+           type: type of objects for which details are being requested
+           options: What details to provide (filter options) 
+                   for which objects (match options)
+
+        Return: List of dictionaries (indexed by object URN) with field/value pairs 
+          for each returned object
+        """
+        raise GFedv2NotImplementedError("Method not implemented")
+
+    # ---- Slice Service Methods
+    SLICE_DEFAULT_FIELDS = {
+        "SLICE_URN" : {
             "TYPE"    : "URN",
-            "DESC"    : "URN of given member",
-            "MATCH"	  : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_UID" : {
-            "TYPE"    : "UID",
-            "DESC"    : "UID (unique within authority) of member",
-            "MATCH"	  : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_FIRSTNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "First name of member",
-            "MATCH"	  : True,
-            "PROTECT" : "IDENTIFYING"},
-        "MEMBER_LASTNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Last name of member",
-            "MATCH"	  : True,
-            "PROTECT" : "IDENTIFYING"},
-        "MEMBER_USERNAME" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Username of user",
+            "DESC"    : "URN of given slice",
             "MATCH"   : True,
-            "PROTECT" : "PUBLIC"},
-        "MEMBER_EMAIL" : {
-            "TYPE"    : "STRING",
-            "DESC"    : "Email of user",
+            "UPDATE"  : False },
+        "SLICE_UID" : {
+            "TYPE"    : "UID",
+            "DESC"    : "UID (unique within authority) of slice",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "SLICE_CREATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Creation time of slice",
+            "MATCH"   : False},
+        "SLICE_EXPIRATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Expiration time of slice",
             "MATCH"   : False,
-            "PROTECT" : "IDENTIFYING"}}
-    
-    def lookup_public_member_info(self, client_cert, field_filter, field_match, options):
-        """
-        Lookup public information about members matching given criteria.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def lookup_identifying_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup identifying (e.g. name, email) info about matching members Arguments:
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def lookup_private_member_info(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup private (SSL/SSH key) information about members matching given criteria Arguments:
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def update_member_info(self, client_cert, member_urn, credentials, update_dict, options):
-        """
-        Update information about given member public, private or identifying information
-        Arguments:
-          member_urn: URN of member for whom to set information
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def get_credentials(self, client_cert, member_urn, credentials, options):
-        """
-        Provide list of credentials (signed statements) for given member
-        This is member-specific information suitable for passing as credentials in an AM API call for aggregate authorization.
-        Arguments:
-          member_urn: URN of member for which to retrieve credentials
-          options: Potentially contains 'speaking-for' key indicating a speaks-for invocation (with certificate of the accountable member in the credentials argument)
-        Return: List of credentials in "CREDENTIAL_LIST" format, i.e. a list of credentials with type information suitable for passing to aggregates speaking AM API V3.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-    
-    # ---- Key Service Methods
-    KEY_DEFAULT_FIELDS = {
-        "KEY_MEMBER" : {
+            "UPDATE"  : True },
+        "SLICE_EXPIRED" : {
+            "TYPE"    : "BOOLEAN",
+            "DESC"    : "Whether slice has expired",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "SLICE_NAME" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Short name of Slice",
+            "MATCH"   : False,
+            "UPDATE"  : False },
+        "SLICE_DESCRIPTION" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Description of Slice",
+            "MATCH"   : False,
+            "UPDATE"  : True },
+        "SLICE_PROJECT_URN" : {
             "TYPE"    : "URN",
-            "DESC"    : "URN of member associated with key pair",
-            "MATCH"	  : True,
-            "CREATE"  : "REQUIRED",
+            "DESC"    : "URN of project to which slice is associated (if SA supports project)",
+            "MATCH"   : True,
+            "UPDATE"  : False }}
+
+    def get_credentials(slice_urn, credentials, options):
+        """
+        Provide list of credentials for the caller relative to the given slice. 
+        If the invocation is in a speaks-for context, the credentials will be for the 
+        'spoken-for' member, not the invoking tool.
+
+        For example, this call may return a standard SFA Slice Credential and some 
+        ABAC credentials indicating the role of the member with respect to the slice.
+
+        Note: When creating an SFA-style Slice Credential, the following roles 
+        typically allow users to operate at known GENI-compatible 
+        aggregates: "*" (asterisk)  or the list of "refresh", "embed", 
+           "bind", "control" "info".
+
+        Arguments:
+          slice_urn: URN of slice for which to get member's credentials
+          options: Potentially contains 'speaking_for' key indicating a speaks-for 
+             invocation (with certificate of the accountable member 
+             in the credentials argument)
+
+        Return:
+          List of credential in 'CREDENTIALS' format, i.e. a list of credentials with 
+        type information suitable for passing to aggregates speaking AM API V3.
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+     # ---- Slice Member Service Methods and Project Member Service Methods
+
+    def modify_membership(self, _type, urn, credentials, options):
+        """
+        Modify object membership, adding, removing and changing roles of members 
+           with respect to given object
+
+        Arguments:
+          type: type of object for whom to lookup membership (
+              in the case of Slice Member Service, "SLICE", 
+              in the case of Project Member Service, "PROJECT")
+          urn: URN of slice/project for which to modify membership
+          Options:
+              members_to_add: List of member_urn/role tuples for members to add to 
+                     slice/project of form 
+                        {'SLICE_MEMBER' : member_urn, 'SLICE_ROLE' : role} 
+                           (or 'PROJECT_MEMBER/PROJECT_ROLE 
+                           for Project Member Service)
+              members_to_remove: List of member_urn of members to 
+                       remove from slice/project
+              members_to_change: List of member_urn/role tuples for 
+                        members whose role 
+                       should change as specified for given slice/project of form 
+                       {'SLICE_MEMBER' : member_urn, 'SLICE_ROLE' : role} 
+                       (or 'PROJECT_MEMBER/PROJECT_ROLE for Project Member Service)
+
+        Return:
+          None
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    def lookup_members(self, _type, urn, credentials, options):
+        """
+        Lookup members of given object and their roles within that object
+        
+        Arguments:
+          type: type of object for whom to lookup membership 
+                 (in the case of Slice Member Service, "SLICE", 
+                  in the case of Project Member Service, "PROJECT")
+          urn: URN of object for which to provide current members and roles
+        
+        Return:
+           List of dictionaries of member_urn/role pairs 
+              [{'SLICE_MEMBER': member_urn, 
+               'SLICE_ROLE': role }...] 
+                (or PROJECT_MEMBER/PROJECT_ROLE 
+                 for Project Member Service) 
+                 where 'role' is a string of the role name. 
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    def lookup_for_member(self, _type, member_urn, credentials, options):
+        """
+        Lookup objects of given type for which the given member belongs
+
+        Arguments:
+          Member_urn: The member for whom to find slices to which it belongs
+
+        Return:
+           List of dictionary of urn/role pairs 
+               [('SLICE_URN' : slice_urn, 'SLICE_ROLE' : role} ...] 
+               (or PROJECT_MEMBER/PROJECT_ROLE 
+                  for Project Member Service) 
+               for each object to which a member belongs, 
+               where role is a string of the role name
+        """
+        raise GFedv1NotImplementedError("Method not implemented")
+
+    # ---- Sliver Info Methods
+    SLIVER_INFO_DEFAULT_FIELDS = {
+        "SLIVER_INFO_SLICE_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of slice for registered sliver",
+            "MATCH"   : True,
             "UPDATE"  : False },
-        "KEY_ID" : {
+        "SLIVER_INFO_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of registered sliver",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "SLIVER_INFO_AGGREGATE_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of aggregate of registered sliver",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "SLIVER_CREATOR_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of member/tool that created the registered sliver  ",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "SLIVER_INFO_EXPIRATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Time of sliver expiration",
+            "MATCH"   : False,
+            "UPDATE"  : True },
+        "SLIVER_INFO_CREATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Time of sliver expiration",
+            "MATCH"   : False,
+            "UPDATE"  : False }}
+
+    # ---- Project Service Methods
+    PROJECT_DEFAULT_FIELDS = {
+        "PROJECT_URN" : {
+            "TYPE"    : "URN",
+            "DESC"    : "URN of given project",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "PROJECT_UID" : {
+            "TYPE"    : "UID",
+            "DESC"    : "UID (unique within authority) of project",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "PROJECT_CREATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Creation time of project",
+            "MATCH"   : False,
+            "UPDATE"  : False },
+        "PROJECT_EXPIRATION" : {
+            "TYPE"    : "DATETIME",
+            "DESC"    : "Expiration time of project",
+            "MATCH"   : False,
+            "UPDATE"  : True },
+        "PROJECT_EXPIRED" : {
+            "TYPE"    : "BOOLEAN",
+            "DESC"    : "Whether project has expired",
+            "MATCH"   : True,
+            "UPDATE"  : False },
+        "PROJECT_NAME" : {
             "TYPE"    : "STRING",
-            "DESC"    : "Unique identifier of key: typically a fingerprint or hash of public key",
-            "MATCH"	  : True,
-            "CREATE"  : "REQUIRED",
+            "DESC"    : "Short name of Project",
+            "MATCH"   : False,
             "UPDATE"  : False },
-        "KEY_PUBLIC" : {
-            "TYPE"    : "KEY",
-            "DESC"    : "Public key value",
-            "MATCH"	  : True,
-            "CREATE"  : "REQUIRED",
-            "UPDATE"  : False },
-        "KEY_PRIVATE" : {
-            "TYPE"    : "KEY",
-            "DESC"    : "Private key value",
-            "MATCH"	  : True,
-            "CREATE"  : "ALLOWED",
-            "UPDATE"  : False },
-        "KEY_DESCRIPTION" : {
+        "PROJECT_DESCRIPTION" : {
             "TYPE"    : "STRING",
-            "DESC"    : "Human readable description of key pair",
-            "MATCH"	  : True,
-            "CREATE"  : "ALLOWED",
+            "DESC"    : "Description of Project",
+            "MATCH"   : False,
             "UPDATE"  : True }}
-    
-    def create_key(self, client_cert, member_urn, credentials, create_dict, options):
-        """
-        Create a record for a key pair for given member
-        Arguments:
-          member_urn: URN of member for which to retrieve credentials
-          options: 'fields' containing the fields for the key pair being stored
-        Return:
-          Dictionary of name/value pairs for created key record including the KEY_ID
 
-          Should return DUPLICATE_ERROR if a key with the same KEY_ID is already stored for given user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def delete_key(self, client_cert, member_urn, key_id, credentials, options):
-        """
-        Delete a key pair for given member
-        Arguments:
-          member_urn: urn of member for which to delete key pair
-          key_id: KEY_ID (fingerprint) of key pair to be deleted
-        Return:
-          True if succeeded
-        Should return ARGUMENT_ERROR if no such key is found for user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def update_key(self, client_cert, member_urn, key_id, credentials, update_dict, options):
-        """
-        Update the details of a key pair for given member
-        Arguments:
-          member_urn: urn of member for which to delete key pair
-          key_id: KEY_ID (fingerprint) of key pair to be deleted
-          options: 'fields' containing fields for key pairs that are permitted for update
-        Return:
-          True if succeeded
-        Should return ARGUMENT_ERROR if no such key is found for user
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-
-    def lookup_keys(self, client_cert, credentials, field_filter, field_match, options):
-        """
-        Lookup keys for given match criteria return fields in given filter criteria
-        Arguments:
-          options: 'match' for query match criteria, 'filter' for fields to be returned
-        Return:
-          Dictionary (indexed by member_urn) of dictionaries containing name/value pairs for all keys registered for that given user.
-        More info see: http://groups.geni.net/geni/wiki/UniformClearinghouseAPI
-        """
-        raise GFedv2NotImplementedError("Method not implemented")
-    
     # ---- helper methods
     def _match_and_filter_and_to_dict(self, list_of_dicts, key_field, field_filter, field_match):
         """see documentation in gapitools"""
