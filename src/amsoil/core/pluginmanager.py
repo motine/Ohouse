@@ -316,6 +316,11 @@ def getAdditionalInfo(name):
     return {}
 
 def getEndpoint(field, value):
+    """
+    Get all endpoints matching a specific field and value. 
+
+    For example getEndpoint(field='type', value='ma') will return all endpoints of type Member Authority
+    """
     endpoints = {}
     if field == 'name':
         endpoints[value] = _endpointRegistry[value]
@@ -326,5 +331,8 @@ def getEndpoint(field, value):
     return endpoints
 
 def registerEndpoint(name, _type, version, url):
+    """
+    Register a new endpoint under a given name. 
+    """
     _endpointRegistry[name] = {'type' : _type, 'version' : version, 'url' : url}
 

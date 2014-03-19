@@ -41,10 +41,9 @@ class ORegistryResourceManager(object):
             self._check_raise(type(tr) in [str, unicode], "All 'trust_roots' entries should be strings.")   
 
     def urn(self):
-        try:
-            return oregistryutil.CONFIG["registry"]["urn"]
-        except:
-            return None
+        config = pm.getService('config')
+        hostname = config.get('flask.hostname')
+        return 'urn:publicid:IDN+' + hostname + '+authority+fr'
 
     def implementation(self):
         additional_info = pm.getAdditionalInfo('oregistryrm')
@@ -58,17 +57,16 @@ class ORegistryResourceManager(object):
 
     def service_types(self):
         service_types = set()
-        for e in oregistryutil.CONFIG["registry"]["services"]:
+        for e in oregistryutil.CONFIG['registry']['services']:
             service_types.add(e['service_type'])
         return list(service_types)
 
     def api_versions(self):
-        base_url = 'https://example.com/xmlrpc'
+        config = pm.getService('config')
+        hostname = config.get('flask.hostname')
+        port = str(config.get('flask.app_port'))
         endpoints = pm.getEndpoint('type', 'reg')
-        api_versions = {}
-        for key, endpoint in endpoints.iteritems():
-            api_versions[endpoint.get('version')] = base_url + endpoint.get('url')
-        return api_versions
+        return self.oregistryutil.form_api_versions(hostname, port, endpoints)
             
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""

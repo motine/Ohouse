@@ -218,6 +218,12 @@ class GMAv2DelegateBase(object):
             "MATCH"	  : True,
             "CREATE"  : "REQUIRED",
             "UPDATE"  : False },
+        "KEY_TYPE" : {
+            "TYPE"    : "STRING",
+            "DESC"    : "Type of key (e.g. PEM, openssh, rsa-ssh)",
+            "MATCH"   : True,
+            "CREATE"  : "REQUIRED",
+            "UPDATE"  : False },
         "KEY_PUBLIC" : {
             "TYPE"    : "KEY",
             "DESC"    : "Public key value",

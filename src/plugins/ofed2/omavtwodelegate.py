@@ -37,9 +37,9 @@ class OMAv2Delegate(GMAv2DelegateBase):
         ma_rm = pm.getService('omemberauthorityrm')
         print field_match
         if (_type=='MEMBER'):
-            return self._match_and_filter_and_to_dict(ma_rm.lookup_member_info(certificate, credentials), "MEMBER_URN", field_filter, field_match)
+            return self._match_and_filter_and_to_dict(ma_rm.lookup_member(certificate, credentials), "MEMBER_URN", field_filter, field_match)
         elif (_type=='KEY'):
-            return self._match_and_filter_and_to_dict(ma_rm.lookup_key_info(certificate, credentials), "MEMBER_URN", field_filter, field_match)
+            return self._match_and_filtert(ma_rm.lookup_key(certificate, credentials), field_filter, field_match)
 
     # ---- Member Service Methods
     def get_credentials(self, member_urn, credentials, options):

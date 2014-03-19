@@ -5,6 +5,7 @@ logger=amsoil.core.log.getLogger('omemberauthorityrm')
 geniutil = pm.getService('geniutil')
 
 from omemberauthorityexceptions import *
+import omemberauthorityutil
 
 class OMemberAuthorityResourceManager(object):
 
@@ -96,11 +97,12 @@ class OMemberAuthorityResourceManager(object):
     def __init__(self):
         super(OMemberAuthorityResourceManager, self).__init__()
 
-    def lookup_member_info(self, client_cert, credentials):
+    def lookup_member(self, client_cert, credentials):
         c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
         members = self.MEMBER_TEST_DATA # TODO get this from the database
         members = self._map_field_names(members)        
         whitelist = ['MEMBER_URN']
+        #Decide implementation specific details
         if True:
             whitelist = whitelist + self._member_field_names_for_protect('PRIVATE')
         if True:
@@ -110,9 +112,31 @@ class OMemberAuthorityResourceManager(object):
         members = self._whitelist_fields(members, whitelist)
         return members
 
-     #TODO: fetch
+    def lookup_key(self, client_cert, credentials):
+        c_urn, c_uuid, c_email = geniutil.extract_certificate_info(geniutil.infer_client_cert(client_cert, credentials))
+        keys = self.KEY_TEST_DATA # TODO get this from the database
+        return keys
+
+    def create_key(self, client_cert, credentials, options):
+        key_id = hash(options.key_public)
+
+        #insert {'type':'key', 'key_member':options.key_member, 'key_id':options.key_member, 'key_type':options.key_type, 
+        #    'key_public':options.key_public, 'key_private':options.key_options, 'key_description':options.key_description}
+        
+        return key_id
+
+    def update_key(self, client_cert, credentials, options):
+        #update {'type':key, 'key_id':options.key_id} {'key_description' : options.key_description}
+        pass
+
+    def delete_key(self, client_cert, credentials, options):
+        #delete {'type':key, 'key_id':options.key_id}
+        pass
+
     def urn(self):
-        return 'urn:publicid:IDN+example.com+authority+ma'#update
+        config = pm.getService('config')
+        hostname = config.get('flask.hostname')
+        return 'urn:publicid:IDN+' + hostname + '+authority+ma'
 
     def implementation(self):
         additional_info = pm.getAdditionalInfo('omemberauthorityrm')
@@ -125,12 +149,11 @@ class OMemberAuthorityResourceManager(object):
         return self.SUPPORTED_SERVICES
 
     def api_versions(self):
-        base_url = 'https://example.com/xmlrpc'
+        config = pm.getService('config')
+        hostname = config.get('flask.hostname')
+        port = str(config.get('flask.app_port'))
         endpoints = pm.getEndpoint('type', 'ma')
-        api_versions = {}
-        for key, endpoint in endpoints.iteritems():
-            api_versions[endpoint.get('version')] = base_url + endpoint.get('url')
-        return api_versions
+        return omemberauthorityutil.form_api_versions(hostname, port, endpoints)
 
     def supplementary_fields(self):
         """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""
@@ -148,7 +171,6 @@ class OMemberAuthorityResourceManager(object):
                 fields[fname]["UPDATE"] = f["UPDATE"]
         return fields
 
-    #TODO: Check this is correct
     def credential_types(self):
         return self.SUPPORTED_CREDENTIAL_TYPES
 
@@ -256,6 +278,12 @@ class OMemberAuthorityResourceManager(object):
             "ssh_priv_key_str" : 'some key',
             "enabled" : True
         }]
+
+    KEY_DATA_MAPPING =  { # maps database entries to the names returned to the client
+        "urn" : "KEY_MEMBER",
+        "ssh_pub_key" : "KEY_PUBLIC",
+        "ssh_priv_key_str" : "KEY_PRIVATE"
+        }
     
     DATA_MAPPING =  { # maps database entries to the names returned to the client
         "urn" : "MEMBER_URN",
