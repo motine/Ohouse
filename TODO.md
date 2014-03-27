@@ -1,3 +1,7 @@
+- check out Vagrant
+- Test cert generation via geni_trust with omni (are they compatible?)
+- Write RSpec exchange (?) (registry for all RSpecs (Manifest, Request, Ad))
+- Test with new omni version 2.5
 
 * Add pyPElib to plugin
 * Implement Speaks-for-Credentials in AMsoil (Rob ansprechen wg. Code für Speaks-for Credential generation, Add options parameter to delegate in AMsoil, ich habe eine Mail von Marshall "speaks-for validation code")
