@@ -7,6 +7,11 @@
 
 **General**
 
+- check out Vagrant
+- Test cert generation via geni_trust with omni (are they compatible?)
+- Write RSpec exchange (?) (registry for all RSpecs (Manifest, Request, Ad))
+- Test with new omni version 2.5
+
 * add test monitoring for github in travis-ci.org
 * Use pyPElib to enforce policies. (feed it back to AMsoil)
 * Revise all calls according to V2
