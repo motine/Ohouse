@@ -118,6 +118,7 @@ class PluginInfo(object):
             self._serviceNames = manifest[IMPLEMENTS_KEY]
             self._loadsAfter = manifest[LOADS_AFTER_KEY]
             self._requires = manifest[REQUIRES_KEY]
+            self._plugin_manifest = manifest
             if (MULTIPROCESS_SUPPORTED_KEY in manifest):
                 self._supports_multiprocess = manifest[MULTIPROCESS_SUPPORTED_KEY]
             else:
@@ -199,6 +200,9 @@ class PluginInfo(object):
     @property
     def pluginName(self):
         return os.path.basename(self._pluginPath)
+    @property
+    def pluginManifest(self):
+        return self._plugin_manifest
 
 
 def init(pluginsPath):
