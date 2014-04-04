@@ -142,6 +142,7 @@ def verify_credential(credentials, owner_cert, target_urn, trusted_cert_path, pr
     To verify a user: owner_cert=user_cert, target_urn=user
     To verify a slice: owner_cert=user_cert, target_urn=slice_urn
 
+
     {credentials} a list of strings (["CRED1", "CRED2"]) or a list of dictionaries [{"SFA" : "CRED1"}, {"ABAC" : "CRED2"}]
     {owner_cert} a string with the cert in PEM format
     {target_urn} a string with a urn

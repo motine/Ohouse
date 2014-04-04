@@ -291,3 +291,13 @@ def registerService(name, service):
     if (_current_setup_plugin_info) and (not _current_setup_plugin_info.implementsService(name)):
         raise ServiceNameNotFoundInManifestError(name)
     _service_registry[name] = service
+
+def getManifest(name):
+    """
+    Retrieve the manifest file contents for a given plugin name.
+    """
+    for pluginInfo in _plugin_list:
+        if pluginInfo.pluginName == name:
+            return pluginInfo.pluginManifest
+    return {}
+

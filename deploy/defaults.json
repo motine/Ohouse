@@ -1,0 +1,279 @@
+{
+    "SERVICE": {
+        "SERVICE_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of given service",
+            "MATCH": true,
+            "CREATE": "REQUIRED"
+        },
+        "SERVICE_URL": {
+            "TYPE": "URL",
+            "DESC": "URL by which to contact the service",
+            "MATCH": true,
+            "CREATE": "REQUIRED"
+        },
+        "SERVICE_TYPE": {
+            "TYPE": "STRING",
+            "DESC": "Name of service type (from Federation Registry get_version.TYPES)",
+            "MATCH": true,
+            "CREATE": "REQUIRED"
+        },
+        "SERVICE_CERT": {
+            "TYPE": "CERTIFICATE",
+            "DESC": "Public certificate of service",
+            "MATCH": false,
+            "CREATE": "ALLOWED"
+        },
+        "SERVICE_NAME": {
+            "TYPE": "STRING",
+            "DESC": "Short name of service",
+            "MATCH": false,
+            "CREATE": "REQUIRED"
+        },
+        "SERVICE_DESCRIPTION": {
+            "TYPE": "STRING",
+            "DESC": "Descriptive name of service",
+            "MATCH": false,
+            "CREATE": "ALLOWED"
+        },
+        "SERVICE_PEER": {
+            "TYPE": "LIST_OF_DICTIONARIES",
+            "DESC": "URLs and version info for other running version of same service",
+            "MATCH": false,
+            "CREATE": "ALLOWED"
+        }
+    },
+    "SLICE": {
+        "SLICE_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of given slice",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "SLICE_UID": {
+            "TYPE": "UID",
+            "DESC": "UID (unique within authority) of slice",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "SLICE_CREATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Creation time of slice",
+            "MATCH": false
+        },
+        "SLICE_EXPIRATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Expiration time of slice",
+            "MATCH": false,
+            "CREATE": "ALLOWED",
+            "UPDATE": true
+        },
+        "SLICE_EXPIRED": {
+            "TYPE": "BOOLEAN",
+            "DESC": "Whether slice has expired",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "SLICE_NAME": {
+            "TYPE": "STRING",
+            "DESC": "Short name of Slice",
+            "MATCH": false,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "SLICE_DESCRIPTION": {
+            "TYPE": "STRING",
+            "DESC": "Description of Slice",
+            "MATCH": false,
+            "CREATE": "ALLOWED",
+            "UPDATE": true
+        },
+        "SLICE_PROJECT_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of project to which slice is associated (if SA supports project)",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        }
+    },
+    "SLIVER_INFO": {
+        "SLIVER_INFO_SLICE_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of slice for registered sliver",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "SLIVER_INFO_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of registered sliver",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "SLIVER_INFO_AGGREGATE_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of aggregate of registered sliver",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "SLIVER_INFO_CREATOR_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of member/tool that created the registered sliver  ",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "SLIVER_INFO_EXPIRATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Time of sliver expiration",
+            "MATCH": false,
+            "CREATE": "REQUIRED",
+            "UPDATE": true
+        },
+        "SLIVER_INFO_CREATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Time of sliver expiration",
+            "MATCH": false,
+            "CREATE": "ALLOWED",
+            "UPDATE": false
+        }
+    },
+    "PROJECT": {
+        "PROJECT_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of given project",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "PROJECT_UID": {
+            "TYPE": "UID",
+            "DESC": "UID (unique within authority) of project",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "PROJECT_CREATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Creation time of project",
+            "MATCH": false,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "PROJECT_EXPIRATION": {
+            "TYPE": "DATETIME",
+            "DESC": "Expiration time of project",
+            "MATCH": false,
+            "CREATE": "REQUIRED",
+            "UPDATE": true
+        },
+        "PROJECT_EXPIRED": {
+            "TYPE": "BOOLEAN",
+            "DESC": "Whether project has expired",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "PROJECT_NAME": {
+            "TYPE": "STRING",
+            "DESC": "Short name of Project",
+            "MATCH": false,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "PROJECT_DESCRIPTION": {
+            "TYPE": "STRING",
+            "DESC": "Description of Project",
+            "MATCH": false,
+            "CREATE": "ALLOWED",
+            "UPDATE": true
+        }
+    },
+    "MEMBER": {
+        "MEMBER_URN": {
+            "TYPE": "URN",
+            "DESC": "URN of given member",
+            "MATCH": true,
+            "PROTECT": "PUBLIC"
+        },
+        "MEMBER_UID": {
+            "TYPE": "UID",
+            "DESC": "UID (unique within authority) of member",
+            "MATCH": true,
+            "PROTECT": "PUBLIC"
+        },
+        "MEMBER_FIRSTNAME": {
+            "TYPE": "STRING",
+            "DESC": "First name of member",
+            "MATCH": true,
+            "PROTECT": "IDENTIFYING"
+        },
+        "MEMBER_LASTNAME": {
+            "TYPE": "STRING",
+            "DESC": "Last name of member",
+            "MATCH": true,
+            "PROTECT": "IDENTIFYING"
+        },
+        "MEMBER_USERNAME": {
+            "TYPE": "STRING",
+            "DESC": "Username of user",
+            "MATCH": true,
+            "PROTECT": "PUBLIC"
+        },
+        "MEMBER_EMAIL": {
+            "TYPE": "STRING",
+            "DESC": "Email of user",
+            "MATCH": false,
+            "PROTECT": "IDENTIFYING"
+        }
+    },
+    "KEY": {
+        "KEY_MEMBER": {
+            "TYPE": "URN",
+            "DESC": "URN of member associated with key pair",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "KEY_ID": {
+            "TYPE": "STRING",
+            "DESC": "Unique identifier of key: typically a fingerprint or hash of public key",
+            "MATCH": true,
+            "CREATE": "NOT ALLOWED",
+            "UPDATE": false
+        },
+        "KEY_TYPE": {
+            "TYPE": "STRING",
+            "DESC": "Type of key (e.g. PEM, openssh, rsa-ssh)",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "KEY_PUBLIC": {
+            "TYPE": "KEY",
+            "DESC": "Public key value",
+            "MATCH": true,
+            "CREATE": "REQUIRED",
+            "UPDATE": false
+        },
+        "KEY_PRIVATE": {
+            "TYPE": "KEY",
+            "DESC": "Private key value",
+            "MATCH": true,
+            "CREATE": "ALLOWED",
+            "UPDATE": false
+        },
+        "KEY_DESCRIPTION": {
+            "TYPE": "STRING",
+            "DESC": "Human readable description of key pair",
+            "MATCH": true,
+            "CREATE": "ALLOWED",
+            "UPDATE": true
+        }
+    }
+}

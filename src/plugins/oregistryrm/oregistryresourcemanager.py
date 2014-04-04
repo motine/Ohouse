@@ -3,58 +3,102 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('oregistryrm')
 
 from oregistryexceptions import *
-import oregistryutil
 
 class ORegistryResourceManager(object):
     """
+    Manage Federation Registry objects and resources.
     """
-    AGGREGATE_SERVICE_TYPE = 'agg'
-    SA_SERVICE_TYPE = 'sa'
-    MA_SERVICE_TYPE = 'ma'
 
+    AGGREGATE_SERVICE_TYPE = 'AGGREGATE_MANAGER' #: Field name used to denote an Aggregate Manager in the configuration (config.json)
+    SA_SERVICE_TYPE = 'SLICE_AUTHORITY' #: Field name used to denote a Slice Authority in the configuration (config.json)
+    MA_SERVICE_TYPE = 'MEMBER_AUTHORITY' #: Field name used to denote a Member Authority in the configuration (config.json)
+
+    TYPES =  [AGGREGATE_SERVICE_TYPE, SA_SERVICE_TYPE, MA_SERVICE_TYPE] #: Combined list of all service types found in the configuration (config.json)
+
+    AUTHORITY_NAME = 'fr' #: The short-name for this authority
+
+    SUPPORTED_SERVICES = ['SERVICE'] #: The objects supported by this authority
 
     def __init__(self):
+        """
+        Get plugins for use in other class methods.
+        """
         super(ORegistryResourceManager, self).__init__()
-        self.consistency_check()
+        self._resource_manager_tools = pm.getService('resourcemanagertools')
+        #TODO: this isn't a a delegate!
+        self._delegate_tools = pm.getService('delegatetools')
 
+    def urn(self):
+        """
+        Get the URN for this Federation Registry.
 
-    def consistency_check(self):
-        # try to catch the most common syntax errors in the config
-        self._check_raise("registry" in oregistryutil.CONFIG, "No CH element found.")
-        self._check_raise("supplementary_fields" in oregistryutil.CONFIG["registry"], "No 'supplementary_fields' found in 'CH' found (it can be empty but must be there).")
-        self._check_raise("services" in oregistryutil.CONFIG["registry"], "No 'services' found in 'CH'.")
-        self._check_raise("trust_roots" in oregistryutil.CONFIG["registry"], "No 'trust_roots' found in 'CH'.")
-        
-        for service in oregistryutil.CONFIG["registry"]["services"]:
-            self._check_raise("service_url"  in service, "No 'service_url' found in 'services'.")
-            self._check_raise("service_cert" in service, "No 'service_cert' found in 'services'.")
-            self._check_raise("service_name" in service, "No 'service_name' found in 'services'.")
-            self._check_raise("service_description" in service, "No 'service_description' found in 'services'.")
-            self._check_raise("service_urn"  in service, "No 'service_urn' found in 'services'.")
-            self._check_raise("type"         in service, "No 'type' found in 'services'.")
-            self._check_raise(service["type"] in [self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE], "A service type should be either %s, %s or %s" % (self.AGGREGATE_SERVICE_TYPE, self.SA_SERVICE_TYPE, self.MA_SERVICE_TYPE))
-            for field in oregistryutil.CONFIG["registry"]["supplementary_fields"]:
-                self._check_raise(field in service, "Supplementary field not found in service (%s)." % (field,))
-    
-        for tr in oregistryutil.CONFIG["registry"]["trust_roots"]:
-            self._check_raise(type(tr) in [str, unicode], "All 'trust_roots' entries should be strings.")
-            
-    def supplementary_fields(self):
-        """Returns a list of custom fields with the associated type. e.g. {"FIELD_NAME" : "STRING", "SECOND" : "UID"}"""
-        return oregistryutil.CONFIG["registry"]["supplementary_fields"]
-        
+        Retrieve the hostname from the Flask AMsoil plugin and use this to build
+        the URN.
+
+        """
+        config = pm.getService('config')
+        hostname = config.get('flask.hostname')
+        return 'urn:publicid:IDN+' + hostname + '+authority+fr'
+
+    def implementation(self):
+        """
+        Get the implementation details for this Federation Registry.
+
+        Retrieve details from the AMsoil plugin and form them into a dictionary
+        suitable for the API call response.
+
+        """
+        manifest = pm.getManifest('oregistryrm')
+        if len(manifest) > 0:
+            return {'code_version' : str(manifest['version'])}
+        else:
+            return None
+
+    def services(self):
+        """
+        Return the services implemented by this Federation Registry.
+        """
+        return self.SUPPORTED_SERVICES
+
+    def service_types(self):
+        """
+        Return the service types, as defined in the configuration (config.json).
+        """
+        service_types = set()
+        for e in  self._delegate_tools.get_config('SERVICE')['SERVICES']:
+            service_types.add(e['service_type'])
+        return list(service_types)
+
+    def lookup_services(self):
+        """
+        Return all service types as defined in the configuration (config.json).
+        """
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type'] in self.TYPES)])
+
     def all_aggregates(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.AGGREGATE_SERVICE_TYPE)])
-        
+        """
+        Return all aggregates as defined in the configuration (config.json).
+        """
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])
+
     def all_member_authorities(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.MA_SERVICE_TYPE)])
-        
+        """
+        Return all member authorities as defined in the configuration (config.json).
+        """
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.MA_SERVICE_TYPE)])
+
     def all_slice_authorities(self):
-        return self._uppercase_keys_in_list([e for e in oregistryutil.CONFIG["registry"]["services"] if (e['type']==self.SA_SERVICE_TYPE)])
-        
+        """
+        Return all slice authorities as defined in the configuration (config.json).
+        """
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.SA_SERVICE_TYPE)])
+
     def all_trusted_certs(self):
-        certs = oregistryutil.CONFIG["registry"]["trust_roots"]
-        # subsitute magic markers
+        """
+        Return all trusted certificates as defined in the configuration (config.json).
+        """
+        certs = self._delegate_tools.get_config('SERVICE')["TRUST_ROOTS"]
+        #TODO: Subsitute magic markers
         if "INFER_SAs" in certs:
             certs.remove("INFER_SAs")
             for s in self.all_slice_authorities():
@@ -64,13 +108,15 @@ class ORegistryResourceManager(object):
             for s in self.all_member_authorities():
                 certs.append(s['SERVICE_CERT'])
         return certs
-    
+
     def get_authory_mappings(self, urns):
+        """
+        Get authority mappings for a set of URNs.
+        """
         geniutil = pm.getService('geniutil')
         if not isinstance(urns, list):
             raise ValueError("Please give a _list_ of URNs")
         result = {}
-
         for urn in urns:
             authority, typ, name = geniutil.decode_urn(urn)
             service = None
@@ -80,26 +126,36 @@ class ORegistryResourceManager(object):
                 service = self._find_service(self.MA_SERVICE_TYPE, authority)
             if (typ == "sliver"):
                 service = self._find_service(self.AGGREGATE_SERVICE_TYPE, authority)
-
             if service:
                 result[urn] = service['service_url']
         return result
-    
+
     def _find_service(self, typ, authority):
-        """returns the first service dictionary matching the {typ}e and {urn}. None if none is found."""
+        """
+        Returns the first service dictionary matching the {typ}e and {urn}. None if none is found.
+        """
         geniutil = pm.getService('geniutil')
-        for service in oregistryutil.CONFIG['registry']['services']:
+        for service in self._delegate_tools.get_config('SERVICE')['SERVICES']:
             sauth, styp, sname = geniutil.decode_urn(service['service_urn'])
-            if (service['type'] == typ) and (sauth == authority):
+            if (service['service_type'] == typ) and (sauth == authority):
                 return service
         return None
-    
+
     def _uppercase_keys_in_list(self, list_of_dicts):
+        """
+        Convert key names in a list to uppercase.
+        """
         return [self._uppercase_keys_in_dict(e) for e in list_of_dicts]
-        
+
     def _uppercase_keys_in_dict(self, adict):
+        """
+        Convert key names in a dictionary to uppercase.
+        """
         return dict( (k.upper(), v) for (k, v) in adict.iteritems() )
-    
+
     def _check_raise(self, condition, message):
+        """
+        Check if condition is true, else raises an exception with given string.
+        """
         if not condition:
             raise RegistryMalformedConfigFile(oregistryutil.config_path(), message)

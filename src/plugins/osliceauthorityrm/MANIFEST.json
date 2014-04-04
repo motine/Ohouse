@@ -1,0 +1,9 @@
+{
+  "name" : "OFELIA Slice Authority Resource Manager (delivering data for the slice authority service)",
+  "author" : "Matthew Broadbent",
+  "author-email" : "matthew.broadbent@eict.de",
+  "version" : 1,
+  "implements" : ["osliceauthorityrm", "osliceauthorityexceptions"],
+  "loads-after" : ["resourcemanagertools", "apitools"],
+  "requires" : ["config"]
+}

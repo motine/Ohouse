@@ -1,9 +1,0 @@
-{
-  "name" : "Implementation of the GENI Federation Registry API for OFELIA (the CH API)",
-  "author" : "Tom Rothe",
-  "author-email" : "tom.rothe@eict.de",
-  "version" : 1,
-  "implements" : [],
-  "loads-after" : ["gregistryv1handler", "gregistryv1delegatebase", "gmav1handler", "gmav1delegatebase", "gfedv1exceptions", "config", "oregistryrm", "geniutil"],
-  "requires" : []
-}

@@ -11,7 +11,7 @@ Please follow at least the "Base" and "Plugins" steps.
 
 ### Dependencies
 
-Please install [Swig](http://www.swig.org/) (needed for the M2Crypto Python package).
+Please install [Swig](http://www.swig.org/) (needed for the M2Crypto Python package). Ohouse currently relies on a [MongoDB](mongodb.org) database running on the local host (and default port).
 
 Python dependencies can then be installed using `pip install -r requirements.txt`.  
 
@@ -38,3 +38,4 @@ The test scripts assume that there are test certificates and credentials in `tes
 ## Architectural decisions
 
 * Please see the `ofed` - `plugin.py` for considerations on how to protect information regarding authZ.
+* Ohouse will support both [v1](http://groups.geni.net/geni/wiki/UniformClearinghouseAPI) and [v2](http://groups.geni.net/geni/wiki/UniformClearinghouseAPIV2) of the Uniform Clearinghouse API. This is realised through different service endpoints for each version.

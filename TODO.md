@@ -1,56 +1,39 @@
-# TODOs
-
 ## OHouse
 
-
-# Open issues
-
-**General**
-
-* Add continuous integration for testing https://travis-ci.org/profile/motine
-* Use pyPElib to enforce policies. (feed it back to AMsoil)
-* Revise all calls according to V2
-
-* MA: add update_member_info (incl. tests)
-* MA: add get_credentials (incl. tests)
-* MA: add implementation for key service (incl. tests)
-
-* MA test if match attributes are rejected if match is not allowed by get_version
-* MA test: make sure PROTECT attributes are not given out unless public
-
-* get_version: add roles and objects for MA
-
-* add an `additional_info` return value to the extract_certificate_info
-* add admin credentials (see below)
-* reflect changes from wiki (outcome from discussion on wednesday 26th of Aug)
-* add test case to test an error / bad arguments (MA, SA)
-* add servicemethod where possible
-* test with jProbe
-* do deployment
-  * write doc (incl. cert stuff)
-  * remove authentication from nginx config
-* Implement speaks-for (see code from Marshall, http://groups.geni.net/geni/wiki/GAPI_AM_API_DRAFT#ChangeSetP:SupportproxyclientsthatSpeakForanexperimenter)
-* Add methods for adding users
-
-**MA delegate**
-
-* add parsing of the admin cert (discussion on wednesday 26th of Aug)
-* see TODOs in the file
-* Consider the following OFELIA privileges: https://github.com/fp7-ofelia/ocf/blob/ofelia.stable/expedient/src/python/expedient/clearinghouse/project/permissions.py
-
-* document gen-certs in geni_trust in amsoil and link from Ohouse
+* Implement `get_credentials` methods (for SLICE and MEMBER objects)
+* Implement `speaking_for` option parameter (see code from Marshall)
+* Implement registration portal
+  * Out-of-band XML-RPC interface for membership (MEMBER) administration
+  * Consider [xml-signer](https://github.com/duerig/xml-signer)
+* Implement example CH client
+* Document an example Ohouse workflow
+* Determine appropriate authorisation (AuthZ) levels (LEAD, ADMIN, MEMBER, OPERATOR, AUDITOR, for example)
+  * Consider the existing [OFELIA privileges](https://github.com/fp7-ofelia/ocf/blob/ofelia.stable/expedient/src/python/expedient/clearinghouse/project/permissions.py)
+  * Enforce 'match' lookup authorization ('PRIVATE' and 'IDENTIFYING' values in 'PROTECT' field)
+* Implement/use certificate and credential checks
+* Add parsing of the admin cert and creds for both SA and MA (see section below and discussion on Wednesday 26th of Aug)
+* Check SLICE_EXPIRATION and PROJECT_EXPIRATION updates are valid: expiration may only be extended, never reduced
+* Consider implementation-specific restrictions for both the [MA](http://groups.geni.net/geni/wiki/CommonFederationAPIv2#MemberServiceMethods) and [SA](http://groups.geni.net/geni/wiki/CommonFederationAPIv2#SliceServiceMethods), and how to load and use these from `config.json`
+* Add test monitoring for github in travis-ci.org (can we install SWIG and `xmlsec1` dependencies in this environment?)
+* Use pyPElib to enforce policies (and feed this back to AMsoil)
+* Add an `additional_info` return value to the extract_certificate_info
+* Test with jProbe
+* Remove authentication from nginx config
+* Document gen-certs
 * Trust Plugin: add servicemethod where possible
+* Make MongoDB database configurable (IP, port, database name etc.)
+* Reimplement Delegate Guards for v2 SA and MA (see omavonedelegateguard.py)
+* Increase UnitTest coverage
+* Increase/structure documentation
 
-* add update_member_info and get_credentials
-* Add database
+**Admin Credential Discussion**
 
-* Refactor delegates
-  * either move MA code to RM and move get version to delegate base
-  * or move CH info from RM to Delegate?
-
-## Registration app
-
-* Consider https://github.com/duerig/xml-signer
+> I don't think there is anything much to look for... the only thing that
+is different is that the credential target is the authority itself.
+(Normally, the CM generates credentials with a sliver as a target, and
+of course then they are useless outside that sliver.)  I don't believe
+that genadmincredential credentials issued by the SA do anything special
+right now.
 
 ## AMsoil
 
@@ -64,11 +47,3 @@
 * Remove ext from genirpc
 * Fix development server problem to acquire the client cert
 * Update to new version of Flask in AMsoil
-
-## Admin creds
-> I don't think there is anything much to look for... the only thing that
-is different is that the credential target is the authority itself.
-(Normally, the CM generates credentials with a sliver as a target, and
-of course then they are useless outside that sliver.)  I don't believe
-that genadmincredential credentials issued by the SA do anything special
-right now.

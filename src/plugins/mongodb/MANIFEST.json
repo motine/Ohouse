@@ -1,0 +1,9 @@
+{
+  "name" : "MongoDB database interface for Ohouse",
+  "author" : "Matthew Broadbent",
+  "author-email" : "matthew.broadbent@eict.de",
+  "version" : 1,
+  "implements" : ["mongodb"],
+  "loads-after" : [],
+  "requires" : []
+}

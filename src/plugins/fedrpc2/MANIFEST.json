@@ -1,0 +1,10 @@
+{
+  "name" : "GENI Federation APIs (v2) RPC",
+  "author" : "Matthew Broadbent",
+  "author-email" : "matthew.broadbent@eict.de",
+  "version" : 1,
+  "implements" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler",
+    "gmav2delegatebase", "gsav2handler", "gsav2delegatebase"],
+  "loads-after" : ["apitools", "xmlrpc"],
+  "requires" : []
+}

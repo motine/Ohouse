@@ -11,7 +11,10 @@ cryptography==0.2.2
 flup==1.0.2
 itsdangerous==0.23
 pyOpenSSL==0.14
+pyRFC3339==0.2
 pycparser==2.10
+pymongo==2.6.3
 python-dateutil==2.2
+pytz==2014.1.1
 six==1.5.2
 wsgiref==0.1.2
