@@ -2,13 +2,21 @@
 
 import unittest
 from testtools import *
+import sys
 
-def sa_call(method_name, params=[], user_name='alice', verbose=False):
-    key_path, cert_path = "%s-key.pem" % (user_name,), "%s-cert.pem" % (user_name,)
-    res = ssl_call(method_name, params, 'sa/2', key_path=key_path, cert_path=cert_path)
-    if verbose:
-        print_call(method_name, params, res)
-    return res.get('code', None), res.get('value', None), res.get('output', None)
+arg = None
+
+def sa_call(method_name, params=[], user_name='alice'):
+    if arg in ['-v', '--verbose']:
+        verbose = True
+    else:
+        verbose = False
+    return api_call(method_name, 'sa/2', params=params, user_name=user_name, verbose=verbose)
+
+def _remove_key(dct, val):
+       copy = dct.copy()
+       del copy[val]
+       return copy
 
 class TestGSAv2(unittest.TestCase):
 
@@ -83,10 +91,11 @@ class TestGSAv2(unittest.TestCase):
         """
         Test update rules by passing an unauthorized field ('KEY_TYPE') during creation.
         """
-        create_data = {'SLICE_NAME':'AUTHORIZED_UPDATE', 'SLICE_DESCRIPTION' : 'My Authorized Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
-        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
-        update_data = {'SLICE_NAME' : 'UNAUTHORIZED_UPDATE'}
-        self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
+        create_data = {'PROJECT_EXPIRATION':'2014-03-21T11:35:57Z', 'PROJECT_NAME': 'TEST_PROJECT', 'PROJECT_DESCRIPTION':'My test project'}
+        urn = self._test_create(create_data, 'PROJECT', 'PROJECT_URN', 0)
+        update_data = {'PROJECT_NAME' : 'UNAUTHORIZED_UPDATE'}
+        self._test_update(urn, update_data, 'PROJECT', 'PROJECT_URN', 3)
+        self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
 
     def test_slice(self):
         """
@@ -96,13 +105,35 @@ class TestGSAv2(unittest.TestCase):
         SA should support slice deletion since there is no authoritative way to
         know that there aren't live slivers associated with that slice.' In this
         case, we check that the method returns an error.
+
+        There is a situation when the test data has been used once, as the key
+        will already exist (and cannot be deleted). In this case, we check if
+        the slice already exists. If it does, then we expect a duplicate error
+        when creating a new 'SLICE'. If it is not already present, we should
+        expect regular object creation.
+
+        When checking if the object already exists, we need to remove the same
+        field that is later used in the update operation, as it *may* not match
+        otherwise. This is because it *could* have been updated in the case that
+        the object already exists.
+
+        Similarly, if the object creation fails because the key already exists,
+        we need to get the URN from the previous 'lookup' call which should have
+        returned a result.
         """
         create_data = {'SLICE_NAME':'AUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
-        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
-        update_data = {'SLICE_DESCRIPTION' : 'Update Clean Slice'}
+        lookup_data = _remove_key(create_data, 'SLICE_DESCRIPTION')
+        presence_check = self._test_lookup(lookup_data, None, 'SLICE', 0)
+        if len(presence_check) is 1:
+            create_code = 5
+        else:
+            create_code = 0
+        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', create_code)
+        update_data = {'SLICE_DESCRIPTION' : 'Update Slice'}
+        if urn is None:
+            urn, _ = presence_check.popitem()
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 0)
         self._test_delete(urn, 'SLICE', 'SLICE_URN', 100)
-        self._test_lookup(None, None, 'SLICE', 1, 0)
 
     def test_sliver_info(self):
         """
@@ -149,11 +180,11 @@ class TestGSAv2(unittest.TestCase):
         self.assertEqual(code, expected_code)
         if code is 0:
             self.assertIsNone(value)
-            result = self._test_lookup({expected_urn : urn}, None, object_type, 1, 0)
+            result = self._test_lookup({expected_urn : urn}, None, object_type, 0, 1)
             for field_key, field_value in fields.iteritems():
                 self.assertEqual(result[urn].get(field_key), field_value)
 
-    def _test_lookup(self, match, _filter, object_type, expected_length, expected_code):
+    def _test_lookup(self, match, _filter, object_type, expected_code, expected_length=None):
         """
         Helper method to test object lookup.
         """
@@ -175,7 +206,7 @@ class TestGSAv2(unittest.TestCase):
         code, value, output = sa_call('delete', [object_type, urn, self._credential_list("admin"), {}], user_name="admin")
         self.assertEqual(code, expected_code)
         self.assertIsNone(value)
-        self._test_lookup({expected_urn : urn}, None, object_type, None, 0)
+        self._test_lookup({expected_urn : urn}, None, object_type, 0)
 
     def test_malformed_membership(self):
         """
@@ -252,5 +283,8 @@ class TestGSAv2(unittest.TestCase):
         return [{"SFA" : get_creds_file_contents('%s-cred.xml' % (user_name,))}]
 
 if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        arg = sys.argv[1]
+    del sys.argv[1:]
     unittest.main(verbosity=0, exit=False)
     print_warnings()

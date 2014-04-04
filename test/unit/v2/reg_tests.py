@@ -2,11 +2,16 @@
 
 import unittest
 from testtools import *
+import sys
 
-def reg_call(method_name, params=[]):
-    res = ssl_call(method_name, params, 'reg/2')
-    print_call(method_name, params, res)
-    return res.get('code', None), res.get('value', None), res.get('output', None)
+arg = None
+
+def reg_call(method_name, params=[], user_name='alice'):
+    if arg in ['-v', '--verbose']:
+        verbose = True
+    else:
+        verbose = False
+    return api_call(method_name, 'reg/2', params=params, user_name=user_name, verbose=verbose)
 
 class TestGRegistryv2(unittest.TestCase):
 
@@ -101,5 +106,8 @@ class TestGRegistryv2(unittest.TestCase):
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
 
 if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        arg = sys.argv[1]
+    del sys.argv[1:]
     unittest.main(verbosity=0, exit=False)
     print_warnings()

@@ -2,22 +2,24 @@
 
 import unittest
 from testtools import *
+import sys
 
-def ma_call(method_name, params=[], user_name='alice', verbose=False):
-    key_path, cert_path = "%s-key.pem" % (user_name,), "%s-cert.pem" % (user_name,)
-    res = ssl_call(method_name, params, 'ma/2', key_path=key_path, cert_path=cert_path)
-    if verbose:
-        print_call(method_name, params, res)
-    return res.get('code', None), res.get('value', None), res.get('output', None)
+arg = None
+
+def ma_call(method_name, params=[], user_name='alice'):
+    if arg in ['-v', '--verbose']:
+        verbose = True
+    else:
+        verbose = False
+    return api_call(method_name, 'ma/2', params=params, user_name=user_name, verbose=verbose)
 
 class TestGMAv2(unittest.TestCase):
-
     @classmethod
     def setUpClass(klass):
         # try to get custom fields before we start the tests
         klass.sup_fields = []
         try:
-            code, value, output = ma_call('get_version', verbose=True)
+            code, value, output = ma_call('get_version')
             klass.sup_fields = value['FIELDS']
             klass.has_key_service = ('KEY' in value['SERVICES'])
         except Exception as e:
@@ -155,6 +157,7 @@ class TestGMAv2(unittest.TestCase):
         urn = self._test_create(create_data, 'KEY', 'KEY_ID', 0)
         update_data = {'KEY_TYPE' : 'UNAUTHORIZED_UPDATE'}
         self._test_update(urn, update_data, 'KEY', 'KEY_ID', 3)
+        self._test_delete(urn, 'KEY', 'KEY_ID', 0)
 
     def test_member(self):
         """
@@ -238,5 +241,8 @@ class TestGMAv2(unittest.TestCase):
         return [{"SFA" : get_creds_file_contents('%s-cred.xml' % (user_name,))}]
 
 if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        arg = sys.argv[1]
+    del sys.argv[1:]
     unittest.main(verbosity=0, exit=False)
     print_warnings()
