@@ -1,9 +1,9 @@
 {
-  "name" : "OFELIA Member Authority resource manager (delivering data for the member authority service)",
+  "name" : "OFELIA Member Authority Resource Manager (delivering data for the member authority service)",
   "author" : "Matthew Broadbent",
   "author-email" : "matthew.broadbent@eict.de",
   "version" : 1,
   "implements" : ["omemberauthorityrm", "omemberauthorityexceptions"],
-  "loads-after" : ["config", "geniutil"],
-  "requires" : []
+  "loads-after" : ["resourcemanagertools", "apitools"],
+  "requires" : ["config"]
 }

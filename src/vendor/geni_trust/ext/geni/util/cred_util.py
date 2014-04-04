@@ -221,7 +221,7 @@ class CredentialVerifier(object):
             if not self.verify_privileges(privileges, cred):
                 failure = "Cred for %s over %s doesn't provide sufficient privileges" % (cred.get_gid_caller().get_urn(), cred.get_gid_object().get_urn())
                 continue
-
+            
             try:
                 if not cred.verify(self.root_cert_files):
                     failure = "Couldn't validate credential for caller %s with target %s with any of %d known root certs" % (cred.get_gid_caller().get_urn(), cred.get_gid_object().get_urn(), len(self.root_cert_files))

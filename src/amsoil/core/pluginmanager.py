@@ -27,7 +27,7 @@ Example:
     "loads-after" : ["config"],
     "requires" : ["policy"],
     "multi-process-supported" : false
-    
+
     (The last line is optional)
     -> The plugin needs the config service when its setup() method is called.
     -> It will register the service authorization and somewhere in its code it will use the policy service.
@@ -51,7 +51,7 @@ class PluginException(CoreException):
     def __init__(self, name):
         super(CoreException, self).__init__()
         self._name = name
-    
+
     def __str__(self):
         return self._name + " (try looking at the log)"
 
@@ -80,17 +80,16 @@ class ServiceAlreadyRegisteredError(PluginException):
     """The service which was was attempted to be registered has been registered before."""
     pass
 class ServiceNotRegisteredError(PluginException):
-    """The service the caller asked for has not been registered. 
+    """The service the caller asked for has not been registered.
     If you run into this exception, please check if you specified sufficient requires in the manifest"""
     pass
 class ServiceNameNotFoundInManifestError(PluginException):
     """The plugin tries to register a service which has not been specified in the implements section in the manifest."""
     pass
 
-_pluginList = []
-_serviceRegistry = {}
-_endpointRegistry = {}
-_currentSetupPluginInfo = None # in order to avoid passing pluginInfos to the setup methods of plugins, we remember
+_plugin_list = []
+_service_registry = {}
+_current_setup_plugin_info = None # in order to avoid passing pluginInfos to the setup methods of plugins, we remember
 # a reference to the current pluginInfo during the plugin setup. If there is not setup method being called this variable should be None.
 # This is a pure convenience for the plugin-developer, so he does not have to pass the pluginInfo back to registerService
 # (registerService needs info from the PluginInfo so it can validate the user's parameters).
@@ -102,12 +101,6 @@ MULTIPROCESS_SUPPORTED_KEY="multi-process-supported"
 
 REQUIRES_KEY='requires'
 BOOTSTRAP_MODULE_NAME='plugin'
-
-NAME_KEY='name'
-DESCRIPTION_KEY='description'
-AUTHOR_KEY='author'
-AUTHOR_EMAIL_KEY='author-email'
-VERSION_KEY='version'
 
 class PluginInfo(object):
     """
@@ -121,48 +114,41 @@ class PluginInfo(object):
         """
         # we could check the format of serviceNames and dependencies here, but I dont yet
         try:
-            self._pluginPath = pluginPath
-            self._serviceNames = manifest[IMPLEMENTS_KEY]
+            self._plugin_path = pluginPath
+            self._service_names = manifest[IMPLEMENTS_KEY]
             self._loadsAfter = manifest[LOADS_AFTER_KEY]
             self._requires = manifest[REQUIRES_KEY]
-
-            self._additionalInfo = {
-                'name' : manifest[NAME_KEY],
-                'author-key' :  manifest[AUTHOR_KEY],
-                'author-email' :  manifest[AUTHOR_EMAIL_KEY],
-                'version' :  manifest[VERSION_KEY]
-            }
-
+            self._plugin_manifest = manifest
             if (MULTIPROCESS_SUPPORTED_KEY in manifest):
                 self._supports_multiprocess = manifest[MULTIPROCESS_SUPPORTED_KEY]
             else:
                 self._supports_multiprocess = True
         except KeyError, e:
-            raise PluginMalformedManifestError(pluginPath)
-            
-        self._pluginModule = None
+            raise PluginMalformedManifestError(path)
+
+        self._plugin_module = None
 
     def setup(self):
         """Load the plugin, set the _pluginModule and call the setup method."""
         logger.info("loading %s" % self.pluginName)
         try:
-            bFile, bFilename, bDesc = imp.find_module(BOOTSTRAP_MODULE_NAME, [self._pluginPath])
+            bFile, bFilename, bDesc = imp.find_module(BOOTSTRAP_MODULE_NAME, [self._plugin_path])
             sys.path.append(os.path.dirname(bFilename))
-            self._pluginModule = imp.load_module(self.pluginName, bFile, bFilename, bDesc)
+            self._plugin_module = imp.load_module(self.pluginName, bFile, bFilename, bDesc)
         except ImportError, e:
             logger.exception(traceback.format_exc())
             raise PluginBootstrapModuleNotLoaded(self.pluginName)
-        global _currentSetupPluginInfo # see documentation above
-        if not hasattr(self._pluginModule, 'setup'):
-            self._pluginModule = None
+        global _current_setup_plugin_info # see documentation above
+        if not hasattr(self._plugin_module, 'setup'):
+            self._plugin_module = None
             raise PluginBootstrapSetupMethodNotFoundError(self.pluginName)
-        _currentSetupPluginInfo = self
-        self._pluginModule.setup()
-        _currentSetupPluginInfo = None
+        _current_setup_plugin_info = self
+        self._plugin_module.setup()
+        _current_setup_plugin_info = None
 
     def implementsService(self, name):
         """Tells if the plugin's manifest specifies the service's name given."""
-        return (name in self._serviceNames)
+        return (name in self._service_names)
 
     def allLoadsAfterSatisfied(self, pluginList):
         """
@@ -197,27 +183,27 @@ class PluginInfo(object):
 
     @property
     def loaded(self):
-        return self._pluginModule != None
-    
+        return self._plugin_module != None
+
     @property
     def supports_multiprocess(self):
         return self._supports_multiprocess
 
     @property
     def serviceNames(self):
-        return set(self._serviceNames)
-    
-    @property
-    def pluginModule(self):
-        return self._pluginModule
-    
-    @property
-    def pluginName(self):
-        return os.path.basename(self._pluginPath)
+        return set(self._service_names)
 
     @property
-    def additionalInfo(self):
-        return self._additionalInfo
+    def pluginModule(self):
+        return self._plugin_module
+
+    @property
+    def pluginName(self):
+        return os.path.basename(self._plugin_path)
+
+    @property
+    def pluginManifest(self):
+        return self._plugin_manifest
 
 
 def init(pluginsPath):
@@ -226,7 +212,7 @@ def init(pluginsPath):
     Walks through the plugins directory and reads the dependencies (loadsAfter, requires) and saves this information to the pluginList.
     Then the plugins' setup method is called, where the plugin can register it's services.
     The order of loading depends on the loadsAfter tree.
-    
+
     Semantics:
     During the setup of the plugins the plugins can assume that the service which are specified in loadsAfter are present.
     The plugins which are specified in requries are not necessarily present during the setup call, but the system enforces
@@ -244,22 +230,22 @@ def init(pluginsPath):
             manifest = json.load(manifestFile)
         except Exception, e:
             raise PluginMalformedManifestError(path)
-        _pluginList.append(PluginInfo(absPath, manifest))
+        _plugin_list.append(PluginInfo(absPath, manifest))
 
     # check for duplications of service implementations
     allServices = []  # damn i can not find decent documentation on sets... the next couple of lines are ugly
-    for pluginInfo in _pluginList:
+    for pluginInfo in _plugin_list:
         allServices.extend(pluginInfo.serviceNames)
     for s in set(allServices):
         allServices.remove(s)
     if len(allServices) > 0:
         raise PluginDuplicateServiceDefinitionsInManifestError(', '.join(allServices))
-    
+
     if config.IS_MULTIPROCESS:
-        for pluginInfo in _pluginList:
+        for pluginInfo in _plugin_list:
             if not pluginInfo.supports_multiprocess:
                 raise PluginUnsupportedMultiprocess(pluginInfo.pluginName)
-    
+
     # Load the plugins in according to the loadsAfter specifications in the plugin's manifest.
     # This is how it works:
     #   iterate through the pluginList and load the plugins which have no (loadsAfter) dependencies
@@ -268,19 +254,19 @@ def init(pluginsPath):
     loadedPlugin = True
     while (loadedPlugin):
         loadedPlugin = False
-        for pluginInfo in _pluginList:
+        for pluginInfo in _plugin_list:
             if pluginInfo.loaded:
                 continue
-            if pluginInfo.allLoadsAfterSatisfied(_pluginList):
+            if pluginInfo.allLoadsAfterSatisfied(_plugin_list):
                pluginInfo.setup()
                loadedPlugin = True
-    
+
     # crash if not all plugins loaded
     # also crash if not all requires statements are satisfied
-    for pluginInfo in _pluginList:
+    for pluginInfo in _plugin_list:
         if not pluginInfo.loaded:
             raise PluginLoadAfterResolvingError(pluginInfo.pluginName)
-        if not pluginInfo.allRequiresSatisfied(_pluginList):
+        if not pluginInfo.allRequiresSatisfied(_plugin_list):
             raise PluginRequiresCanNotBeFulfilledError(pluginInfo.pluginName)
     logger.info("done loading plugins")
 
@@ -288,51 +274,30 @@ def getService(name):
     """
     Receives the thing (object, module or whatever) which has been added by the registerService.
     """
-    if not name in _serviceRegistry:
+    if not name in _service_registry:
         raise ServiceNotRegisteredError(name)
-    return _serviceRegistry[name]
-    
+    return _service_registry[name]
+
 def registerService(name, service):
     """
     Register a service under the given name
     Service can be an object, a class or any other thing (even a module or a package)
     """
     logger.info("registering service %s" % name)
-    if name in _serviceRegistry: # check if the service has already been registered
+    if name in _service_registry: # check if the service has already been registered
         raise ServiceAlreadyRegisteredError(name)
 
     # to avoid developer's misspelling: check if the service's name is in the manifest file
-    if (_currentSetupPluginInfo) and (not _currentSetupPluginInfo.implementsService(name)):
+    if (_current_setup_plugin_info) and (not _current_setup_plugin_info.implementsService(name)):
         raise ServiceNameNotFoundInManifestError(name)
-    _serviceRegistry[name] = service
+    _service_registry[name] = service
 
-def getAdditionalInfo(name):
+def getManifest(name):
     """
-    Retrieve additional information for a named plugin.
+    Retrieve the manifest file contents for a given plugin name.
     """
-    for pluginInfo in _pluginList:
-        if name == pluginInfo.pluginName:
-            return pluginInfo.additionalInfo
+    for pluginInfo in _plugin_list:
+        if pluginInfo.pluginName == name:
+            return pluginInfo.pluginManifest
     return {}
-
-def getEndpoint(field, value):
-    """
-    Get all endpoints matching a specific field and value. 
-
-    For example getEndpoint(field='type', value='ma') will return all endpoints of type Member Authority
-    """
-    endpoints = {}
-    if field == 'name':
-        endpoints[value] = _endpointRegistry[value]
-    else:
-        for name, endpoint in _endpointRegistry.iteritems():
-            if endpoint.get(str(field)) == str(value):
-                endpoints[name] = endpoint
-    return endpoints
-
-def registerEndpoint(name, _type, version, url):
-    """
-    Register a new endpoint under a given name. 
-    """
-    _endpointRegistry[name] = {'type' : _type, 'version' : version, 'url' : url}
 

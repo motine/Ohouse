@@ -4,6 +4,7 @@
   "author-email" : "matthew.broadbent@eict.de",
   "version" : 1,
   "implements" : [],
-  "loads-after" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler", "gmav2delegatebase", "gfedv2exceptions", "config", "oregistryrm", "geniutil"],
+  "loads-after" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler", "gmav2delegatebase", "gsav2handler",
+    "gsav2delegatebase", "apiexceptions", "osliceauthorityrm", "oregistryrm", "omemberauthorityrm", "delegatetools"],
   "requires" : []
 }

@@ -11,7 +11,7 @@ Please follow at least the "Base" and "Plugins" steps.
 
 ### Dependencies
 
-Please install [Swig](http://www.swig.org/) (needed for the M2Crypto Python package).
+Please install [Swig](http://www.swig.org/) (needed for the M2Crypto Python package). Ohouse currently relies on a [MongoDB](mongodb.org) database running on the local host (and default port).
 
 Python dependencies can then be installed using `pip install -r requirements.txt`.  
 

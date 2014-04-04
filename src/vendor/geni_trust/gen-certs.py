@@ -5,6 +5,7 @@ import os.path
 import optparse
 import geniutil
 import datetime
+import subprocess
 
 SA_CERT_FILE = 'sa-cert.pem'
 SA_KEY_FILE = 'sa-key.pem'
@@ -50,7 +51,15 @@ if __name__ == "__main__":
     if len(args) == 1: # no args given, index 0 is the script name
         parser.print_help()
         sys.exit(0)
-    
+
+    #Simple test for xmlsec1 presence on system
+    try :
+        with open(os.devnull, "w") as null:
+            subprocess.call(["xmlsec1", "-h"], stdout = null, stderr = null)
+    except OSError:
+        print "xmlsec1 not found. Please install xmsec1 (http://www.aleksey.com/xmlsec/)."
+        sys.exit(0)
+
     dir_path = args[1]
     if not os.path.isdir(dir_path):
         raise ValueError("The given path does not exist.")
@@ -61,14 +70,14 @@ if __name__ == "__main__":
     sa_c, sa_pu, sa_pr = geniutil.create_certificate(urn, is_ca=True)
     write_file(dir_path, SA_CERT_FILE, sa_c, opts.silent)
     write_file(dir_path, SA_KEY_FILE, sa_pr, opts.silent)
-    
+
     if not opts.silent:
         print "Creating MA certificate"
     urn = geniutil.encode_urn(opts.authority, 'authority', 'ma')
     ma_c, ma_pu, ma_pr = geniutil.create_certificate(urn, is_ca=True)
     write_file(dir_path, MA_CERT_FILE, ma_c, opts.silent)
     write_file(dir_path, MA_KEY_FILE, ma_pr, opts.silent)
-    
+
     if not opts.silent:
         print "Creating AM certificate"
     urn = geniutil.encode_urn(opts.authority, 'authority', 'am')
@@ -100,14 +109,14 @@ if __name__ == "__main__":
     write_file(dir_path, BAD_USER_KEY_FILE, bu_pr, opts.silent)
     bu_cred = geniutil.create_credential(bu_c, bu_c, ma_pr, ma_c, "user", CRED_EXPIRY)
     write_file(dir_path, BAD_USER_CRED_FILE, bu_cred, opts.silent)
-    
+
     if not opts.silent:
         print "Creating admin cert and cred"
     urn = geniutil.encode_urn(opts.authority, 'user', ADMIN_NAME)
     a_c,a_pu,a_pr = geniutil.create_certificate(urn, issuer_key=ma_pr, issuer_cert=ma_c, email=ADMIN_EMAIL)
     write_file(dir_path, ADMIN_CERT_FILE, a_c, opts.silent)
     write_file(dir_path, ADMIN_KEY_FILE, a_pr, opts.silent)
-    a_cred = geniutil.create_credential(a_c, a_c, ma_pr, ma_c, "user", CRED_EXPIRY)
+    a_cred = geniutil.create_credential(a_c, a_c, ma_pr, ma_c, "admin", CRED_EXPIRY)
     write_file(dir_path, ADMIN_CRED_FILE, a_cred, opts.silent)
 
     if not opts.silent:
@@ -121,4 +130,3 @@ if __name__ == "__main__":
         print "--------------------"
         print "You can use the user certificates and slice cert to test. In production you may acquire them from a MA and SA."
         print "--------------------"
-

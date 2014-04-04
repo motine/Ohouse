@@ -41,15 +41,15 @@ class TestGRegistryv2(unittest.TestCase):
             warn("No trust roots returned.")
         for tr in value:
             self.assertIsInstance(tr, str)
-    
+
     def test_lookup_authorities_for_urns(self):
         # slice, user, sliver, project
-        
+
         # dynamically create urns from get_aggregates, get_member_authorities, get_slice_authorities
-        _, aggs, _ = reg_call('lookup', ['AGGREGATE_MANAGER', {}])
-        _, mas, _ = reg_call('lookup', ['MEMBER_AUTHORITY', {}])
-        _, sas, _ = reg_call('lookup', ['SLICE_AUTHORITY', {}])
-        
+        _, aggs, _ = reg_call('lookup', ['SERVICE', {}, {}])
+        _, mas, _ = reg_call('lookup', ['SERVICE',  {}, {}])
+        _, sas, _ = reg_call('lookup', ['SERVICE',  {}, {}])
+
         mappings = {} # contains {test_urn_to_send : service_url, ... }
         if (len(aggs) == 0):
             warn("No aggregates to test with.")
@@ -69,14 +69,14 @@ class TestGRegistryv2(unittest.TestCase):
         for (res_urn, res_url) in value.iteritems():
             self.assertIn(res_urn, mappings)
             self.assertEqual(mappings[res_urn], res_url)
-    
-    def test_lookup(self):
-        self._check_a_listing('lookup', 'AGGREGATE_MANAGER', 'aggregate')
-        self._check_a_listing('lookup', 'MEMBER_AUTHORITY', 'member authority')
-        self._check_a_listing('lookup', 'SLICE_AUTHORITY', 'slice authority')
 
-    def _check_a_listing(self, method_name, _type, entity_name):
-        code, value, output = reg_call(method_name, [_type, {}])
+    def test_lookup(self):
+        self._check_a_listing('lookup', 'SERVICE', 'aggregate')
+        self._check_a_listing('lookup', 'SERVICE', 'member authority')
+        self._check_a_listing('lookup', 'SERVICE', 'slice authority')
+
+    def _check_a_listing(self, method_name, type_, entity_name):
+        code, value, output = reg_call(method_name, [_type, {}, {}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -87,19 +87,19 @@ class TestGRegistryv2(unittest.TestCase):
         if len(value) == 0:
             warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name,  [_type, {'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
+            fcode, fvalue, foutput = reg_call(method_name,  [_type, {}, {'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name, [_type, {'filter' : ['SERVICE_URL']}])
+            fcode, fvalue, foutput = reg_call(method_name, [_type,  {}, {'filter' : ['SERVICE_URL']}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)
             self.assertEqual(fvalue[0].keys(), ['SERVICE_URL'])
             self.assertEqual(len(value), len(fvalue)) # the number of returned aggregates should not change
-        
+
 if __name__ == '__main__':
     unittest.main(verbosity=0, exit=False)
     print_warnings()

@@ -3,7 +3,8 @@
   "author" : "Matthew Broadbent",
   "author-email" : "matthew.broadbent@eict.de",
   "version" : 1,
-  "implements" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler", "gmav2delegatebase", "gsav2handler", "gsav2delegatebase", "gfedv2exceptions"],
-  "loads-after" : ["xmlrpc", "config"],
+  "implements" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler",
+    "gmav2delegatebase", "gsav2handler", "gsav2delegatebase"],
+  "loads-after" : ["apitools", "xmlrpc"],
   "requires" : []
 }
