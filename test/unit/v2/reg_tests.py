@@ -76,7 +76,7 @@ class TestGRegistryv2(unittest.TestCase):
         self._check_a_listing('lookup', 'SERVICE', 'slice authority')
 
     def _check_a_listing(self, method_name, type_, entity_name):
-        code, value, output = reg_call(method_name, [_type, {}, {}])
+        code, value, output = reg_call(method_name, [type_, {}, {}])
         self.assertEqual(code, 0) # no error
         self.assertIsInstance(value, list)
         for agg in value:
@@ -87,13 +87,13 @@ class TestGRegistryv2(unittest.TestCase):
         if len(value) == 0:
             warn("No %s to test with" % (entity_name,))
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name,  [_type, {}, {'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
+            fcode, fvalue, foutput = reg_call(method_name,  [type_, {}, {'match' : {'SERVICE_URL' : value[0]['SERVICE_URL']}}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertEqual(len(fvalue), 1)
         # test filter
         if len(value) > 0:
-            fcode, fvalue, foutput = reg_call(method_name, [_type,  {}, {'filter' : ['SERVICE_URL']}])
+            fcode, fvalue, foutput = reg_call(method_name, [type_,  {}, {'filter' : ['SERVICE_URL']}])
             self.assertEqual(fcode, 0) # no error
             self.assertIsInstance(fvalue, list)
             self.assertIsInstance(fvalue[0], dict)
