@@ -6,7 +6,7 @@ Ohouse is a reference implementation of the [Federation Service API](http://grou
 
 Ohouse consists of three main components: Federation Registry (FR), Slice Authority (SA) and Member Authority (MA). These are illustrated below:
 
-![image](https://github.com/motine/Ohouse/docs/ohouse_high_level.png)
+![image](https://raw.githubusercontent.com/motine/Ohouse/development/docs/ohouse_high_level.png)
 
 **Note:** Bold text indicates a components currently under development. Effort is currently concentrated on [v2 of the Federation Service API](http://groups.geni.net/geni/wiki/CommonFederationAPIv2). However, a partial implementation of [v1 of the Federation Service API](http://groups.geni.net/geni/wiki/CommonFederationAPIv1) is included, although it is unmaintained and incomplete.
 
@@ -16,7 +16,7 @@ Ohouse consists of three main components: Federation Registry (FR), Slice Author
 
 Ohouse is built using the [AMsoil](https://github.com/motine/AMsoil) framework, with functionality spread amongst a number of plugins and services. These are illustrated below:
 
-![image](https://github.com/motine/Ohouse/docs/ohouse_technical.png)
+![image](https://raw.githubusercontent.com/motine/Ohouse/development/docs/ohouse_technical.png)
 
 Handler and delegate base classes are realised in two plugins (`fedrpc1` and `fedrpc2`), each supporting a different version of the Federation Service API. Within each plugin, a number of services are used to support calls to the different supported entities (FR, MA, SA).
 

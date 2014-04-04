@@ -1,4 +1,4 @@
-## OHouse
+## Ohouse
 
 * Implement `get_credentials` methods (for SLICE and MEMBER objects)
 * Implement `speaking_for` option parameter (see code from Marshall)
