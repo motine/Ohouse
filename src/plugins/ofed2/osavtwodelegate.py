@@ -64,15 +64,17 @@ class OSAv2Delegate(GSAv2DelegateBase):
         of passed fields for a 'update' call; if valid, update this object using
         the resource manager.
         """
-        if (type_=='SLICE'):
-            fields_value= options['fields']
+        if (type_ == 'SLICE') :
+            fields_value = options['fields']
             
             update_expiration_time= fields_value.get('SLICE_EXPIRATION')
+
             if update_expiration_time:
-                lookup_result  = self.lookup(type_, certificate, credentials, {'SLICE_URN':str(urn)}, [], {})
+                lookup_result  = self.lookup(type_, certificate, credentials, {'SLICE_URN' : str(urn)}, [], {})
                 is_valid= self._delegate_tools.validate_expiration_time(str(lookup_result[urn]['SLICE_CREATION']),
-                                                                    update_expiration_time)
-                if is_valid:
+                                                                        update_expiration_time)
+
+                if not is_valid:
                     raise gfed_ex.GFedv2ArgumentError("Invalid Slice Expiry " + str(type_))  
                                                                                           
             self._delegate_tools.object_update_check(fields, self._slice_whitelist)

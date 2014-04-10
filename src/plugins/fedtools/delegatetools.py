@@ -6,10 +6,11 @@ import amsoil.core.log
 from delegateexceptions import *
 from apiexceptions import *
 
+
 import os.path
 import json
 import uuid
-import pyrfc3339
+import pyrfc3339, datetime, pytz
 import re
 
 logger = amsoil.core.log.getLogger('delegatetools')
@@ -82,13 +83,14 @@ class DelegateTools(object):
             return dict( (k, self._strip_comments(v)) for (k,v) in json.iteritems() if k != self.JSON_COMMENT) # there would be a dict comprehension from 2.7
 
     def _get_paths(self):
+
         """
         Get full file paths for JSON files to load (config.json and defaults.json).
 
         Returns:
             dictionary containing the loaded JSON content
-
         """
+
         config = pm.getService("config")
         config_path = config.get("delegatetools.config_path")
         defaults_path = config.get("delegatetools.defaults_path")
@@ -97,15 +99,21 @@ class DelegateTools(object):
 
     @staticmethod
     @serviceinterface
-    def validate_expiration_time(original_value, update_value):
-        time_values_list1=original_value.split(':')
-        year1= str(time_values_list1[0]).split('-')[0]
-        
-        time_values_list2=update_value.split(':')
-        year2= str(time_values_list2[0]).split('-')[0]
-        
-        return (int(year1) > int (year2))
-    
+    def validate_expiration_time(original_value, value_in_question):
+
+        """
+        Validate the expiration time value passed to Update or Create Methods.
+
+        Returns:
+            a boolean value to indicate whether the expiration time valid or not
+        """
+
+        parsed_original_value = pyrfc3339.parse(original_value)
+        parsed_value_in_question = pyrfc3339.parse(value_in_question)
+
+
+        return (parsed_original_value < parsed_value_in_question)
+
     @serviceinterface
     def get_fields(self, type_):
         """
@@ -118,7 +126,7 @@ class DelegateTools(object):
             the combined fields
 
         """
-        return self.STATIC['COMBINED'][_type]
+        return self.STATIC['COMBINED'][type_]
 
     @serviceinterface
     def get_supplementary_fields(self, types):
