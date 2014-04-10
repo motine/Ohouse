@@ -59,36 +59,42 @@ class OSAv2Delegate(GSAv2DelegateBase):
             raise gfed_ex.GFedv2NotImplementedError("No create method found for object type: " + str(type_))
 
     def update(self, type_, urn, certificate, credentials, fields, options):
+
         """
         Depending on the object type defined in the request, check the validity
         of passed fields for a 'update' call; if valid, update this object using
         the resource manager.
         """
+
         if (type_ == 'SLICE') :
             fields_value = options['fields']
-            
-            update_expiration_time= fields_value.get('SLICE_EXPIRATION')
+            update_expiration_time = fields_value.get('SLICE_EXPIRATION')
 
             if update_expiration_time:
-                lookup_result  = self.lookup(type_, certificate, credentials, {'SLICE_URN' : str(urn)}, [], {})
-                is_valid= self._delegate_tools.validate_expiration_time(str(lookup_result[urn]['SLICE_CREATION']),
+                lookup_result  = self._slice_authority_resource_manager.lookup_slice(certificate, credentials,
+                                                                                     {'SLICE_URN' : str(urn)}, [], {})
+
+                keyed_lookup_result= self._delegate_tools.to_keyed_dict(lookup_result, "SLICE_URN")
+                is_valid = self._delegate_tools.validate_expiration_time(str(keyed_lookup_result.get(urn).get('SLICE_CREATION')),
                                                                         update_expiration_time)
 
                 if not is_valid:
-                    raise gfed_ex.GFedv2ArgumentError("Invalid Slice Expiry " + str(type_))  
-                                                                                          
+                    raise gfed_ex.GFedv2ArgumentError("Invalid Slice Expiry " + str(type_))
+
             self._delegate_tools.object_update_check(fields, self._slice_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_slice(urn, certificate, credentials, fields, options)
-            
+
         elif (type_=='SLIVER_INFO'):
             self._delegate_tools.object_update_check(fields, self._sliver_info_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_sliver_info(urn, certificate, credentials, fields, options)
+
         elif (type_=='PROJECT'):
             self._delegate_tools.object_update_check(fields, self._project_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_project(urn, certificate, credentials, fields, options)
+
         else:
             raise gfed_ex.GFedv2NotImplementedError("No update method found for object type: " + str(type_))
 
@@ -112,6 +118,8 @@ class OSAv2Delegate(GSAv2DelegateBase):
         using the resource manager.
         """
         if (type_=='SLICE'):
+            # self._delegate_tools.object_consistency_check(type_,match)
+
             result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials, match, filter_, options)
             return self._delegate_tools.to_keyed_dict(result, "SLICE_URN")
         elif (type_=='SLIVER_INFO'):

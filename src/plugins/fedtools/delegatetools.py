@@ -110,8 +110,6 @@ class DelegateTools(object):
 
         parsed_original_value = pyrfc3339.parse(original_value)
         parsed_value_in_question = pyrfc3339.parse(value_in_question)
-
-
         return (parsed_original_value < parsed_value_in_question)
 
     @serviceinterface

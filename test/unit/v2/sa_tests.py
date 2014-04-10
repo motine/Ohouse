@@ -96,8 +96,8 @@ class TestGSAv2(unittest.TestCase):
         update_data = {'PROJECT_NAME' : 'UNAUTHORIZED_UPDATE'}
         self._test_update(urn, update_data, 'PROJECT', 'PROJECT_URN', 3)
         self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
-        
-                
+
+
     def test_update_invalid_expiry(self):
         """
         Test update rules by passing an invalid expiry date during update.
@@ -110,6 +110,14 @@ class TestGSAv2(unittest.TestCase):
         
         update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
+
+    def test_malformed_lookup_urn(self):
+        """
+        Test update rules by passing an invalid urn type to the lookup.
+        """
+
+        lookup_data = {'SLICE_URN' : True}
+        self._test_lookup(lookup_data, [], 'SLICE', 3)
 
     def test_slice(self):
         """
