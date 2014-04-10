@@ -100,7 +100,7 @@ class TestGSAv2(unittest.TestCase):
                 
     def test_update_invalid_expiry(self):
         """
-        Test update rules by passing an unauthorized field ('KEY_TYPE') during creation.
+        Test update rules by passing an invalid expiry date during update.
         """
         create_data = { 
                        'SLICE_NAME':'TEST_PROJECT',
@@ -111,43 +111,43 @@ class TestGSAv2(unittest.TestCase):
         update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
 
-    #~ def test_slice(self):
-        #~ """
-        #~ Test object type 'SLICE' methods: create, lookup, update.
-#~ 
-        #~ Slice deletion method is explicity blocked by the API specification: 'No
-        #~ SA should support slice deletion since there is no authoritative way to
-        #~ know that there aren't live slivers associated with that slice.' In this
-        #~ case, we check that the method returns an error.
-#~ 
-        #~ There is a situation when the test data has been used once, as the key
-        #~ will already exist (and cannot be deleted). In this case, we check if
-        #~ the slice already exists. If it does, then we expect a duplicate error
-        #~ when creating a new 'SLICE'. If it is not already present, we should
-        #~ expect regular object creation.
-#~ 
-        #~ When checking if the object already exists, we need to remove the same
-        #~ field that is later used in the update operation, as it *may* not match
-        #~ otherwise. This is because it *could* have been updated in the case that
-        #~ the object already exists.
-#~ 
-        #~ Similarly, if the object creation fails because the key already exists,
-        #~ we need to get the URN from the previous 'lookup' call which should have
-        #~ returned a result.
-        #~ """
-        #~ create_data = {'SLICE_NAME':'AUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
-        #~ lookup_data = _remove_key(create_data, 'SLICE_DESCRIPTION')
-        #~ presence_check = self._test_lookup(lookup_data, None, 'SLICE', 0)
-        #~ if len(presence_check) is 1:
-            #~ create_code = 5
-        #~ else:
-            #~ create_code = 0
-        #~ urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', create_code)
-        #~ update_data = {'SLICE_DESCRIPTION' : 'Update Slice'}
-        #~ if urn is None:
-            #~ urn, _ = presence_check.popitem()
-        #~ self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 0)
-        #~ self._test_delete(urn, 'SLICE', 'SLICE_URN', 100)
+    def test_slice(self):
+        """
+        Test object type 'SLICE' methods: create, lookup, update.
+
+        Slice deletion method is explicity blocked by the API specification: 'No
+        SA should support slice deletion since there is no authoritative way to
+        know that there aren't live slivers associated with that slice.' In this
+        case, we check that the method returns an error.
+
+        There is a situation when the test data has been used once, as the key
+        will already exist (and cannot be deleted). In this case, we check if
+        the slice already exists. If it does, then we expect a duplicate error
+        when creating a new 'SLICE'. If it is not already present, we should
+        expect regular object creation.
+
+        When checking if the object already exists, we need to remove the same
+        field that is later used in the update operation, as it *may* not match
+        otherwise. This is because it *could* have been updated in the case that
+        the object already exists.
+
+        Similarly, if the object creation fails because the key already exists,
+        we need to get the URN from the previous 'lookup' call which should have
+        returned a result.
+        """
+        create_data = {'SLICE_NAME':'AUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
+        lookup_data = _remove_key(create_data, 'SLICE_DESCRIPTION')
+        presence_check = self._test_lookup(lookup_data, None, 'SLICE', 0)
+        if len(presence_check) is 1:
+            create_code = 5
+        else:
+            create_code = 0
+        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', create_code)
+        update_data = {'SLICE_DESCRIPTION' : 'Update Slice'}
+        if urn is None:
+            urn, _ = presence_check.popitem()
+        self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 0)
+        self._test_delete(urn, 'SLICE', 'SLICE_URN', 100)
 
     def test_sliver_info(self):
         """

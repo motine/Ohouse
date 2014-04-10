@@ -94,6 +94,18 @@ class DelegateTools(object):
         defaults_path = config.get("delegatetools.defaults_path")
         return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path)}
 
+
+    @staticmethod
+    @serviceinterface
+    def validate_expiration_time(original_value, update_value):
+        time_values_list1=original_value.split(':')
+        year1= str(time_values_list1[0]).split('-')[0]
+        
+        time_values_list2=update_value.split(':')
+        year2= str(time_values_list2[0]).split('-')[0]
+        
+        return (int(year1) > int (year2))
+    
     @serviceinterface
     def get_fields(self, type_):
         """

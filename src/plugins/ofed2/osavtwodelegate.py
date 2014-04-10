@@ -4,7 +4,6 @@ logger=amsoil.core.log.getLogger('ofed')
 
 GSAv2DelegateBase = pm.getService('gsav2delegatebase')
 gfed_ex = pm.getService('apiexceptions')
-
 VERSION = '2'
 
 class OSAv2Delegate(GSAv2DelegateBase):
@@ -22,6 +21,7 @@ class OSAv2Delegate(GSAv2DelegateBase):
         """
         self._slice_authority_resource_manager = pm.getService('osliceauthorityrm')
         self._delegate_tools = pm.getService('delegatetools')
+        self._api_tools = pm.getService('apitools')
         self._slice_whitelist = self._delegate_tools.get_whitelist('SLICE')
         self._sliver_info_whitelist = self._delegate_tools.get_whitelist('SLIVER_INFO')
         self._project_whitelist = self._delegate_tools.get_whitelist('PROJECT')
@@ -65,9 +65,20 @@ class OSAv2Delegate(GSAv2DelegateBase):
         the resource manager.
         """
         if (type_=='SLICE'):
+            fields_value= options['fields']
+            
+            update_expiration_time= fields_value.get('SLICE_EXPIRATION')
+            if update_expiration_time:
+                lookup_result  = self.lookup(type_, certificate, credentials, {'SLICE_URN':str(urn)}, [], {})
+                is_valid= self._delegate_tools.validate_expiration_time(str(lookup_result[urn]['SLICE_CREATION']),
+                                                                    update_expiration_time)
+                if is_valid:
+                    raise gfed_ex.GFedv2ArgumentError("Invalid Slice Expiry " + str(type_))  
+                                                                                          
             self._delegate_tools.object_update_check(fields, self._slice_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_slice(urn, certificate, credentials, fields, options)
+            
         elif (type_=='SLIVER_INFO'):
             self._delegate_tools.object_update_check(fields, self._sliver_info_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
