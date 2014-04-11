@@ -106,7 +106,7 @@ class DelegateTools(object):
             the combined fields
 
         """
-        return self.STATIC['COMBINED'][_type]
+        return self.STATIC['COMBINED'][type_]
 
     @serviceinterface
     def get_supplementary_fields(self, types):
