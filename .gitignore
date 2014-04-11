@@ -3,6 +3,7 @@
 *.swp
 *.swo
 log/*
+.idea/*
 _deployment
 rmpyc.sh
 count_lines.sh
