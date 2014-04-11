@@ -103,21 +103,14 @@ class TestGSAv2(unittest.TestCase):
         Test update rules by passing an invalid expiry date during update.
         """
         create_data = { 
-                       'SLICE_NAME':'TEST_PROJECT',
-                       'SLICE_DESCRIPTION': 'Time_Expiry'}  
+                       'SLICE_NAME' : 'TEST_PROJECT',
+                       'SLICE_DESCRIPTION' : 'Time_Expiry'}
                        
         urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
         
         update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
 
-    def test_malformed_lookup_urn(self):
-        """
-        Test update rules by passing an invalid urn type to the lookup.
-        """
-
-        lookup_data = {'SLICE_URN' : True}
-        self._test_lookup(lookup_data, [], 'SLICE', 3)
 
     def test_slice(self):
         """

@@ -59,37 +59,36 @@ class OSAv2Delegate(GSAv2DelegateBase):
             raise gfed_ex.GFedv2NotImplementedError("No create method found for object type: " + str(type_))
 
     def update(self, type_, urn, certificate, credentials, fields, options):
-
         """
         Depending on the object type defined in the request, check the validity
         of passed fields for a 'update' call; if valid, update this object using
         the resource manager.
         """
-
         if (type_ == 'SLICE') :
             fields_value = options['fields']
             update_expiration_time = fields_value.get('SLICE_EXPIRATION')
 
             if update_expiration_time:
-                lookup_result  = self._slice_authority_resource_manager.lookup_slice(certificate, credentials,
+                lookup_result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials,
                                                                                      {'SLICE_URN' : str(urn)}, [], {})
 
-                keyed_lookup_result= self._delegate_tools.to_keyed_dict(lookup_result, "SLICE_URN")
-                is_valid = self._delegate_tools.validate_expiration_time(str(keyed_lookup_result.get(urn).get('SLICE_CREATION')),
+                # keyed_lookup_result enables referencing an dicitionary with any chosen key_name. For example,
+                # SLICE_URN can be used as the key for the dictionary return when looking up a slice.
+                # This is needed here to enable fetching out the SLICE_CREATION time belonging to a certain SLICE_URN
+                keyed_lookup_result = self._delegate_tools.to_keyed_dict(lookup_result, "SLICE_URN")
+                is_valid = self._delegate_tools.validate_expiration_time(str(keyed_lookup_result[urn]['SLICE_CREATION']),
                                                                         update_expiration_time)
 
                 if not is_valid:
-                    raise gfed_ex.GFedv2ArgumentError("Invalid Slice Expiry " + str(type_))
+                    raise gfed_ex.GFedv2ArgumentError("Invalid expiry date for object type: " + str(type_))
 
             self._delegate_tools.object_update_check(fields, self._slice_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_slice(urn, certificate, credentials, fields, options)
-
         elif (type_=='SLIVER_INFO'):
             self._delegate_tools.object_update_check(fields, self._sliver_info_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_sliver_info(urn, certificate, credentials, fields, options)
-
         elif (type_=='PROJECT'):
             self._delegate_tools.object_update_check(fields, self._project_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)

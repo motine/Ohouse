@@ -100,14 +100,16 @@ class DelegateTools(object):
     @staticmethod
     @serviceinterface
     def validate_expiration_time(original_value, value_in_question):
-
         """
         Validate the expiration time value passed to Update or Create Methods.
+
+        Args:
+            original_value: The original value that needs to be compared (e.g., SLICE creation date)
+            value_in_question: The value that is doubted for correctness (e.g., Expiry time update date)
 
         Returns:
             a boolean value to indicate whether the expiration time valid or not
         """
-
         parsed_original_value = pyrfc3339.parse(original_value)
         parsed_value_in_question = pyrfc3339.parse(value_in_question)
         return (parsed_original_value < parsed_value_in_question)
