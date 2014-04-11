@@ -6,10 +6,11 @@ import amsoil.core.log
 from delegateexceptions import *
 from apiexceptions import *
 
+
 import os.path
 import json
 import uuid
-import pyrfc3339
+import pyrfc3339, datetime, pytz
 import re
 
 logger = amsoil.core.log.getLogger('delegatetools')
@@ -60,7 +61,6 @@ class DelegateTools(object):
             if type_key not in self.JSON_COMMENT:
                 for field_key, field_value in type_value.get('SUPPLEMENTARY_FIELDS').iteritems():
                     self.STATIC['COMBINED'][type_key.upper()][field_key.upper()] = field_value
-
     def _strip_comments(self, json):
         """
         Recursively strip comments out of loaded JSON files.
@@ -82,17 +82,37 @@ class DelegateTools(object):
             return dict( (k, self._strip_comments(v)) for (k,v) in json.iteritems() if k != self.JSON_COMMENT) # there would be a dict comprehension from 2.7
 
     def _get_paths(self):
+
         """
         Get full file paths for JSON files to load (config.json and defaults.json).
 
         Returns:
             dictionary containing the loaded JSON content
-
         """
+
         config = pm.getService("config")
         config_path = config.get("delegatetools.config_path")
+
         defaults_path = config.get("delegatetools.defaults_path")
         return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path)}
+
+
+    @staticmethod
+    @serviceinterface
+    def validate_expiration_time(original_value, value_in_question):
+        """
+        Validate the expiration time value passed to Update or Create Methods.
+
+        Args:
+            original_value: The original value that needs to be compared (e.g., SLICE creation date)
+            value_in_question: The value that is doubted for correctness (e.g., Expiry time update date)
+
+        Returns:
+            a boolean value to indicate whether the expiration time valid or not
+        """
+        parsed_original_value = pyrfc3339.parse(original_value)
+        parsed_value_in_question = pyrfc3339.parse(value_in_question)
+        return (parsed_original_value < parsed_value_in_question)
 
     @serviceinterface
     def get_fields(self, type_):
