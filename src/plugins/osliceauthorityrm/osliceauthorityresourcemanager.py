@@ -28,6 +28,7 @@ class OSliceAuthorityResourceManager(object):
         """
         super(OSliceAuthorityResourceManager, self).__init__()
         self._resource_manager_tools = pm.getService('resourcemanagertools')
+        self._delegate_tools = pm.getService('delegatetools')
         self._set_unique_keys()
 
     #--- 'get_version' methods
@@ -125,6 +126,7 @@ class OSliceAuthorityResourceManager(object):
         """
         Lookup a slice object.
         """
+
         return self._resource_manager_tools.object_lookup(self.AUTHORITY_NAME, 'slice', match, filter_)
 
     def create_sliver_info(self, client_cert, credentials, fields, options):

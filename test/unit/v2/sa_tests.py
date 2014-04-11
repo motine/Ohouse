@@ -111,14 +111,6 @@ class TestGSAv2(unittest.TestCase):
         update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
 
-    def test_malformed_lookup_urn(self):
-        """
-        Test update rules by passing an invalid urn type to the lookup.
-        """
-
-        lookup_data = {'SLICE_URN' : True}
-        self._test_lookup(lookup_data, [], 'SLICE', 3)
-
     def test_slice(self):
         """
         Test object type 'SLICE' methods: create, lookup, update.

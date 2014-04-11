@@ -61,7 +61,6 @@ class DelegateTools(object):
             if type_key not in self.JSON_COMMENT:
                 for field_key, field_value in type_value.get('SUPPLEMENTARY_FIELDS').iteritems():
                     self.STATIC['COMBINED'][type_key.upper()][field_key.upper()] = field_value
-
     def _strip_comments(self, json):
         """
         Recursively strip comments out of loaded JSON files.
@@ -93,6 +92,7 @@ class DelegateTools(object):
 
         config = pm.getService("config")
         config_path = config.get("delegatetools.config_path")
+
         defaults_path = config.get("delegatetools.defaults_path")
         return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path)}
 

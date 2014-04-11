@@ -118,7 +118,6 @@ class OSAv2Delegate(GSAv2DelegateBase):
         using the resource manager.
         """
         if (type_=='SLICE'):
-            # self._delegate_tools.object_consistency_check(type_,match)
 
             result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials, match, filter_, options)
             return self._delegate_tools.to_keyed_dict(result, "SLICE_URN")
@@ -137,7 +136,7 @@ class OSAv2Delegate(GSAv2DelegateBase):
         membership for the given URN using the resource manager.
         """
         if (type_=='SLICE'):
-            self._delegate_tools.member_check(['SLICE_MEMBER', 'SLICE_ROLE'], options)
+            self._delegate_tools.member_check(['SLICE_MEMBER', 'SLICE_ROLE'],options)
             return self._slice_authority_resource_manager.modify_slice_membership(urn, certificate, credentials, options)
         elif (type_=='PROJECT'):
             self._delegate_tools.member_check(['PROJECT_MEMBER', 'PROJECT_ROLE'], options)
