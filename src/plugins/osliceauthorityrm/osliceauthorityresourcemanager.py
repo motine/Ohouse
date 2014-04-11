@@ -28,7 +28,6 @@ class OSliceAuthorityResourceManager(object):
         """
         super(OSliceAuthorityResourceManager, self).__init__()
         self._resource_manager_tools = pm.getService('resourcemanagertools')
-        self._delegate_tools = pm.getService('delegatetools')
         self._set_unique_keys()
 
     #--- 'get_version' methods
