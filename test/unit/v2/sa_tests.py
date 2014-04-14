@@ -102,12 +102,12 @@ class TestGSAv2(unittest.TestCase):
         """
         Test update rules by passing an invalid expiry date during update.
         """
-        create_data = { 
+        create_data = {
                        'SLICE_NAME' : 'TEST_PROJECT',
                        'SLICE_DESCRIPTION' : 'Time_Expiry'}
-                       
+
         urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
-        
+
         update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
 
@@ -301,5 +301,5 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         arg = sys.argv[1]
     del sys.argv[1:]
-    unittest.main(verbosity=0, exit=False)
+    unittest.main(verbosity=0, exit=True)
     print_warnings()

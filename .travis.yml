@@ -1,0 +1,26 @@
+language: python
+python:
+  - "2.7"
+# install database service
+services:
+  - mongodb
+# install dependencies
+install:
+  - "sudo apt-get update -qq"
+  - "sudo apt-get install swig libxmlsec1 xmlsec1"
+  - "pip install -r requirements.txt"
+# setup environment and start Ohouse
+before_script:
+  - "cp deploy/config.json.example deploy/config.json"
+  - "./test/creds/gen-certs.sh"
+  - "python src/main.py &"
+  - "sleep 5"
+# run Python unit tests
+script:
+  - "python test/unit/v2/reg_tests.py"
+  - "python test/unit/v2/sa_tests.py"
+  - "python test/unit/v2/ma_tests.py"
+# notify result of build to email address
+notifications:
+  email:
+    - matt@matthewbroadbent.net
