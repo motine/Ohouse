@@ -1,5 +1,8 @@
-python ../../src/plugins/geni_trust/gen-certs.py .
-cp sa-cert.pem ../../deploy/trusted/
-cp ma-cert.pem ../../deploy/trusted/
-cp admin-*.pem ../../admin/
-cp alice-*.pem ../creds/
+mkdir tmp/
+python src/vendor/geni_trust/gen-certs.py tmp/
+cp tmp/sa-cert.pem deploy/trusted/
+cp tmp/ma-cert.pem deploy/trusted/
+cp tmp/admin-*.pem admin/
+cp tmp/*.pem test/creds/
+cp tmp/*.xml test/creds/
+rm -rf tmp/

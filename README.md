@@ -1,5 +1,7 @@
 # The Clearinghouse
 
+[![Build Status](https://travis-ci.org/motine/Ohouse.svg?branch=development)](https://travis-ci.org/motine/Ohouse)
+
 This is/shall a Clearinghouse for all the projects mentioned.
 
 ## Installation

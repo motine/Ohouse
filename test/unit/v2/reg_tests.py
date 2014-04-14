@@ -109,5 +109,5 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         arg = sys.argv[1]
     del sys.argv[1:]
-    unittest.main(verbosity=0, exit=False)
+    unittest.main(verbosity=0, exit=True)
     print_warnings()
