@@ -58,6 +58,7 @@ class GMAv2Handler(xmlrpc.Dispatcher):
         """
         try:
             fields = self._api_tools.fetch_fields(options)
+            options = self._api_tools.remove_dictionary_element(options,'fields')
             result = self._delegate.create(type_, self.requestCertificate(), credentials, fields, options)
         except Exception as e:
             return self._api_tools.form_error_return(logger, e)
@@ -74,6 +75,7 @@ class GMAv2Handler(xmlrpc.Dispatcher):
         """
         try:
             fields = self._api_tools.fetch_fields(options)
+            options = self._api_tools.remove_dictionary_element(options,'fields')
             result = self._delegate.update(type_, urn, self.requestCertificate(), credentials, fields, options)
         except Exception as e:
             return self._api_tools.form_error_return(logger, e)

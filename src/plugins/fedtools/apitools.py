@@ -24,6 +24,23 @@ class APITools(object):
 
     @staticmethod
     @serviceinterface
+    def remove_dictionary_element(dict_to_remove, key_of_element_to_remove):
+        """
+        Removes an element from a dictionary with a sepecified key
+
+        Args:
+            dict_to_remove: This is the dictionary that we would like to remove the element from
+            key_of_element_to_remove: The key of the element that we would like to remove
+
+        Returns:
+            The dictionary with the element in question removed.
+        """
+        dict_to_remove_copy = dict(dict_to_remove)
+        del dict_to_remove_copy[key_of_element_to_remove]
+        return dict_to_remove_copy
+
+    @staticmethod
+    @serviceinterface
     def fetch_fields(options):
         return options.get('fields', {})
 

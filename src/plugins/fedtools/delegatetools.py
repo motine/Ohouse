@@ -336,6 +336,22 @@ class DelegateTools(object):
 
 
     @serviceinterface
+    def options_validity_check(self,options_to_check):
+        """
+       Checks whether the options parameters passed is valid or not
+
+        Args:
+            options_to_check: The options parameter in question
+
+        Raises:
+            InvalidOptionsParameter: Options parameter is invalid
+        """
+
+        if 'fields' in options_to_check:
+            raise InvalidOptionsParameter()
+
+
+    @serviceinterface
     def to_keyed_dict(self, list_, key):
         """
         Convert a list to a dictionary, keyed to given key.
