@@ -42,9 +42,6 @@ class OSAv2Delegate(GSAv2DelegateBase):
         of passed fields for a 'create' call; if valid, create this object using
         the resource manager.
         """
-
-        self._delegate_tools.options_validity_check(options)
-
         if (type_=='SLICE'):
             self._delegate_tools.object_creation_check(fields, self._slice_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
@@ -67,8 +64,6 @@ class OSAv2Delegate(GSAv2DelegateBase):
         of passed fields for a 'update' call; if valid, update this object using
         the resource manager.
         """
-        self._delegate_tools.options_validity_check(options)
-
         if (type_ == 'SLICE') :
             update_expiration_time = fields.get('SLICE_EXPIRATION')
 

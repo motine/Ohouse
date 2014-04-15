@@ -41,8 +41,6 @@ class OMAv2Delegate(GMAv2DelegateBase):
         of passed fields for a 'create' call; if valid, create this object using
         the resource manager.
         """
-        self._delegate_tools.options_validity_check(options)
-
         if (type_=='KEY'):
             self._delegate_tools.object_creation_check(fields, self._key_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
@@ -56,8 +54,6 @@ class OMAv2Delegate(GMAv2DelegateBase):
         of passed fields for a 'update' call; if valid, update this object using
         the resource manager.
         """
-        self._delegate_tools.options_validity_check(options)
-
         if (type_=='MEMBER'):
             self._delegate_tools.object_update_check(fields, self._member_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
