@@ -65,8 +65,7 @@ class OSAv2Delegate(GSAv2DelegateBase):
         the resource manager.
         """
         if (type_ == 'SLICE') :
-            fields_value = options['fields']
-            update_expiration_time = fields_value.get('SLICE_EXPIRATION')
+            update_expiration_time = fields.get('SLICE_EXPIRATION')
 
             if update_expiration_time:
                 lookup_result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials,

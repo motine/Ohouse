@@ -13,3 +13,7 @@ class ConfigFileMissing(DelegateToolsException):
 class MalformedConfigFile(DelegateToolsException):
     def __init__(self, path, comment):
         super(MalformedConfigFile, self).__init__("Malformed JSON in the config file (%s): %s" % (path, comment))
+
+class InvalidOptionsParameter(CoreException):
+    def __init__(self):
+        super(InvalidOptionsParameter, self).__init__("Fields should not be passed in options")
