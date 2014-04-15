@@ -24,8 +24,8 @@ class APITools(object):
 
     @staticmethod
     @serviceinterface
-    def fetch_fields(options):
-        return options.get('fields', {})
+    def pop_fields(options):
+        return options.pop('fields',{})
 
     # --- deal with the GENI CH API returns
     @staticmethod

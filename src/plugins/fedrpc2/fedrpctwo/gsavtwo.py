@@ -57,8 +57,7 @@ class GSAv2Handler(xmlrpc.Dispatcher):
 
         """
         try:
-            fields = self._api_tools.fetch_fields(options)
-            options.pop('fields')
+            fields = self._api_tools.pop_fields(options)
             result = self._delegate.create(type_, self.requestCertificate(), credentials, fields, options)
         except Exception as e:
             return self._api_tools.form_error_return(logger, e)
@@ -74,8 +73,7 @@ class GSAv2Handler(xmlrpc.Dispatcher):
 
         """
         try:
-            fields = self._api_tools.fetch_fields(options)
-            options.pop('fields')
+            fields = self._api_tools.pop_fields(options)
             result = self._delegate.update(type_, urn, self.requestCertificate(), credentials, fields, options)
         except Exception as e:
             return self._api_tools.form_error_return(logger, e)
