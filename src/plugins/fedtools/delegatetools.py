@@ -21,7 +21,6 @@ class DelegateTools(object):
     """
 
     JSON_COMMENT = "__comment" #: delimeter for comments in loaded JSON files (config.json and defaults.json)
-    STATIC = {} #: holds static configuration and settings loaded from JSON files (config.json and defaults.json)
     REQUIRED_METHOD_KEYS = ['members_to_add', 'members_to_change', 'members_to_remove'] #: list of valid keys to be passed as 'options' in a 'modify_membership' call
     GET_VERSION_FIELDS = ['URN', 'IMPLEMENTATION', 'SERVICES', 'CREDENTIAL_TYPES', 'ROLES', 'SERVICE_TYPES', 'API_VERSIONS'] #: list of fields possible in a 'get_version' API call response
 
@@ -29,6 +28,7 @@ class DelegateTools(object):
         """
         Load configuration files. Combine the default field names with the supplemenary fields to form a combined list.
         """
+        self.STATIC = {} #: holds static configuration and settings loaded from JSON files (config.json and defaults.json)
         self._load_files()
         self._combine_fields()
 
@@ -58,9 +58,10 @@ class DelegateTools(object):
         """
         self.STATIC['COMBINED'] = self.STATIC['DEFAULTS']
         for type_key, type_value in self.STATIC['CONFIG'].iteritems():
-            if type_key not in self.JSON_COMMENT:
+            if type_key not in DelegateTools.JSON_COMMENT:
                 for field_key, field_value in type_value.get('SUPPLEMENTARY_FIELDS').iteritems():
                     self.STATIC['COMBINED'][type_key.upper()][field_key.upper()] = field_value
+
     def _strip_comments(self, json):
         """
         Recursively strip comments out of loaded JSON files.
@@ -77,9 +78,9 @@ class DelegateTools(object):
         if type(json) in [str, unicode, int, float, bool, type(None)]:
             return json
         if isinstance(json, list):
-            return [self._strip_comments(j) for j in json if not ((type(j) in [str, unicode]) and j.startswith(self.JSON_COMMENT))]
+            return [self._strip_comments(j) for j in json if not ((type(j) in [str, unicode]) and j.startswith(DelegateTools.JSON_COMMENT))]
         if isinstance(json, dict):
-            return dict( (k, self._strip_comments(v)) for (k,v) in json.iteritems() if k != self.JSON_COMMENT) # there would be a dict comprehension from 2.7
+            return dict( (k, self._strip_comments(v)) for (k,v) in json.iteritems() if k != DelegateTools.JSON_COMMENT) # there would be a dict comprehension from 2.7
 
     def _get_paths(self):
 
@@ -162,8 +163,9 @@ class DelegateTools(object):
         """
         return self.STATIC['CONFIG'].get(type_, {})
 
+    @staticmethod
     @serviceinterface
-    def get_version(self, resource_manager):
+    def get_version(resource_manager):
         """
         Get details for a 'get_version' response by calling relevant methods in the corresponding resource manager.
 
@@ -178,7 +180,7 @@ class DelegateTools(object):
         """
 
         version = {}
-        for field in self.GET_VERSION_FIELDS:
+        for field in DelegateTools.GET_VERSION_FIELDS:
             if hasattr(resource_manager, field.lower()):
                 version[field] = getattr(resource_manager, field.lower())()
         return version
@@ -243,8 +245,9 @@ class DelegateTools(object):
             whitelist['lookup_private'].append(field_key)
         return whitelist
 
+    @staticmethod
     @serviceinterface
-    def member_check(self, required_field_keys, options):
+    def member_check(required_field_keys, options):
         """
         Check correctly formed options for 'modify_membership' method.
 
@@ -259,21 +262,27 @@ class DelegateTools(object):
 
         """
         for method_key, method_value in options.iteritems():
-            if method_key in self.REQUIRED_METHOD_KEYS:
+            if method_key in DelegateTools.REQUIRED_METHOD_KEYS:
                 for item in  method_value:
                     for field_key in item.iterkeys():
                         if not field_key in required_field_keys:
-                            raise GFedv2ArgumentError("Member key to modify not of required type. Offending key is: " + str(field_key) + ". Should be one of these types: " + str(required_field_keys))
+                            raise GFedv2ArgumentError("Member key to modify not of required type. Offending key is: " +
+                                                      str(field_key) + ". Should be one of these types: " +
+                                                      str(required_field_keys))
             else:
-                raise GFedv2ArgumentError("Member method key not found. Offending key is: " + str(method_key) + ". Should be one of these types: " + str(self.REQUIRED_METHOD_KEYS))
+                raise GFedv2ArgumentError("Member method key not found. Offending key is: " + str(method_key) +
+                                                         ". Should be one of these types: " +
+                                                            str(DelegateTools.REQUIRED_METHOD_KEYS))
 
+    @staticmethod
     @serviceinterface
     def slice_name_check(self, slice_name):
         if not re.match(r'^[a-zA-Z0-9][ A-Za-z0-9_-]{1,19}$', slice_name):
             raise GFedv2ArgumentError('SLICE_NAME field must be <= 19 characters, must only contain alphanumeric characters or hyphens and those hyphens must not be leading.')
 
+    @staticmethod
     @serviceinterface
-    def object_creation_check(self, fields, whitelist):
+    def object_creation_check(fields, whitelist):
         """
         Check if the given fields can be used in creating an object.
 
@@ -290,10 +299,12 @@ class DelegateTools(object):
         if required:
             raise GFedv2ArgumentError('Required key(s) missing for object creation: ' + ', '.join(required))
         if whitelist:
-            raise GFedv2ArgumentError('Cannot pass the following key(s) when creating an object : ' + ', '.join(whitelist))
+            raise GFedv2ArgumentError('Cannot pass the following key(s) when creating an object : ' +
+                                      ', '.join(whitelist))
 
+    @staticmethod
     @serviceinterface
-    def object_update_check(self, fields, whitelist):
+    def object_update_check(fields, whitelist):
         """
         Check if the given fields can be used in updating an object.
 
@@ -324,7 +335,7 @@ class DelegateTools(object):
         """
         combined = self.STATIC['COMBINED'][type_]
         for key, value in fields.iteritems():
-            if self.JSON_COMMENT not in key and value is not None:
+            if DelegateTools.JSON_COMMENT not in key and value is not None:
                 field_type = combined[key.upper()].get('TYPE')
                 try:
                     getattr(TypeCheck, 'check_' + field_type.lower())(value)
@@ -335,8 +346,9 @@ class DelegateTools(object):
                     raise GFedv2ArgumentError('Field {' + key + ' : ' + str(value) + '} is not of type ' + field_type)
 
 
+    @staticmethod
     @serviceinterface
-    def to_keyed_dict(self, list_, key):
+    def to_keyed_dict(list_, key):
         """
         Convert a list to a dictionary, keyed to given key.
 
