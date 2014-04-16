@@ -276,7 +276,7 @@ class DelegateTools(object):
 
     @staticmethod
     @serviceinterface
-    def slice_name_check(self, slice_name):
+    def slice_name_check(slice_name):
         if not re.match(r'^[a-zA-Z0-9][ A-Za-z0-9_-]{1,19}$', slice_name):
             raise GFedv2ArgumentError('SLICE_NAME field must be <= 19 characters, must only contain alphanumeric characters or hyphens and those hyphens must not be leading.')
 
