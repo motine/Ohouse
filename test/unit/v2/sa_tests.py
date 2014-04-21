@@ -80,6 +80,17 @@ class TestGSAv2(unittest.TestCase):
         create_data = {'SLICE_NAME':True, 'SLICE_DESCRIPTION' : 'My Malformed Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         self._test_create(create_data, 'SLICE', 'SLICE_URN', 3)
 
+    def test_invalid_slice_name(self):
+        """
+        This test is intended to test the validity of the slice_name upon creation.
+        """
+        invalid_sliceName = '-invalid_slicename'
+        create_data = {'SLICE_NAME': invalid_sliceName,
+                       'SLICE_DESCRIPTION': 'My Malformed Slice',
+                       'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+
+        self._test_create(create_data, 'SLICE', 'SLICE_URN',3)
+
     def test_create_unauthorized_field(self):
         """
         Test creation rules by passing an unauthorized field ('KEY_ID') during creation.
