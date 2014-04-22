@@ -99,11 +99,11 @@ class GSAv2Handler(xmlrpc.Dispatcher):
         Unwrap 'match' and 'filter' fields out of 'options'.
 
         Call delegate method and return result or exception.
-
         """
         try:
             match, filter_ = self._api_tools.fetch_match_and_filter(options)
             result = self._delegate.lookup(type_, self.requestCertificate(), credentials, match, filter_, options)
+
         except Exception as e:
             return self._api_tools.form_error_return(logger, e)
         return self._api_tools.form_success_return(result)

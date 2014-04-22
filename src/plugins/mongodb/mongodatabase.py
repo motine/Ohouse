@@ -102,11 +102,33 @@ class MongoDB(object):
 
         """
 
+        criteria_list=[]
+        if 'SLICE_URN' in criteria:
+            get_result=criteria.get('SLICE_URN')
+
+            if isinstance(get_result,list):
+                urns_to_query=criteria.pop('SLICE_URN')
+
+                for value in urns_to_query:
+                    criteria_copy=criteria.copy()
+                    criteria_copy['SLICE_URN']=value
+                    criteria_list.append(criteria_copy)
+            else:
+                criteria_list.append(criteria)
+
+        else:
+            criteria_list.append(criteria)
+
+
         projection['_id'] = False
-        result = self._database[collection].find(criteria, projection)
+        results = [self._database[collection].find(criteria, projection) for criteria in criteria_list]
+
+
         objects = []
-        for _object in result:
-            objects.append(_object)
+        for result in results:
+            for _object in result:
+                objects.append(_object)
+
         return objects
 
     @serviceinterface

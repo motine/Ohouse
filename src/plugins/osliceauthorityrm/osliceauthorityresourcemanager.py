@@ -109,7 +109,9 @@ class OSliceAuthorityResourceManager(object):
         """
         config = pm.getService('config')
         hostname = config.get('flask.hostname')
-        fields['SLICE_URN'] = 'urn:publicid+IDN+' + hostname + '+slice+' + fields.get('SLICE_NAME')
+
+        if not 'SLICE_URN' in fields:
+            fields['SLICE_URN'] = 'urn:publicid+IDN+' + hostname + '+slice+' + fields.get('SLICE_NAME')
         fields['SLICE_UID'] = str(uuid.uuid4())
         fields['SLICE_CREATION'] = pyrfc3339.generate(datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
         fields['SLICE_EXPIRED'] = False

@@ -123,6 +123,22 @@ class TestGSAv2(unittest.TestCase):
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
 
 
+
+    def test_lookup_multiple_slice_urns(self):
+        create_data_1 = {
+               'SLICE_NAME' : 'TEST-PROJECT-1',
+               'SLICE_DESCRIPTION' : 'Time_Expiry'}
+
+        create_data_2 = {
+               'SLICE_NAME' : 'TEST-PROJECT-2',
+               'SLICE_DESCRIPTION' : 'Time_Expiry'}
+
+        urn1 = self._test_create(create_data_1, 'SLICE', 'SLICE_URN', 0)
+        urn2 = self._test_create(create_data_2, 'SLICE', 'SLICE_URN', 0)
+
+        lookup_data={'SLICE_URN':[str(urn1),str(urn2)]}
+        self._test_lookup(lookup_data, None, 'SLICE', 0)
+
     def test_slice(self):
         """
         Test object type 'SLICE' methods: create, lookup, update.

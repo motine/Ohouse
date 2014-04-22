@@ -116,7 +116,6 @@ class OSAv2Delegate(GSAv2DelegateBase):
         using the resource manager.
         """
         if (type_=='SLICE'):
-
             result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials, match, filter_, options)
             return self._delegate_tools.to_keyed_dict(result, "SLICE_URN")
         elif (type_=='SLIVER_INFO'):
