@@ -68,3 +68,5 @@ Supplementary field names should be placed in a distinct namespace by a prefix u
 The configuration file (`config.json`) can be used to define supplementary fields for an object type. It can also be used to *override* the default fields and their attributes. To *override* a field, simply name the field the same as the default.
 
 In addition, the configuration file (`config.json`) can also be used to statically define other configuration elements, in addition to the supplementary fields dicussed previously. This is particularly true in the case of the Federation Registry, which uses `config.json` to define the `SERVICES` and `TRUST_ROOTS` it supports. See [`deploy/config.json.example`](https://github.com/motine/Ohouse/deploy/config.json.example) for examples.
+
+The Slice names should follow a specific pattern. When creating slices, make sure that the name is legal (hyphen is legal, underscore is not). Please see the Standard: NB: SLICE_NAME must adhere to the restrictions for slice names in the Aggregate Manager (AM) API, namely that it must be <= 19 characters, only alphanumeric plus hyphen, no leading hyphen. 
