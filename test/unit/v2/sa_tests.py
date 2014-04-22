@@ -114,7 +114,7 @@ class TestGSAv2(unittest.TestCase):
         Test update rules by passing an invalid expiry date during update.
         """
         create_data = {
-                       'SLICE_NAME' : 'TEST_PROJECT',
+                       'SLICE_NAME' : 'TEST-PROJECT',
                        'SLICE_DESCRIPTION' : 'Time_Expiry'}
 
         urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
@@ -147,7 +147,7 @@ class TestGSAv2(unittest.TestCase):
         we need to get the URN from the previous 'lookup' call which should have
         returned a result.
         """
-        create_data = {'SLICE_NAME':'AUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
+        create_data = {'SLICE_NAME':'AUTHORIZED-CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         lookup_data = _remove_key(create_data, 'SLICE_DESCRIPTION')
         presence_check = self._test_lookup(lookup_data, None, 'SLICE', 0)
         if len(presence_check) is 1:
