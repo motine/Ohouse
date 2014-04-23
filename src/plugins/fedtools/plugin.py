@@ -2,11 +2,12 @@ import amsoil.core.pluginmanager as pm
 from resourcemanagertools import ResourceManagerTools
 from delegatetools import DelegateTools
 from apitools import APITools
-import apiexceptions
+import apiexceptionsv1, apiexceptionsv2
 
 def setup():
 
-    pm.registerService('apiexceptions', apiexceptions)
+    pm.registerService('apiexceptionsv1', apiexceptionsv1)
+    pm.registerService('apiexceptionsv2', apiexceptionsv2)
 
     api_tools = APITools()
     pm.registerService('apitools', api_tools)

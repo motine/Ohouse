@@ -1,7 +1,7 @@
 from amsoil.core import serviceinterface
 import amsoil.core.pluginmanager as pm
 import amsoil.core.log
-from apiexceptions import *
+from apiexceptionsv2 import *
 
 logger=amsoil.core.log.getLogger('resourcemanagertools')
 

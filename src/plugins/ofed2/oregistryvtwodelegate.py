@@ -3,7 +3,7 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('ofed')
 
 GRegistryv2DelegateBase = pm.getService('gregistryv2delegatebase')
-gfed_ex = pm.getService('apiexceptions')
+gfed_ex = pm.getService('apiexceptionsv2')
 
 VERSION = '2'
 

@@ -3,7 +3,7 @@
   "author" : "Matthew Broadbent",
   "author-email" : "matthew.broadbent@eict.de",
   "version" : 1,
-  "implements" : ["apitools", "apiexceptions", "resourcemanagertools", "delegatetools"],
+  "implements" : ["apitools", "apiexceptionsv1", "apiexceptionsv2", "resourcemanagertools", "delegatetools"],
   "loads-after" : ["config", "mongodb"],
   "requires" : [ ]
 }
