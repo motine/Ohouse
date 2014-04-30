@@ -101,6 +101,7 @@ class MongoDB(object):
             list of results in dictionary format
 
         """
+
         projection['_id'] = False
         result = self._database[collection].find(criteria, projection)
         objects = []

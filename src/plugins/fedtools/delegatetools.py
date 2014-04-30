@@ -277,8 +277,9 @@ class DelegateTools(object):
     @staticmethod
     @serviceinterface
     def slice_name_check(slice_name):
-        if not re.match(r'^[a-zA-Z0-9][ A-Za-z0-9_-]{1,19}$', slice_name):
-            raise GFedv2ArgumentError('SLICE_NAME field must be <= 19 characters, must only contain alphanumeric characters or hyphens and those hyphens must not be leading.')
+        if not re.match(r'^[a-zA-Z0-9][A-Za-z0-9-]{1,19}$', slice_name):
+            raise GFedv2ArgumentError('SLICE_NAME field must be <= 19 characters, must only contain alphanumeric '
+                                      'characters or hyphens and those hyphens must not be leading.')
 
     @staticmethod
     @serviceinterface
@@ -333,10 +334,12 @@ class DelegateTools(object):
             GFedv2ArgumentError: Inconsistency found between a field value and the required type.
 
         """
+
         combined = self.STATIC['COMBINED'][type_]
         for key, value in fields.iteritems():
             if DelegateTools.JSON_COMMENT not in key and value is not None:
                 field_type = combined[key.upper()].get('TYPE')
+
                 try:
                     getattr(TypeCheck, 'check_' + field_type.lower())(value)
                 except AttributeError:

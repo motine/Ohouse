@@ -80,6 +80,17 @@ class TestGSAv2(unittest.TestCase):
         create_data = {'SLICE_NAME':True, 'SLICE_DESCRIPTION' : 'My Malformed Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         self._test_create(create_data, 'SLICE', 'SLICE_URN', 3)
 
+    def test_invalid_slice_name(self):
+        """
+        This test is intended to test the validity of the slice_name upon creation.
+        """
+        invalid_sliceName = '-invalid_slicename'
+        create_data = {'SLICE_NAME': invalid_sliceName,
+                       'SLICE_DESCRIPTION': 'My Malformed Slice',
+                       'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+
+        self._test_create(create_data, 'SLICE', 'SLICE_URN',3)
+
     def test_create_unauthorized_field(self):
         """
         Test creation rules by passing an unauthorized field ('KEY_ID') during creation.
@@ -103,7 +114,7 @@ class TestGSAv2(unittest.TestCase):
         Test update rules by passing an invalid expiry date during update.
         """
         create_data = {
-                       'SLICE_NAME' : 'TEST_PROJECT',
+                       'SLICE_NAME' : 'TEST-PROJECT',
                        'SLICE_DESCRIPTION' : 'Time_Expiry'}
 
         urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
@@ -136,7 +147,7 @@ class TestGSAv2(unittest.TestCase):
         we need to get the URN from the previous 'lookup' call which should have
         returned a result.
         """
-        create_data = {'SLICE_NAME':'AUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
+        create_data = {'SLICE_NAME':'AUTHORIZED-CREATION', 'SLICE_DESCRIPTION' : 'My Clean Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         lookup_data = _remove_key(create_data, 'SLICE_DESCRIPTION')
         presence_check = self._test_lookup(lookup_data, None, 'SLICE', 0)
         if len(presence_check) is 1:
