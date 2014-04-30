@@ -3,7 +3,7 @@ import amsoil.core.log
 logger=amsoil.core.log.getLogger('ofed')
 
 GSAv2DelegateBase = pm.getService('gsav2delegatebase')
-gfed_ex = pm.getService('apiexceptions')
+gfed_ex = pm.getService('apiexceptionsv2')
 VERSION = '2'
 
 class OSAv2Delegate(GSAv2DelegateBase):
@@ -116,7 +116,6 @@ class OSAv2Delegate(GSAv2DelegateBase):
         using the resource manager.
         """
         if (type_=='SLICE'):
-
             result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials, match, filter_, options)
             return self._delegate_tools.to_keyed_dict(result, "SLICE_URN")
         elif (type_=='SLIVER_INFO'):

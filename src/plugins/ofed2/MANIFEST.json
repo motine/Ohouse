@@ -5,6 +5,6 @@
   "version" : 1,
   "implements" : [],
   "loads-after" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler", "gmav2delegatebase", "gsav2handler",
-    "gsav2delegatebase", "apiexceptions", "osliceauthorityrm", "oregistryrm", "omemberauthorityrm", "delegatetools", "apitools"],
+    "gsav2delegatebase", "apiexceptionsv2", "osliceauthorityrm", "oregistryrm", "omemberauthorityrm", "delegatetools", "apitools"],
   "requires" : []
 }

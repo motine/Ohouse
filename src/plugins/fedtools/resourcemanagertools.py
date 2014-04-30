@@ -1,7 +1,7 @@
 from amsoil.core import serviceinterface
 import amsoil.core.pluginmanager as pm
 import amsoil.core.log
-from apiexceptions import *
+from apiexceptionsv2 import *
 
 logger=amsoil.core.log.getLogger('resourcemanagertools')
 
@@ -177,6 +177,7 @@ class ResourceManagerTools(object):
         results = self._database.lookup(authority, match, filter_)
         for result in results:
             result = self._database.prune_result(result)
+
         return results
 
     def _convert_filter_to_projection(self, filter_):

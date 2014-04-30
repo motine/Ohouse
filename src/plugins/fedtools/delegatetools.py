@@ -4,7 +4,7 @@ import amsoil.core.pluginmanager as pm
 import amsoil.core.log
 
 from delegateexceptions import *
-from apiexceptions import *
+from apiexceptionsv2 import *
 
 
 import os.path

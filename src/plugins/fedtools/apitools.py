@@ -2,7 +2,7 @@ from amsoil.core import serviceinterface
 import amsoil.core.pluginmanager as pm
 
 import traceback
-from apiexceptions import GFedv2BaseError, GFedv2ServerError
+from apiexceptionsv2 import GFedv2BaseError, GFedv2ServerError
 
 class APITools(object):
     """
