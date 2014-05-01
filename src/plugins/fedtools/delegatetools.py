@@ -347,7 +347,39 @@ class DelegateTools(object):
                         'See http://groups.geni.net/geni/wiki/CommonFederationAPIv2#AppendixB:APIDataTypes for more details.')
                 except Exception:
                     raise GFedv2ArgumentError('Field {' + key + ' : ' + str(value) + '} is not of type ' + field_type)
+ 
+    @staticmethod
+    @serviceinterface
+    def decompose_slice_urns(match_value_to_decompose):
+        """
+        Create individual SLICE_URN entries to match from a list of SLICE_URN Values. For example,
+        input = {SLICE_URN: [urn1, unr2, urn3}
+        output =[{SLICE_URN: urn1}, {SLICE_URN:urn2}, {SLICE_URN:urn3}]
 
+        Args:
+            match_value_to_decompose: dictionary of individual slice URN list with other match values
+
+        Returns:
+            match_urn_list: A list of dictionaries for each slice URN
+
+        """
+        match_urn_list=[]
+        if 'SLICE_URN' in match_value_to_decompose:
+            get_result=match_value_to_decompose.get('SLICE_URN')
+
+            if isinstance(get_result,list):
+                urns_to_query=match_value_to_decompose.pop('SLICE_URN')
+
+                for value in urns_to_query:
+                    match_value_to_decompose_copy=match_value_to_decompose.copy()
+                    match_value_to_decompose['SLICE_URN']=value
+                    match_urn_list.append(match_value_to_decompose_copy)
+            else:
+                match_urn_list.append(match_value_to_decompose)
+        else:
+            match_urn_list.append(match_value_to_decompose)
+
+        return match_urn_list
 
     @staticmethod
     @serviceinterface

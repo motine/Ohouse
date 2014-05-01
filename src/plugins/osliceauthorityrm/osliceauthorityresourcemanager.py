@@ -110,8 +110,7 @@ class OSliceAuthorityResourceManager(object):
         config = pm.getService('config')
         hostname = config.get('flask.hostname')
 
-        if not 'SLICE_URN' in fields:
-            fields['SLICE_URN'] = 'urn:publicid+IDN+' + hostname + '+slice+' + fields.get('SLICE_NAME')
+        fields['SLICE_URN'] = 'urn:publicid+IDN+' + hostname + '+slice+' + fields.get('SLICE_NAME')
         fields['SLICE_UID'] = str(uuid.uuid4())
         fields['SLICE_CREATION'] = pyrfc3339.generate(datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
         fields['SLICE_EXPIRED'] = False
@@ -169,6 +168,7 @@ class OSliceAuthorityResourceManager(object):
         """
         config = pm.getService('config')
         hostname = config.get('flask.hostname')
+
         fields['PROJECT_URN'] = 'urn:publicid+IDN+' + hostname + '+project+' + fields.get('PROJECT_NAME')
         fields['PROJECT_UID'] = str(uuid.uuid4())
         fields['PROJECT_CREATION'] = pyrfc3339.generate(datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
