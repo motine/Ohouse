@@ -5,6 +5,7 @@ All (non core) implementations/plugins should use the config service/plugin.
 
 import logging
 import os.path
+import json
 
 ##Paths
 SRC_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
@@ -21,6 +22,9 @@ CONFIGDB_PATH = "%s/deploy/config.db" % (ROOT_PATH,)
 CONFIGDB_ENGINE = "sqlite:///%s" % (CONFIGDB_PATH,)
 IS_MULTIPROCESS = True
 
+#CONFIG Details FOR MongoDB
+
+
 ##IPC related parameters
 #IPC_RABBITMQ_SERVER="localhost"
 # IPC_RABBITMQ_SERVER="192.168.0.218"
@@ -36,3 +40,11 @@ def expand_amsoil_path(path):
         return path
     else:
         return os.path.normpath(os.path.join(ROOT_PATH, path))
+
+
+MONGO_CONFIG_PATH = expand_amsoil_path('deploy/config.json')
+MONGO_CONFIG = json.load(open(MONGO_CONFIG_PATH))
+
+db_ip = MONGO_CONFIG['database']['server']
+db_port = int(MONGO_CONFIG['database']['port'])
+db_name = MONGO_CONFIG['database']['name']

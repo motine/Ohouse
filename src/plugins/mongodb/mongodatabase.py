@@ -17,13 +17,12 @@ class MongoDB(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, ip_hostname=None, port=None, database_name=None):
         """
-        Initialise a MongoDB Client and connect to a database named 'ohouse'.
+        Initialise a MongoDB Client and connect to a database named in config file through 'database_name'.
         """
-        #TODO: Make the database configurable (IP, port, database name etc.)
-        client = pymongo.MongoClient()
-        self._database = client['ohouse']
+        client = pymongo.MongoClient(ip_hostname, port) if not  (ip_hostname == None and port == None and database_name ==None) else pymongo.MongoClient()
+        self._database = client[database_name] if not (database_name == None) else client['ohouse']
 
     @serviceinterface
     def set_index(self, collection, index):
