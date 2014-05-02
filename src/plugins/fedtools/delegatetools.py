@@ -66,7 +66,7 @@ class DelegateTools(object):
         """
         Recursively strip comments out of loaded JSON files.
 
-        The delimeter used to define a comment is defined in a global variable (JSON_COMMENT).
+        The delimiter used to define a comment is defined in a global variable (JSON_COMMENT).
 
         Args:
             json: JSON content to strip comments from

@@ -62,7 +62,7 @@ class ORegistryResourceManager(object):
 
     def service_types(self):
         """
-        Return the service types, as defined in the configuration (config.json).
+        Return the service types, as defined in the registry config file (registry.json).
         """
         service_types = set()
         for e in  self._delegate_tools.get_registry('SERVICE')['SERVICES']:
@@ -71,31 +71,31 @@ class ORegistryResourceManager(object):
 
     def lookup_services(self):
         """
-        Return all service types as defined in the configuration (config.json).
+        Return all service types as defined in the  registry config file (registry.json).
         """
         return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type'] in self.TYPES)])
 
     def all_aggregates(self):
         """
-        Return all aggregates as defined in the configuration (config.json).
+        Return all aggregates as defined in the registry config file (registry.json).
         """
         return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])
 
     def all_member_authorities(self):
         """
-        Return all member authorities as defined in the configuration (config.json).
+        Return all member authorities as defined in the registry config file (registry.json).
         """
         return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.MA_SERVICE_TYPE)])
 
     def all_slice_authorities(self):
         """
-        Return all slice authorities as defined in the configuration (config.json).
+        Return all slice authorities as defined in theregistry config file (registry.json).
         """
         return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.SA_SERVICE_TYPE)])
 
     def all_trusted_certs(self):
         """
-        Return all trusted certificates as defined in the configuration (config.json).
+        Return all trusted certificates as defined in the registry config file (registry.json).
         """
         certs = self._delegate_tools.get_registry('SERVICE')["TRUST_ROOTS"]
         #TODO: Subsitute magic markers
