@@ -17,7 +17,7 @@ def setup():
 
     config = pm.getService("config")
     config.install("delegatetools.config_path", "deploy/config.json", "JSON file with configuration data for CH, SA, MA")
-    config.install("delegatetools.defaults_path", "deploy/defaults.json", "JSON file with default data for CH, SA, MA")
+    config.install("delegatetools.defaults_path", "src/plugins/fedtools/defaults.json", "JSON file with default data for CH, SA, MA", True)
 
     delegate_tools = DelegateTools()
     pm.registerService('delegatetools', delegate_tools)
