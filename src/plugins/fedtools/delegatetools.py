@@ -57,9 +57,9 @@ class DelegateTools(object):
 
         """
         self.STATIC['COMBINED'] = self.STATIC['DEFAULTS']
-        for type_key, type_value in self.STATIC['CONFIG'].iteritems():
+        for type_key, type_value in self.STATIC['SUPPLEMENTARY_FIELDS'].iteritems():
             if type_key not in DelegateTools.JSON_COMMENT:
-                for field_key, field_value in type_value.get('SUPPLEMENTARY_FIELDS').iteritems():
+                for field_key, field_value in type_value.iteritems():
                     self.STATIC['COMBINED'][type_key.upper()][field_key.upper()] = field_value
 
     def _strip_comments(self, json):
@@ -93,9 +93,9 @@ class DelegateTools(object):
 
         config = pm.getService("config")
         config_path = config.get("delegatetools.config_path")
-
+        supplemetary_fields_path = config.get("delegatetools.supplemetary_fileds_path")
         defaults_path = config.get("delegatetools.defaults_path")
-        return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path)}
+        return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path), 'SUPPLEMENTARY_FIELDS' : supplemetary_fields_path}
 
 
     @staticmethod
@@ -144,7 +144,7 @@ class DelegateTools(object):
         result = {}
         for _type in types:
             try:
-                result.update(self.STATIC['CONFIG'][_type].get('SUPPLEMENTARY_FIELDS', None))
+                result.update(self.STATIC['SUPPLEMENTARY_FIELDS'][_type])
             except KeyError:
                 pass
         return result
