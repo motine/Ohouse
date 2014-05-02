@@ -1,96 +1,22 @@
 {
-    "__comment" : "restart the server when updating this file. the keys are case sensitive (depending on the field, the values might as well). do not forget to restart the server after chaning this file.",
-    "SERVICE" : {
-        "SUPPLEMENTARY_FIELDS" : {
-            "__comment" : "additional fields to further specify the services. the name (key) should be prefixed with an underscore and the federation name. each field specified here must be set in the 'services' section. available field service_types are URN, UID, STRING, DATETIME, EMAIL, KEY, BOOLEAN, CREDENTIAL, CERTIFICATE.",
-            "_ofelia_island_name" : {
-                "TYPE" : "STRING"
-            }
-        },
-        "SERVICES" : [
-            {
-                "__comment" : "each service needs to specify the service_type ('agg' / 'sa' / 'ma') and the compulsory fields (see below). also if supplementary_fields have been specified these need to be present too.",
-                "service_type" : "AGGREGATE_MANAGER",
-                "service_url" : "https://server.com:12345",
-                "service_cert" : "<certificate>agg1</certificate>",
-                "service_name" : "agg1",
-                "service_description" : "Aggregate 1",
-                "service_urn" : "urn:publicid:IDN+server.com+authority+am",
-                "_ofelia_island_name" : "island 1"
-            }, {
-                "service_type" : "AGGREGATE_MANAGER",
-                "service_url" : "https://example.com:12345",
-                "service_cert" : "<certificate>agg2</certificate>",
-                "service_name" : "AGG2",
-                "service_description" : "Aggregate 2",
-                "service_urn" : "urn:publicid:IDN+backup.com+authority+am",
-                "_ofelia_island_name" : "island 2"
-            }, {
-                "service_type" : "SLICE_AUTHORITY",
-                "service_url" : "https://localhost:8001/SA",
-                "service_cert" : "<certificate>foo_sa</certificate>",
-                "service_name" : "chapI-SA",
-                "service_description" : "CHAPI Service Authority",
-                "service_urn" : "urn:publicid:IDN+foo.com+authority+sa",
-                "_ofelia_island_name" : "island 3"
-            }, {
-                "service_type" : "SLICE_AUTHORITY",
-                "service_url" : "https://localhost:8002/SA",
-                "service_cert" : "<certificate>bar_sa</certificate>",
-                "service_name" : "chapI-SA2",
-                "service_description" : "CHAPI Service Authority (BACKUP)",
-                "service_urn" : "urn:publicid:IDN+bar.com+authority+sa",
-                "_ofelia_island_name" : "island 4"
-            }, {
-                "service_type" : "MEMBER_AUTHORITY",
-                "service_url" : "https://localhost:8001/MA",
-                "service_cert" : "<certificate>foo_ma</certificate>",
-                "service_name" : "CHAPI-MA",
-                "service_description" : "CHAPI Member Authority",
-                "service_urn" : "urn:publicid:IDN+foo.com+authority+ma",
-                "_ofelia_island_name" : "island 5"
-            }, {
-                "service_type" : "MEMBER_AUTHORITY",
-                "service_url" : "https://localhost:8002/MA",
-                "service_cert" : "<certificate>bar_ma</certificate>",
-                "service_name" : "chapI-MA2",
-                "service_description" : "CHAPI Member Authority (BACKUP)",
-                "service_urn" : "urn:publicid:IDN+bar.com+authority+ma",
-                "_ofelia_island_name" : "island 6"
-            }
-        ],
-        "TRUST_ROOTS" : [
-            "__comment: may contain certificates as strings. if there is an entry 'INFER_SAs' the certificates from the slice authorities in 'services' will be included. Same goes for 'INFER_MAs'",
-            "<certificate>additional certificate which does not show up above</certificate>",
-            "INFER_SAs", "INFER_MAs"
-        ]
+    "__comment" : "deployment specific parameters are described here, e.g., database configuration parameters (server_port, IP, name).",
+
+
+    "DATABASE": {
+         "description"  : "database configuration option",
+         "server" : "localhost",
+         "port" : "27017",
+         "name" : "ohouse"
     },
-    "MEMBER" : {
-        "SUPPLEMENTARY_FIELDS" : {
-            "_OFELIA_MEMBER_AFFILIATION" : {
-                "TYPE"   : "STRING",
-                "DESC"   : "Organization the member belongs to",
-                "CREATE" : "ALLOWED",
-                "UPDATE" : true,
-                "MATCH"  : true,
-                "PROTECT": "IDENTIFYING"
-            },
-            "_OFELIA_ISLAND_NAME": {
-                "TYPE"   : "STRING",
-                "DESC"   : "Home island of the member",
-                "CREATE" : "ALLOWED",
-                "UPDATE" : true,
-                "MATCH"  : true,
-                "PROTECT": "PUBLIC"
-            },
-            "_OFELIA_MEMBER_ENABLED" : {
-                "TYPE"   : "BOOLEAN",
-                "DESC"   : "If the user is allowed to perform actions",
-                "CREATE" : "ALLOWED",
-                "UPDATE" : true,
-                "MATCH"  : true,
-                "PROTECT": "PUBLIC"
-            }
-        }
-    }
+
+    "PROJECT": {
+        "description" : "Maximum possible time a project expiration date can be extended",
+        "max_project_extension_time" : 30
+        },
+
+    "SLICE": {
+        "description" : "Maximum possible time a slice expiration date can be extended",
+        "max_slice_extension_time" : 30
+      }
+
 }
