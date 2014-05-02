@@ -102,9 +102,8 @@ class DelegateTools(object):
                 'REGISTRY' : expand_amsoil_path(service_registry_path)}
 
 
-    @staticmethod
     @serviceinterface
-    def validate_expiration_time(original_value, value_in_question):
+    def validate_expiration_time(self, original_value, value_in_question, type_=None):
         """
         Validate the expiration time value passed to Update or Create Methods.
 
@@ -117,7 +116,15 @@ class DelegateTools(object):
         """
         parsed_original_value = pyrfc3339.parse(original_value)
         parsed_value_in_question = pyrfc3339.parse(value_in_question)
-        return (parsed_original_value < parsed_value_in_question)
+
+        if type_:
+            maximum_expansion_duration = self.STATIC['CONFIG'][type_]['max_%s_extension_time' %type_.lower()]
+            configuration_delta = datetime.timedelta(days=maximum_expansion_duration)
+            delta_time_days =  parsed_value_in_question - parsed_original_value
+
+            return True if parsed_original_value < parsed_value_in_question and delta_time_days < configuration_delta  else False
+        else:
+            return parsed_original_value < parsed_value_in_question
 
     @serviceinterface
     def get_fields(self, type_):

@@ -45,6 +45,6 @@ def expand_amsoil_path(path):
 MONGO_CONFIG_PATH = expand_amsoil_path('deploy/config.json')
 MONGO_CONFIG = json.load(open(MONGO_CONFIG_PATH))
 
-db_ip = MONGO_CONFIG['database']['server']
-db_port = int(MONGO_CONFIG['database']['port'])
-db_name = MONGO_CONFIG['database']['name']
+db_ip = MONGO_CONFIG['DATABASE']['server']
+db_port = int(MONGO_CONFIG['DATABASE']['port'])
+db_name = MONGO_CONFIG['DATABASE']['name']

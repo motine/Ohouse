@@ -119,9 +119,8 @@ class TestGSAv2(unittest.TestCase):
 
         urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
 
-        update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
+        update_data = {'SLICE_EXPIRATION' : '2013-05-20T13:15:30Z'}
         self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
-
 
 
     def test_lookup_multiple_slice_urns(self):
