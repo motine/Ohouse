@@ -17,9 +17,8 @@ def setup():
 
     config = pm.getService("config")
     config.install("delegatetools.config_path", "deploy/config.json", "JSON file with configuration data for CH, SA, MA")
-    config.install("delegatetools.supplemetary_fileds_path", "deploy/supplementary_fields.json",
-                   "JSON file with configuration data for CH, SA, MA",True)
-
+    config.install("delegatetools.supplemetary_fileds_path", "deploy/supplementary_fields.json", "JSON file with Supplementary Fields for CH, SA, MA",True)
+    config.install("delegatetools.service_registry_path","deploy/registry.json", "JSON file with Services supported by the registry",True)
     config.install("delegatetools.defaults_path", "src/plugins/fedtools/defaults.json", "JSON file with default data for CH, SA, MA", True)
 
     delegate_tools = DelegateTools()

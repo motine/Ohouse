@@ -94,8 +94,12 @@ class DelegateTools(object):
         config = pm.getService("config")
         config_path = config.get("delegatetools.config_path")
         supplemetary_fields_path = config.get("delegatetools.supplemetary_fileds_path")
+        service_registry_path = config.get("delegatetools.service_registry_path")
         defaults_path = config.get("delegatetools.defaults_path")
-        return {'CONFIG' : expand_amsoil_path(config_path), 'DEFAULTS' : expand_amsoil_path(defaults_path), 'SUPPLEMENTARY_FIELDS' : supplemetary_fields_path}
+        return {'CONFIG' : expand_amsoil_path(config_path),
+                'DEFAULTS' : expand_amsoil_path(defaults_path),
+                'SUPPLEMENTARY_FIELDS' : expand_amsoil_path(supplemetary_fields_path),
+                'REGISTRY' : expand_amsoil_path(service_registry_path)}
 
 
     @staticmethod
@@ -162,6 +166,19 @@ class DelegateTools(object):
 
         """
         return self.STATIC['CONFIG'].get(type_, {})
+
+    @serviceinterface
+    def get_registry(self, type_):
+        """
+        Get REGISTRY fields for a given object type.
+
+        Args:
+            type_: the type of object
+
+        Returns:
+            the REGISTRY fields
+        """
+        return self.STATIC['REGISTRY'].get(type_, {})
 
     @staticmethod
     @serviceinterface

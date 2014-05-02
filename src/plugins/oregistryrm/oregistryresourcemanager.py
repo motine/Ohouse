@@ -65,7 +65,7 @@ class ORegistryResourceManager(object):
         Return the service types, as defined in the configuration (config.json).
         """
         service_types = set()
-        for e in  self._delegate_tools.get_config('SERVICE')['SERVICES']:
+        for e in  self._delegate_tools.get_registry('SERVICE')['SERVICES']:
             service_types.add(e['service_type'])
         return list(service_types)
 
@@ -73,31 +73,31 @@ class ORegistryResourceManager(object):
         """
         Return all service types as defined in the configuration (config.json).
         """
-        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type'] in self.TYPES)])
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type'] in self.TYPES)])
 
     def all_aggregates(self):
         """
         Return all aggregates as defined in the configuration (config.json).
         """
-        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.AGGREGATE_SERVICE_TYPE)])
 
     def all_member_authorities(self):
         """
         Return all member authorities as defined in the configuration (config.json).
         """
-        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.MA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.MA_SERVICE_TYPE)])
 
     def all_slice_authorities(self):
         """
         Return all slice authorities as defined in the configuration (config.json).
         """
-        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_config('SERVICE')["SERVICES"] if (e['service_type']==self.SA_SERVICE_TYPE)])
+        return self._uppercase_keys_in_list([e for e in self._delegate_tools.get_registry('SERVICE')["SERVICES"] if (e['service_type']==self.SA_SERVICE_TYPE)])
 
     def all_trusted_certs(self):
         """
         Return all trusted certificates as defined in the configuration (config.json).
         """
-        certs = self._delegate_tools.get_config('SERVICE')["TRUST_ROOTS"]
+        certs = self._delegate_tools.get_registry('SERVICE')["TRUST_ROOTS"]
         #TODO: Subsitute magic markers
         if "INFER_SAs" in certs:
             certs.remove("INFER_SAs")
@@ -135,7 +135,7 @@ class ORegistryResourceManager(object):
         Returns the first service dictionary matching the {typ}e and {urn}. None if none is found.
         """
         geniutil = pm.getService('geniutil')
-        for service in self._delegate_tools.get_config('SERVICE')['SERVICES']:
+        for service in self._delegate_tools.get_registry('SERVICE')['SERVICES']:
             sauth, styp, sname = geniutil.decode_urn(service['service_urn'])
             if (service['service_type'] == typ) and (sauth == authority):
                 return service
