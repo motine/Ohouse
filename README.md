@@ -25,7 +25,11 @@ Note that sometimes the output is only given to the log in `log/amsoil.log`.
 
 ### Additional
 
-* Copy the `deploy/config.json.example` to `deploy/config.json` and adjust the entries (should be self-explanatory).
+* Copy the following files and adust the entries as required
+    * The `deploy/config.json.example` to `deploy/config.json` 
+    * The `deploy/registry.json.example` to `deploy/registry.json` 
+    * The `deploy/supplementary_fields.json.example` to `deploy/supplimentary_fields.json` 
+
 * Either
   * Install trust root certificates to `deploy/trust` (as pem) and a admin cert (`admin-key.pem` and `admin-cert.pem`) to `admin`.
   * Or create test certificates and credentials and copy them to the respective places (see `test/creds/TODO.md`).
