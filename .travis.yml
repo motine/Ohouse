@@ -12,6 +12,8 @@ install:
 # setup environment and start Ohouse
 before_script:
   - "cp deploy/config.json.example deploy/config.json"
+  - "cp deploy/registry.json.example deploy/registry.json"
+  - "cp deploy/supplementary_fields.json.example deploy/supplementary_fields.json"
   - "./test/creds/gen-certs.sh"
   - "python src/main.py &"
   - "sleep 5"
