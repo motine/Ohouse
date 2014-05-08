@@ -89,6 +89,21 @@ class OSAv2Delegate(GSAv2DelegateBase):
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_sliver_info(urn, certificate, credentials, fields, options)
         elif (type_=='PROJECT'):
+            update_expiration_time = fields.get('PROJECT_EXPIRATION')
+            if update_expiration_time:
+                lookup_result = self._slice_authority_resource_manager.lookup_project(certificate, credentials,
+                                                                                     {'PROJECT_URN' : str(urn)}, [], {})
+
+                # keyed_lookup_result enables referencing an dicitionary with any chosen key_name. For example,
+                # SLICE_URN can be used as the key for the dictionary return when looking up a slice.
+                # This is needed here to enable fetching out the SLICE_CREATION time belonging to a certain SLICE_URN
+                keyed_lookup_result = self._delegate_tools.to_keyed_dict(lookup_result, "PROJECT_URN")
+                is_valid = self._delegate_tools.validate_expiration_time(str(keyed_lookup_result[urn]['PROJECT_CREATION']),
+                                                                        update_expiration_time)
+
+                if not is_valid:
+                    raise gfed_ex.GFedv2ArgumentError("Invalid expiry date for object type: " + str(type_))
+
             self._delegate_tools.object_update_check(fields, self._project_whitelist)
             self._delegate_tools.object_consistency_check(type_, fields)
             return self._slice_authority_resource_manager.update_project(urn, certificate, credentials, fields, options)
@@ -116,8 +131,14 @@ class OSAv2Delegate(GSAv2DelegateBase):
         using the resource manager.
         """
         if (type_=='SLICE'):
-            result = self._slice_authority_resource_manager.lookup_slice(certificate, credentials, match, filter_, options)
-            return self._delegate_tools.to_keyed_dict(result, "SLICE_URN")
+            match_urn_list=self._delegate_tools.decompose_slice_urns(match)
+
+            result_list = []
+            for urn in match_urn_list:
+                result_list =  result_list + self._slice_authority_resource_manager.lookup_slice(certificate, credentials, urn, filter_, options)
+
+            return self._delegate_tools.to_keyed_dict(result_list, "SLICE_URN")
+
         elif (type_=='SLIVER_INFO'):
             return self._delegate_tools.to_keyed_dict(self._slice_authority_resource_manager.lookup_sliver_info(certificate, credentials, match, filter_, options), "SLIVER_INFO_URN")
         elif (type_=='PROJECT'):

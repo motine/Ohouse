@@ -80,23 +80,39 @@ class TestGSAv2(unittest.TestCase):
         create_data = {'SLICE_NAME':True, 'SLICE_DESCRIPTION' : 'My Malformed Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         self._test_create(create_data, 'SLICE', 'SLICE_URN', 3)
 
+        lookup_data = {'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+        self.assertEqual(self._test_lookup(lookup_data,None,'SLICE',0), {})
+
     def test_invalid_slice_name(self):
         """
         This test is intended to test the validity of the slice_name upon creation.
         """
-        invalid_sliceName = '-invalid_slicename'
-        create_data = {'SLICE_NAME': invalid_sliceName,
-                       'SLICE_DESCRIPTION': 'My Malformed Slice',
-                       'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+        invalid_charachters = ['_','!',"@",'#','$','%','^','&','*','(',')','+']
+        invalid_sliceNames = ['invalid%sslicename' %c for c in invalid_charachters] +['-invalidslicename']
 
-        self._test_create(create_data, 'SLICE', 'SLICE_URN',3)
+        for invalid_sliceName in invalid_sliceNames:
+            create_data = {'SLICE_NAME': invalid_sliceName,
+                           'SLICE_DESCRIPTION': 'My Malformed Slice',
+                           'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+            self._test_create(create_data, 'SLICE', 'SLICE_URN',3)
+
+            #Asserting to make sure the invalid slice name was not created
+            lookup_data = {'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+            self.assertEqual(self._test_lookup(lookup_data,None,'SLICE',0), {})
+
 
     def test_create_unauthorized_field(self):
         """
-        Test creation rules by passing an unauthorized field ('KEY_ID') during creation.
+        Test creation rules by passing an unauthorized field     ('KEY_ID') during creation.
         """
-        create_data = {'SLICE_EXPIRED' : True, 'SLICE_NAME':'UNAUTHORIZED_CREATION', 'SLICE_DESCRIPTION' : 'My Unauthorized Slice', 'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
+        create_data = {'SLICE_EXPIRED' : True, 'SLICE_NAME':'UNAUTHORIZED_CREATION',
+                       'SLICE_DESCRIPTION' : 'My Unauthorized Slice',
+                       'SLICE_PROJECT_URN' : 'urn:publicid:IDN+this_sa+project+myproject'}
         self._test_create(create_data, 'SLICE', 'SLICE_URN', 3)
+
+        #Asserting to make sure the unauthorized_field was not created
+        lookup_data = {'SLICE_PROJECT_URN': 'urn:publicid:IDN+this_sa+project+myproject'}
+        self.assertEqual(self._test_lookup(lookup_data,None,'SLICE',0), {})
 
     def test_update_unauthorized_field(self):
         """
@@ -114,30 +130,29 @@ class TestGSAv2(unittest.TestCase):
         Test update rules by passing an invalid expiry date during update.
         """
         create_data = {
-                       'SLICE_NAME' : 'TEST-PROJECT',
-                       'SLICE_DESCRIPTION' : 'Time_Expiry'}
+                       'PROJECT_NAME' : 'TEST-PROJECT',
+                       'PROJECT_DESCRIPTION' : 'Time_Expiry'}
 
-        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
+        urn = self._test_create(create_data, 'PROJECT', 'PROJECT_URN', 0)
 
-        update_data = {'SLICE_EXPIRATION' : '2013-07-29T13:15:30Z'}
-        self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
-
-
+        update_data = {'PROJECT_EXPIRATION' : '2013-07-29T13:15:30Z'}
+        self._test_update(urn, update_data, 'PROJECT', 'PROJECT_URN', 3)
+        self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
 
     def test_lookup_multiple_slice_urns(self):
         create_data_1 = {
-               'SLICE_NAME' : 'TEST-PROJECT-1',
+               'SLICE_NAME' : 'TEST-SLICE-1',
                'SLICE_DESCRIPTION' : 'Time_Expiry'}
 
         create_data_2 = {
-               'SLICE_NAME' : 'TEST-PROJECT-2',
+               'SLICE_NAME' : 'TEST-SLICE-2',
                'SLICE_DESCRIPTION' : 'Time_Expiry'}
 
         urn1 = self._test_create(create_data_1, 'SLICE', 'SLICE_URN', 0)
         urn2 = self._test_create(create_data_2, 'SLICE', 'SLICE_URN', 0)
 
         lookup_data={'SLICE_URN':[str(urn1),str(urn2)]}
-        self._test_lookup(lookup_data, None, 'SLICE', 0)
+        self._test_lookup(lookup_data, None, 'SLICE', 0, 2)
 
     def test_slice(self):
         """
@@ -204,6 +219,7 @@ class TestGSAv2(unittest.TestCase):
         Helper method to test object creation.
         """
         code, value, output = sa_call('create', [object_type, self._credential_list("admin"), {'fields' : fields}], user_name="admin")
+
         self.assertEqual(code, expected_code)
         if code is 0:
             self.assertIsInstance(value, dict)
@@ -213,6 +229,7 @@ class TestGSAv2(unittest.TestCase):
             urn = value.get(expected_urn)
             self.assertIsInstance(urn, str)
             return urn
+
 
     def _test_update(self, urn, fields, object_type, expected_urn, expected_code):
         """
