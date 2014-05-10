@@ -7,6 +7,9 @@ import logging
 import os.path
 import json
 
+from amsoil.core.exception import *
+
+
 ##Paths
 SRC_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 ROOT_PATH = os.path.normpath(os.path.join(SRC_PATH, '..'))
@@ -43,7 +46,10 @@ def expand_amsoil_path(path):
 
 
 MONGO_CONFIG_PATH = expand_amsoil_path('deploy/config.json')
-MONGO_CONFIG = json.load(open(MONGO_CONFIG_PATH))
+try:
+    MONGO_CONFIG = json.load(open(MONGO_CONFIG_PATH))
+except Exception:
+    raise  MissingFileOrData(MONGO_CONFIG_PATH)
 
 db_ip = MONGO_CONFIG['DATABASE']['server']
 db_port = int(MONGO_CONFIG['DATABASE']['port'])
