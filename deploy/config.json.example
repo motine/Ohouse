@@ -3,19 +3,19 @@
 
 
     "DATABASE": {
-         "description"  : "database configuration option",
+         "description"  : "database configuration for MA and SA information.",
          "server" : "localhost",
          "port" : "27017",
          "name" : "ohouse"
     },
 
     "PROJECT": {
-        "description" : "Maximum possible time a project expiration date can be extended",
+        "description" : "Maximum possible time a project expiration date can be extended, the extension time can be configured in days e.g., 30 days",
         "max_project_extension_time" : 30
         },
 
     "SLICE": {
-        "description" : "Maximum possible time a slice expiration date can be extended",
+        "description" : "Maximum possible time a slice expiration date can be extended, the extension time can be configured in days e.g., 30 days",
         "max_slice_extension_time" : 30
       }
 
