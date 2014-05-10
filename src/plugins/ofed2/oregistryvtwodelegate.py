@@ -21,7 +21,7 @@ class ORegistryv2Delegate(GRegistryv2DelegateBase):
         """
         self._federation_registry_resource_manager = pm.getService('oregistryrm')
         self._delegate_tools = pm.getService('delegatetools')
-        for service in self._delegate_tools.get_registry('SERVICE')['SERVICES']:
+        for service in self._delegate_tools.get_registry()['SERVICES']:
             self._delegate_tools.object_consistency_check('SERVICE', service)
 
     def get_version(self):

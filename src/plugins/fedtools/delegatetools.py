@@ -175,7 +175,7 @@ class DelegateTools(object):
         return self.STATIC['CONFIG'].get(type_, {})
 
     @serviceinterface
-    def get_registry(self, type_):
+    def get_registry(self):
         """
         Get REGISTRY fields for a given object type.
 
@@ -185,7 +185,7 @@ class DelegateTools(object):
         Returns:
             the REGISTRY fields
         """
-        return self.STATIC['REGISTRY'].get(type_, {})
+        return self.STATIC['REGISTRY']
 
     @staticmethod
     @serviceinterface
