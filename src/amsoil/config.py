@@ -51,6 +51,8 @@ try:
 except Exception:
     raise  MissingFileOrData(MONGO_CONFIG_PATH)
 
-db_ip = MONGO_CONFIG['DATABASE']['server']
-db_port = int(MONGO_CONFIG['DATABASE']['port'])
-db_name = MONGO_CONFIG['DATABASE']['name']
+
+default_ip, default_port, default_name= 'localhost', '27017', 'ohouse'
+db_ip = MONGO_CONFIG['DATABASE']['server'] or default_ip
+db_port = int(MONGO_CONFIG['DATABASE']['port']) or default_port
+db_name = MONGO_CONFIG['DATABASE']['name'] or default_name
