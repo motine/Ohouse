@@ -76,7 +76,7 @@ class OSAv2Delegate(GSAv2DelegateBase):
                 # This is needed here to enable fetching out the SLICE_CREATION time belonging to a certain SLICE_URN
                 keyed_lookup_result = self._delegate_tools.to_keyed_dict(lookup_result, "SLICE_URN")
                 is_valid = self._delegate_tools.validate_expiration_time(str(keyed_lookup_result[urn]['SLICE_CREATION']),
-                                                                        update_expiration_time)
+                                                                        update_expiration_time, type_)
 
                 if not is_valid:
                     raise gfed_ex.GFedv2ArgumentError("Invalid expiry date for object type: " + str(type_))
