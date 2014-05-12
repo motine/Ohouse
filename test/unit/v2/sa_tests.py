@@ -124,21 +124,20 @@ class TestGSAv2(unittest.TestCase):
         self._test_update(urn, update_data, 'PROJECT', 'PROJECT_URN', 3)
         self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
 
-
     def test_update_invalid_expiry(self):
         """
         Test update rules by passing an invalid expiry date during update.
+        Note: We are only testing projects here because otherwise we would end up with slices left over (we can not remove slices).
         """
         create_data = {
-                       'SLICE_NAME' : 'TEST-PROJECT',
-                       'SLICE_DESCRIPTION' : 'Time_Expiry'}
-
-        urn = self._test_create(create_data, 'SLICE', 'SLICE_URN', 0)
-
-        update_data = {'SLICE_EXPIRATION' : '2013-05-20T13:15:30Z'}
-        self._test_update(urn, update_data, 'SLICE', 'SLICE_URN', 3)
+                       'PROJECT_NAME' : 'TEST-PROJECT',
+                       'PROJECT_DESCRIPTION' : 'Time_Expiry'}
 
         urn = self._test_create(create_data, 'PROJECT', 'PROJECT_URN', 0)
+
+        update_data = {'PROJECT_EXPIRATION' : '2013-07-29T13:15:30Z'}
+        self._test_update(urn, update_data, 'PROJECT', 'PROJECT_URN', 3)
+        self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
 
     def test_lookup_multiple_slice_urns(self):
         create_data_1 = {

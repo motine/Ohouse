@@ -3,3 +3,6 @@
 am.nginx.conf
 *.db
 config.json
+registry.json
+supplementary_fields.json
+
