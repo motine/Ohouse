@@ -4,6 +4,8 @@ from amsoil.core import serviceinterface
 import amsoil.core.log
 logger=amsoil.core.log.getLogger('gsarpc')
 
+from apiexceptionsv2 import GFedv2NotImplementedError
+
 xmlrpc = pm.getService('xmlrpc')
 
 class GSAv2Handler(xmlrpc.Dispatcher):
@@ -147,6 +149,18 @@ class GSAv2Handler(xmlrpc.Dispatcher):
             return self._api_tools.form_error_return(logger, e)
         return self._api_tools.form_success_return(result)
 
+    def get_credentials(self, slice_urn, credentials, options):
+         """
+         Provide list of credentials for the caller relative to the given slice.
+         """
+         try:
+
+              result = self._delegate.get_credentials(slice_urn,  credentials, options)
+         except Exception as e:
+             return self._api_tools.form_error_return(logger, e)
+         return self._api_tools.form_success_return(result)
+
+
 class GSAv2DelegateBase(object):
     """
     The contract of this class (methods, params and returns) are derived from the GENI Federation MA API (v2).
@@ -279,6 +293,7 @@ class GSAv2DelegateBase(object):
           List of credential in 'CREDENTIALS' format, i.e. a list of credentials with
         type information suitable for passing to aggregates speaking AM API V3.
         """
+
         raise GFedv2NotImplementedError("Method not implemented")
 
     # ---- Slice Member Service Methods and Project Member Service Methods

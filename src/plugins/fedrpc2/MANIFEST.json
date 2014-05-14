@@ -5,6 +5,6 @@
   "version" : 1,
   "implements" : ["gregistryv2handler", "gregistryv2delegatebase", "gmav2handler",
     "gmav2delegatebase", "gsav2handler", "gsav2delegatebase"],
-  "loads-after" : ["apitools", "xmlrpc"],
+  "loads-after" : ["apitools", "xmlrpc", "apiexceptionsv2"],
   "requires" : []
 }

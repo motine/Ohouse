@@ -186,4 +186,3 @@ class OSAv2Delegate(GSAv2DelegateBase):
             return self._slice_authority_resource_manager.lookup_project_membership_for_member(member_urn, certificate, credentials, options)
         else:
             raise gfed_ex.GFedv2NotImplementedError("No lookup for member method found for object type: " + str(type_))
-
