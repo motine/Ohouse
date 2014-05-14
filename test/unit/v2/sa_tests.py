@@ -20,6 +20,8 @@ def _remove_key(dct, val):
 
 class TestGSAv2(unittest.TestCase):
 
+    NOT_IMPLEMENTED  = 100
+
     @classmethod
     def setUpClass(klass):
         # try to get custom fields before we start the tests
@@ -140,6 +142,10 @@ class TestGSAv2(unittest.TestCase):
         self._test_delete(urn, 'PROJECT', 'PROJECT_URN', 0)
 
     def test_lookup_multiple_slice_urns(self):
+        """
+        Test whether it is possible to specify multiple slices and look those slices concurrently
+        """
+
         create_data_1 = {
                'SLICE_NAME' : 'TEST-SLICE-1',
                'SLICE_DESCRIPTION' : 'Time_Expiry'}
@@ -153,6 +159,18 @@ class TestGSAv2(unittest.TestCase):
 
         lookup_data={'SLICE_URN':[str(urn1),str(urn2)]}
         self._test_lookup(lookup_data, None, 'SLICE', 0, 2)
+
+
+    def test_get_credentials(self):
+        """
+        Test to see whether the get_credentials method is working or not
+        """
+        create_data= {
+               'PROJECT_NAME' : 'TEST-SLICE-CREDENTIALS',
+               'PROJECT_DESCRIPTION' : 'TEST_CREDENTIALS'}
+
+        urn = self._test_create(create_data, 'PROJECT', 'PROJECT_URN', 0)
+        self._test_get_credentials(urn, TestGSAv2.NOT_IMPLEMENTED)
 
     def test_slice(self):
         """
@@ -266,6 +284,12 @@ class TestGSAv2(unittest.TestCase):
         self.assertEqual(code, expected_code)
         self.assertIsNone(value)
         self._test_lookup({expected_urn : urn}, None, object_type, 0)
+
+    def _test_get_credentials(self, urn, expected_code):
+
+        code, value, output = sa_call('get_credentials', [urn, self._credential_list("admin"), {}], user_name="admin")
+        self.assertEqual(code, expected_code)
+
 
     def test_malformed_membership(self):
         """
