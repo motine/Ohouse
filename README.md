@@ -4,6 +4,10 @@
 
 This is/shall a Clearinghouse for all the projects mentioned.
 
+# Moved!
+
+Since I am not part of the development any more, this project has been renamed to [C-BAS] and moved [here](https://github.com/zanetworker/C-BAS).
+
 ## Installation
 
 ### Environment
